@@ -106,13 +106,19 @@ try:
         time.sleep(0.25)
 finally:
     if proc.poll() is None:
-        for sig, timeout in [
-            (signal.SIGINT, 18),
-            (signal.SIGTERM, 5),
-            (signal.SIGKILL, 3),
+        for sig, timeout, process_group in [
+            # Let ros2 launch own the first shutdown wave. Signalling the whole
+            # group here reaches launch's children directly, then launch sends
+            # them SIGINT again and interrupts their cleanup handlers.
+            (signal.SIGINT, 18, False),
+            (signal.SIGTERM, 5, False),
+            (signal.SIGKILL, 3, True),
         ]:
             try:
-                os.killpg(proc.pid, sig)
+                if process_group:
+                    os.killpg(proc.pid, sig)
+                else:
+                    proc.send_signal(sig)
             except ProcessLookupError:
                 break
             try:

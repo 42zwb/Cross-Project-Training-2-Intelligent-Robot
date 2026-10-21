@@ -390,6 +390,9 @@ def main():
         rclpy.spin(n)
     except KeyboardInterrupt:
         pass
+    except Exception:
+        if rclpy.ok():
+            raise
     finally:
         n.destroy_node()
         rclpy.try_shutdown()

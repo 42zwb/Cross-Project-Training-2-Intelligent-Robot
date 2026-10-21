@@ -83,6 +83,9 @@ def main():
             rclpy.spin_once(n, timeout_sec=0.2)
     except KeyboardInterrupt:
         pass
+    except Exception:
+        if rclpy.ok():
+            raise
     finally:
         if proc and proc.poll() is None:
             proc.send_signal(signal.SIGINT)

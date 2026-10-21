@@ -1098,6 +1098,9 @@ def main():
         executor.spin()
     except KeyboardInterrupt:
         pass
+    except Exception:
+        if rclpy.ok():
+            raise
     finally:
         with n.lock:
             n.running = False

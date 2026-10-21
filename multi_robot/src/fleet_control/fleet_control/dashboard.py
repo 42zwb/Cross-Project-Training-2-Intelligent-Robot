@@ -192,6 +192,9 @@ def main():
         rclpy.spin(n)
     except KeyboardInterrupt:
         pass
+    except Exception:
+        if rclpy.ok():
+            raise
     finally:
         server.shutdown()
         server.server_close()

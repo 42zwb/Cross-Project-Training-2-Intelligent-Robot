@@ -220,8 +220,18 @@ def main():
         rclpy.spin(n)
     except KeyboardInterrupt:
         pass
+    except Exception:
+        if rclpy.ok():
+            raise
     finally:
-        for p in n.pubs.values():
-            p.publish(Twist())
+        # rclpy's default SIGINT handler shuts the context down before control
+        # reaches this block. Publish a final stop only while the context is
+        # still valid; the base controller's command timeout is the fallback.
+        if rclpy.ok():
+            for p in n.pubs.values():
+                try:
+                    p.publish(Twist())
+                except Exception:
+                    break
         n.destroy_node()
         rclpy.try_shutdown()
