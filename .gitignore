@@ -13,5 +13,11 @@
 **/*.egg-info/
 **/.coverage
 **/coverage.xml
+**/.venv-yolo/
+**/.moveit-cache/
+**/.moveit-overlay/
+**/.moveit-overlay.tmp.*/
+**/.moveit-overlay.backup.*/
 .DS_Store
 *.swp
+**/yolov8n.pt

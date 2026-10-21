@@ -11,7 +11,7 @@
 | 仿真器 | Ignition Gazebo 6.18.0（Fortress） |
 | 机器人 | TurtleBot4 Lite / Standard |
 | Python | 3.10.12 |
-| DDS | CycloneDDS（新终端自动启用） |
+| DDS | CycloneDDS |
 | 工作空间 | `single_robot` |
 | 地图目录 | `~/maps` |
 
@@ -23,11 +23,12 @@ ROS2 apt 源使用清华镜像，签名仍使用 Open Robotics 官方密钥：
 deb [arch=amd64 signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] https://mirrors.tuna.tsinghua.edu.cn/ros2/ubuntu jammy main
 ```
 
-在仓库根目录的新终端中加载 ROS、工作空间 overlay 和 CycloneDDS：
+从仓库根目录的新终端进入 `single_robot`，加载 ROS、工作空间和 CycloneDDS：
 
 ```bash
+cd single_robot
 source /opt/ros/humble/setup.bash
-source single_robot/install/setup.bash
+source install/setup.bash
 export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 ```
 
@@ -71,7 +72,7 @@ single_robot/src/
 ```bash
 cd single_robot
 source /opt/ros/humble/setup.bash
-colcon build --symlink-install
+colcon build
 source install/setup.bash
 colcon test --packages-select turtlebot4_tutorial turtlebot4_cartographer
 colcon test-result --all --verbose
@@ -82,9 +83,10 @@ colcon test-result --all --verbose
 每个新终端先执行：
 
 ```bash
-source /opt/ros/humble/setup.bash
 cd single_robot
+source /opt/ros/humble/setup.bash
 source install/setup.bash
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 ```
 
 ### 3.1 只启动仿真
@@ -408,7 +410,7 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard \
   --ros-args -r cmd_vel:=/robot1/cmd_vel
 ```
 
-双机器人仿真的完整启动顺序（每个终端先加载 ROS 与工作空间环境）：
+双机器人仿真的完整启动顺序（四个终端均先进入 `single_robot` 并加载环境）：
 
 ```bash
 # 终端 1：启动世界、robot1 及其定位与导航
@@ -501,7 +503,105 @@ ros2 run turtlebot4_tutorial multi_robot_patrol robot1 robot2 \
 - `ros2 doctor` 只提示本地 TF2 0.25.23 低于索引中的 0.25.24；当前构建、TF、建图和导航均通过。
 - rosdep 已在用户目录 `~/.config/rosdep/sources.list.d` 初始化，`.bashrc` 已设置 `ROSDEP_SOURCE_PATH`，并完成 Humble 索引更新。新终端执行 `rosdep check --from-paths single_robot/src --ignore-src --rosdistro humble` 应显示依赖满足；不需要再运行 sudo rosdep init。
 - RViz 第一次收到地图时仍可能打印一次 `active samplers ... same texture image unit`。本轮地图实际显示并更新；这是 [RViz 上游问题 #463](https://github.com/ros2/rviz/issues/463) 中记录的提示，不能把它与退出段错误混为一谈。
-- 教程末尾的 PyTorch/YOLO 和 MoveIt 是延伸方向，不属于 TurtleBot4 移动、建图和导航主实验。本机没有安装这些大型可选组件；文档所写 `ros-humble-yolov8-ros` 包名在当前 Humble 软件源中也不存在。
+- 课程延伸已加入 YOLOv8 ROS 2 检测节点、Nav2 Smac 2D 规划器和 Panda MoveIt Task Constructor 抓取/放置模拟示例。`D*`、`RRT*` 和实体机械臂不在本轮实现范围；实测条件与结果见 [课程延伸实验报告](docs/课程延伸实验验证报告.md)。
+
+## 11. 课程延伸实验
+
+### 11.1 TurtleBot4 相机上的 YOLOv8
+
+教程原文中的 `ros-humble-yolov8-ros` 不是 Humble 软件源里的有效包名。项目提供了
+`yolov8_detector` ROS 2 节点，订阅 TurtleBot4 仿真的 `/oakd/rgb/preview/image_raw`，
+发布 `vision_msgs/Detection2DArray` 到 `/yolo/detections`，并发布带检测框的图像到
+`/yolo/annotated`。模型和 PyTorch 安装在工作区虚拟环境中，避免影响系统 ROS 的 Python
+依赖；本项目锁定 CPU 版 PyTorch 和兼容 NumPy 1.x 的 OpenCV。
+
+```bash
+cd single_robot
+source /opt/ros/humble/setup.bash
+python3 -m pip install --user virtualenv  # 若 python3 -m venv 不可用
+python3 -m virtualenv --system-site-packages .venv-yolo
+source .venv-yolo/bin/activate
+python -m pip install --index-url https://download.pytorch.org/whl/cpu \
+  --no-deps 'torch==2.5.1+cpu' 'torchvision==0.20.1+cpu'
+python -m pip install -i https://pypi.tuna.tsinghua.edu.cn/simple \
+  -r src/turtlebot4_tutorial/requirements-yolo.txt
+deactivate
+colcon build --packages-select turtlebot4_tutorial
+source install/setup.bash
+
+# 终端 1：启动 TurtleBot4 Lite 无界面仿真
+ros2 launch turtlebot4_tutorial tutorial_simulation.launch.py \
+  model:=lite gui:=false rviz:=false \
+  gz_args:='warehouse.sdf -s -r -v 1'
+
+# 终端 2：启用同一虚拟环境后启动检测节点
+source /opt/ros/humble/setup.bash
+cd single_robot
+./scripts/run_yolo_detector.sh
+```
+
+首次运行 `yolov8n.pt` 会从 Ultralytics 下载 COCO 预训练权重。可以用
+`ros2 topic echo /yolo/detections --once` 查看类别和置信度，用 RViz 的 Image 显示
+`/yolo/annotated`。空旷的仿真画面可能返回 0 个目标；可以向输入话题发布测试图像检查检测框。
+要处理实体相机，将 `image_topic` 参数改成相机实际发布的图像话题。启动脚本会使用隔离的
+Python 环境和 CPU 版 PyTorch，不要改用未激活环境下的 `ros2 run`。
+
+### 11.2 Navfn 与 Smac 2D A* 对比
+
+Nav2 配置保留默认 `GridBased`/Navfn，并注册 `Smac2D`（基于栅格 A*）。启动导航后，
+直接向 `/compute_path_to_pose` action 分别发送相同的目标并比较返回的路径点数和规划时间：
+
+```bash
+ros2 launch turtlebot4_tutorial tutorial_navigation.launch.py \
+  model:=lite gui:=false rviz:=false
+
+ros2 action send_goal /compute_path_to_pose nav2_msgs/action/ComputePathToPose \
+  "{goal: {header: {frame_id: map}, pose: {position: {x: 0.5, y: 0.0}, orientation: {w: 1.0}}}, use_start: false, planner_id: GridBased}"
+ros2 action send_goal /compute_path_to_pose nav2_msgs/action/ComputePathToPose \
+  "{goal: {header: {frame_id: map}, pose: {position: {x: 0.5, y: 0.0}, orientation: {w: 1.0}}}, use_start: false, planner_id: Smac2D}"
+```
+
+Smac 2D 是 A* 家族实现，适合本项目近似圆形的差速底盘。D*、RRT* 并未由本项目实现；
+在本机同一目标的仿真请求中，Navfn 返回 33 个路径点（约 6 ms），Smac2D 返回 18 个路径点
+（约 3 ms）。该单次结果不是不同地图和目标上的性能结论；
+要比较它们需要另行接入/编写 Nav2 全局规划插件。
+
+### 11.3 MoveIt 2 抓取与放置
+
+TurtleBot4 是移动底盘，没有机械臂与夹爪，因此 MoveIt 实验使用官方 Panda 机械臂模型，
+作为独立操作规划演示，不会向 TurtleBot4 下发机械臂控制。可安装 Humble 的 MoveIt、
+Panda MoveIt 配置和 MoveIt Task Constructor 示例包：
+
+```bash
+sudo apt update
+sudo apt install ros-humble-moveit \
+  ros-humble-moveit-resources-panda-moveit-config \
+  ros-humble-moveit-task-constructor-demo \
+  ros-humble-moveit-task-constructor-visualization
+```
+
+若当前账户没有管理员 sudo 授权，可以不改动系统 dpkg 数据库，改将相同 Debian 包解压到
+工作区用户目录：
+
+```bash
+cd single_robot
+./scripts/install_moveit_user_overlay.sh
+
+# 终端 1：启动 Panda + MoveIt + 模拟 ros2_control
+source scripts/source_moveit_user_overlay.bash
+source install/setup.bash
+ros2 launch turtlebot4_tutorial panda_mtc_demo.launch.py
+
+# 终端 2：使用同一 ROS_DOMAIN_ID，并加载相同 overlay 后执行抓取/放置任务
+source single_robot/scripts/source_moveit_user_overlay.bash
+source single_robot/install/setup.bash
+ros2 launch turtlebot4_tutorial panda_mtc_task.launch.py execute:=true
+```
+
+建议按 [MoveIt Humble Pick and Place with MTC 教程](https://moveit.picknik.ai/humble/doc/tutorials/pick_and_place_with_moveit_task_constructor/pick_and_place_with_moveit_task_constructor.html)
+运行 Panda 的抓取放置演示，并在 RViz 查看规划阶段和轨迹。该演示依赖 MoveIt 二进制包，
+上面的本地 overlay 是未注册到系统包管理器的可移除运行环境；执行成功的规划/仿真轨迹
+不代表实体机械臂安全或可用。
 
 ## 10. 故障排查
 

@@ -9,6 +9,7 @@
   <exec_depend>action_msgs</exec_depend>
   <exec_depend>ament_index_python</exec_depend>
   <exec_depend>diagnostic_msgs</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>irobot_create_common_bringup</exec_depend>
   <exec_depend>irobot_create_ignition_bringup</exec_depend>
@@ -33,6 +34,7 @@
   <exec_depend>rviz2</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>vision_msgs</exec_depend>
   <exec_depend>teleop_twist_keyboard</exec_depend>
   <exec_depend>turtlebot4_description</exec_depend>
   <exec_depend>turtlebot4_cartographer</exec_depend>

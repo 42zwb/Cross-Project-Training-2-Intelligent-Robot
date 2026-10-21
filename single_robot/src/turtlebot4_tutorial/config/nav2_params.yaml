@@ -219,12 +219,26 @@ planner_server:
   ros__parameters:
     expected_planner_frequency: 20.0
     use_sim_time: True
-    planner_plugins: ["GridBased"]
+    # Keep Navfn as the default plugin so existing navigation goals are
+    # unchanged. Select Smac2D explicitly in ComputePathToPose requests with
+    # planner_id: "Smac2D" when comparing A* against Navfn.
+    planner_plugins: ["GridBased", "Smac2D"]
     GridBased:
       plugin: "nav2_navfn_planner/NavfnPlanner"
       tolerance: 0.5
       use_astar: false
       allow_unknown: true
+    Smac2D:
+      plugin: "nav2_smac_planner/SmacPlanner2D"
+      tolerance: 0.5
+      downsample_costmap: false
+      downsampling_factor: 1
+      allow_unknown: true
+      max_iterations: 1000000
+      max_on_approach_iterations: 1000
+      max_planning_time: 2.0
+      cost_travel_multiplier: 2.0
+      use_final_approach_orientation: false
 
 smoother_server:
   ros__parameters:

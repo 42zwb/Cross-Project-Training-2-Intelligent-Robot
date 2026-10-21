@@ -40,6 +40,7 @@ setup(
             'mapping_patrol = turtlebot4_tutorial.mapping_patrol:main',
             'robot_description_filter = turtlebot4_tutorial.robot_description_filter:main',
             'initial_pose_publisher = turtlebot4_tutorial.initial_pose_publisher:main',
+            'yolov8_detector = turtlebot4_tutorial.yolo_detector:main',
         ],
     },
 )
