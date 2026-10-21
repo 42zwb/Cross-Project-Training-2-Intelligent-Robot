@@ -6,6 +6,7 @@ import numpy as np
 import yaml
 from scipy import ndimage
 from fleet_mapping.grid import load_map
+from fleet_control.geometry import formation_pass, FORMATION_CLEARANCE_MARGIN
 
 
 def coverage(data, res, origin, boxes, regions, robot_radius=0.18):
@@ -175,14 +176,28 @@ def evaluate(run, map_path=None):
                 )
                 for n, p in t["robots"].items()
             }
+            poses = [t["robots"][f"robot{i + 1}"][:3] for i in range(3)]
+            pair_distances = [
+                math.dist(poses[i][:2], poses[j][:2])
+                for i in range(3)
+                for j in range(i)
+            ]
             formations.append(
                 {
                     "sim_time": e["sim_time"],
                     "estimated_errors": e["errors"],
                     "actual_position_errors": errors,
                     "actual_yaw_errors": yaw_errors,
-                    "actual_pass": max(errors.values()) <= 0.25
-                    and max(yaw_errors.values()) <= math.radians(15.0),
+                    "minimum_pair_distance": min(pair_distances),
+                    "required_pair_distance": (
+                        2.0 * cfg["robot_radius"] + FORMATION_CLEARANCE_MARGIN
+                    ),
+                    "actual_pass": formation_pass(
+                        poses,
+                        e["slots"],
+                        e["assignment"],
+                        cfg["robot_radius"],
+                    ),
                 }
             )
         report["formations"] = formations

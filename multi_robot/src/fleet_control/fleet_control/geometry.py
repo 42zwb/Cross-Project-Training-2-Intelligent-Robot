@@ -11,6 +11,30 @@ def angle(a):
     return math.atan2(math.sin(a), math.cos(a))
 
 
+FORMATION_POSITION_TOLERANCE = 0.25
+FORMATION_YAW_TOLERANCE = math.radians(15.0)
+FORMATION_CLEARANCE_MARGIN = 0.14
+
+
+def formation_pass(poses, slots, assignment, robot_radius):
+    """Check formation error and body separation using the shared acceptance policy."""
+    if len(poses) != 3 or len(slots) != 3 or len(assignment) != 3:
+        return False
+    for robot_index, pose in enumerate(poses):
+        target = slots[assignment[robot_index]]
+        if (
+            math.dist(pose[:2], target[:2]) > FORMATION_POSITION_TOLERANCE
+            or abs(angle(pose[2] - target[2])) > FORMATION_YAW_TOLERANCE
+        ):
+            return False
+    minimum_separation = 2.0 * robot_radius + FORMATION_CLEARANCE_MARGIN
+    return all(
+        math.dist(poses[i][:2], poses[j][:2]) >= minimum_separation
+        for i in range(3)
+        for j in range(i)
+    )
+
+
 def yaw(q):
     return math.atan2(2 * (q.w * q.z + q.x * q.y), 1 - 2 * (q.y * q.y + q.z * q.z))
 

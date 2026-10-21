@@ -4,10 +4,13 @@
 **/log/
 **/runs/
 **/results/
+**/vendor/runtime/
 **/__pycache__/
 **/.pytest_cache/
 **/.mypy_cache/
+**/.ruff_cache/
 **/*.py[cod]
+**/*.egg-info/
 **/.coverage
 **/coverage.xml
 .DS_Store

@@ -29,7 +29,15 @@ from lifecycle_msgs.srv import GetState
 from std_srvs.srv import SetBool
 from tf2_ros import Buffer, TransformListener, TransformException
 from fleet_interfaces.srv import SetRegions, SetFormation, FleetCommand
-from .geometry import Grid, angle, yaw, formation, validate_regions, plan_formation
+from .geometry import (
+    Grid,
+    angle,
+    yaw,
+    formation,
+    formation_pass,
+    validate_regions,
+    plan_formation,
+)
 
 
 class Coordinator(Node):
@@ -1053,9 +1061,11 @@ class Coordinator(Node):
         stable = None
         end = time.monotonic() + 12.0
         while self.valid(token) and time.monotonic() < end:
-            good = len(self.errors) == 3 and all(
-                e["position"] <= 0.15 and e["yaw"] <= math.radians(10.0)
-                for e in self.errors.values()
+            good = len(self.poses) == 3 and formation_pass(
+                [self.poses[n] for n in self.names],
+                slots,
+                assignment,
+                self.cfg["robot_radius"],
             )
             if good:
                 if stable is None:

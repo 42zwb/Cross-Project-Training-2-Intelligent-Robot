@@ -3,6 +3,7 @@
 import io, json, threading, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urlsplit
 import numpy as np
 from PIL import Image
 import yaml
@@ -113,6 +114,7 @@ def main():
             self.send_header("Content-Type", ctype)
             self.send_header("Content-Length", str(len(data)))
             self.send_header("Cache-Control", "no-store")
+            self.send_header("X-Content-Type-Options", "nosniff")
             self.end_headers()
             try:
                 self.wfile.write(data)
@@ -120,7 +122,8 @@ def main():
                 pass
 
         def do_GET(self):
-            if self.path.startswith("/api/state"):
+            route = urlsplit(self.path).path
+            if route == "/api/state":
                 self.send(
                     200,
                     json.dumps(
@@ -129,9 +132,9 @@ def main():
                     ).encode(),
                     "application/json; charset=utf-8",
                 )
-            elif self.path.startswith("/api/map.png"):
+            elif route == "/api/map.png":
                 self.send(200, n.png, "image/png")
-            elif self.path in ["/", "/index.html"]:
+            elif route in ["/", "/index.html"]:
                 self.send(
                     200, (n.web / "index.html").read_bytes(), "text/html; charset=utf-8"
                 )
@@ -140,6 +143,7 @@ def main():
 
         def do_POST(self):
             try:
+                route = urlsplit(self.path).path
                 origin = self.headers.get("Origin", "")
                 if origin and origin not in [
                     f"http://127.0.0.1:{n.port}",
@@ -152,8 +156,18 @@ def main():
                     raise ValueError("请求长度无效") from e
                 if not 1 <= length <= 16384:
                     raise ValueError("请求长度必须在 1 到 16384 字节之间")
+                if self.headers.get_content_type() != "application/json":
+                    raise ValueError("请求内容类型必须是 application/json")
                 data = json.loads(self.rfile.read(length))
-                kind = self.path.removeprefix("/api/")
+                if not isinstance(data, dict):
+                    raise ValueError("请求 JSON 必须是对象")
+                kind = route.removeprefix("/api/")
+                if route not in {
+                    "/api/command",
+                    "/api/formation",
+                    "/api/regions",
+                }:
+                    raise ValueError("不存在的接口")
                 r = n.request(kind, data)
                 self.send(
                     200,

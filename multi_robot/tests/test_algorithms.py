@@ -4,6 +4,7 @@ import pytest
 from fleet_control.geometry import (
     Grid,
     formation,
+    formation_pass,
     compose,
     inverse,
     validate_regions,
@@ -33,6 +34,24 @@ def test_three_shapes():
             assert distances == pytest.approx([1.2] * 3)
     with pytest.raises(ValueError):
         formation("triangle", 0, 0, 0, float("nan"))
+
+
+def test_formation_acceptance_matches_error_and_separation_limits():
+    slots = formation("triangle", 0, 0, 0, 1.2)
+    poses = [list(point) for point in slots]
+    poses[0][0] += 0.18
+    assert formation_pass(poses, slots, [0, 1, 2], 0.18)
+
+    poses[0][0] = slots[0][0] + 0.26
+    assert not formation_pass(poses, slots, [0, 1, 2], 0.18)
+
+    poses[0] = list(slots[0])
+    poses[0][2] = math.radians(16)
+    assert not formation_pass(poses, slots, [0, 1, 2], 0.18)
+
+    close_slots = formation("row", 0, 0, 0, 0.7)
+    close_poses = [[0, -0.48, 0], [0, 0, 0], [0, 0.48, 0]]
+    assert not formation_pass(close_poses, close_slots, [0, 1, 2], 0.18)
 
 
 def test_regions_cover_overlap_start():
