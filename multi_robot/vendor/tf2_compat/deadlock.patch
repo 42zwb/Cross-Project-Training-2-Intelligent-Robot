@@ -1,0 +1,43 @@
+--- upstream/buffer_core.cpp
++++ patched/buffer_core.cpp
+@@ -1405,6 +1405,7 @@
+ 
+ void BufferCore::testTransformableRequests()
+ {
++  std::vector<std::function<void()>> ready_callbacks;
+   std::unique_lock<std::mutex> lock(transformable_requests_mutex_);
+   V_TransformableRequest::iterator it = transformable_requests_.begin();
+   while (it != transformable_requests_.end()) {
+@@ -1438,10 +1439,16 @@
+         std::unique_lock<std::mutex> lock2(transformable_callbacks_mutex_);
+         M_TransformableCallback::iterator it = transformable_callbacks_.find(req.cb_handle);
+         if (it != transformable_callbacks_.end()) {
+-          const TransformableCallback & cb = it->second;
+-          cb(
+-            req.request_handle, lookupFrameString(req.target_id), lookupFrameString(
+-              req.source_id), req.time, result);
++          // Never invoke external callbacks while holding core request/callback
++          // mutexes: tf2_ros::waitForTransform acquires them in reverse order.
++          const TransformableCallback cb = it->second;
++          const auto handle = req.request_handle;
++          const auto target = lookupFrameString(req.target_id);
++          const auto source = lookupFrameString(req.source_id);
++          const auto stamp = req.time;
++          ready_callbacks.emplace_back([cb, handle, target, source, stamp, result]() {
++            cb(handle, target, source, stamp, result);
++          });
+           transformable_callbacks_.erase(req.cb_handle);
+         }
+       }
+@@ -1461,6 +1468,11 @@
+       ++it;
+     }
+   }
++  lock.unlock();
++  for (const auto & callback : ready_callbacks) {
++    callback();
++  }
++
+ }
+ 
+ std::string BufferCore::_allFramesAsDot(TimePoint current_time) const

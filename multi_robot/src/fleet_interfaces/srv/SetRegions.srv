@@ -1,0 +1,5 @@
+# Three rectangles flattened as xmin,ymin,xmax,ymax, in robot order.
+float64[12] bounds
+---
+bool success
+string message

@@ -1,0 +1,14 @@
+# ROS 2 / colcon generated files
+**/build/
+**/install/
+**/log/
+**/runs/
+**/results/
+**/__pycache__/
+**/.pytest_cache/
+**/.mypy_cache/
+**/*.py[cod]
+**/.coverage
+**/coverage.xml
+.DS_Store
+*.swp
