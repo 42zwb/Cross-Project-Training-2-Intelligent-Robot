@@ -35,7 +35,8 @@ fig, ax = plt.subplots(figsize=(7, 7))
 ax.imshow(
     image,
     origin="lower",
-    extent=[-6, 6, -6, 6],
+    extent=[meta['origin'][0], meta['origin'][0]+data.shape[1]*meta['resolution'],
+            meta['origin'][1], meta['origin'][1]+data.shape[0]*meta['resolution']],
     cmap=ListedColormap(["#8694a5", "#f5f7fa", "#17212e"]),
     vmin=0,
     vmax=2,
@@ -45,17 +46,17 @@ for n, c in zip(names, colors):
     xy = np.array([t["robots"][n][:2] for t in series])
     ax.plot(xy[:, 0], xy[:, 1], color=c, lw=1.8, label=n + " actual exploration")
     ax.plot(xy[0, 0], xy[0, 1], "o", color=c, ms=6)
-for x in [-2, 2]:
+for x in sorted({r[2] for r in telemetry[0]['regions'][:-1]}):
     ax.axvline(x, color="#68809c", ls="--", lw=0.9)
 ax.set(
-    xlim=(-6, 6),
-    ylim=(-6, 6),
+    xlim=(meta['origin'][0], meta['origin'][0]+data.shape[1]*meta['resolution']),
+    ylim=(meta['origin'][1], meta['origin'][1]+data.shape[0]*meta['resolution']),
     xlabel="map X [m]",
     ylabel="map Y [m]",
     title="Shared lidar map and measured exploration paths",
 )
-ax.set_xticks(range(-6, 7, 2))
-ax.set_yticks(range(-6, 7, 2))
+ax.set_xticks(np.arange(math.ceil(ax.get_xlim()[0]), ax.get_xlim()[1], 2))
+ax.set_yticks(np.arange(math.ceil(ax.get_ylim()[0]), ax.get_ylim()[1], 2))
 ax.grid(alpha=0.18)
 ax.legend(loc="lower center", fontsize=8)
 fig.tight_layout()

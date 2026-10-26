@@ -77,6 +77,12 @@ class Coordinator(Node):
         self.estop = False
         self.started = False
         self.region_enabled = True
+        self.exploration_unrestricted = False
+        self.region_release_reason = ""
+        self.region_stall_since = {}
+        self.boundary_blocked_since = {}
+        self.last_boundary_check = 0.0
+        self.cross_region_next = 0
         self.generation = 0
         self.active = set()
         self.mapping = {}
@@ -526,12 +532,17 @@ class Coordinator(Node):
                 "regions": self.regions,
                 "region_enabled": self.region_enabled,
                 "regions_locked": self.started,
+                "exploration_unrestricted": self.exploration_unrestricted,
+                "region_release_reason": self.region_release_reason,
                 "known_fraction": self.mapping.get("known_fraction", 0.0),
                 "formation_slots": self.slots,
                 "formation_assignment": self.assignment,
                 "formation_errors": self.errors,
                 "saved": self.saved,
                 "arena": self.cfg["arena"],
+                "scene": {**self.cfg.get("scene", {}),
+                          "seed": str(self.cfg.get("scene", {}).get("seed", ""))},
+                "starts": {r["name"]: r["start"] for r in self.robots},
                 "planner": self.cfg.get("planner", "navfn"),
                 "patrol": self.patrol,
                 "readiness": {
@@ -1116,7 +1127,7 @@ class Coordinator(Node):
             <= b[3] - self.cfg["region_margin"]
             for n, b in zip(self.names, self.regions)
         )
-        if outside:
+        if outside and not self.exploration_unrestricted:
             self.filters(False, token)
             if not self.set_task_state(token, "RETURNING", "返回各自建图区域"):
                 return
@@ -1127,9 +1138,9 @@ class Coordinator(Node):
                     raise RuntimeError(r["name"] + " 返回区域失败，已停车")
         if not self.valid(token):
             return
-        self.filters(True, token)
+        self.filters(not self.exploration_unrestricted, token)
         if not self.set_task_state(
-            token, "EXPLORING", "三车正在所属区域自主探索"
+            token, "EXPLORING", "三车正在跨区协同补盲" if self.exploration_unrestricted else "三车正在所属区域自主探索"
         ):
             return
         with self.lock:
@@ -1137,12 +1148,61 @@ class Coordinator(Node):
                 return
             self.explore_done = {n: False for n in self.names}
             self.exploring = {}
+            self.region_stall_since = {}
+            self.boundary_blocked_since = {}
+            self.last_boundary_check = 0.0
         self.event("explore_start")
+
+    def release_exploration_regions(self, token, robot, target):
+        """Remove task boundaries after an observed, reachable escape is found.
+
+        Stop all motion before changing Nav2 filters. Sensor, collision, heartbeat
+        and task-lease protection remain active. No scene truth is consulted.
+        """
+        if not self.stopped(token):
+            if self.valid(token):
+                raise RuntimeError("跨区切换前无法确认全车停车")
+            return
+        self.filters(False, token)
+        with self.lock:
+            if not self.valid(token):
+                return
+            self.exploration_unrestricted = True
+            self.region_release_reason = f"{robot} 的区域限制阻断了实时地图中的可达探索路径"
+            self.message = "已解除分区限制，三车跨区协同补盲"
+            self.exploring = {}
+            self.blacklist = {n: [] for n in self.names}
+            self.explore_done = {n: False for n in self.names}
+            self.cross_region_next = 0
+        self.event("exploration_regions_released", robot=robot,
+                   reason=self.region_release_reason, observed_target=list(target))
 
     def explore_tick(self, token):
         if not self.valid(token) or self.grid is None:
             return
-        for i, n in enumerate(self.names):
+        # Probe even while ordinary regional goals remain, so a disconnected
+        # pocket can be reached without waiting for every other goal to finish.
+        now = time.monotonic()
+        if not self.exploration_unrestricted and now - self.last_boundary_check >= 6.0:
+            self.last_boundary_check = now
+            for i, name in enumerate(self.names):
+                if name not in self.poses:
+                    continue
+                with self.lock:
+                    reserved = [p for other, p in self.goals.items() if other != name]
+                escape = self.grid.region_escape(self.poses[name], self.regions[i], reserved,
+                                                  self.blacklist[name], self.visits[name])
+                if escape is None:
+                    self.boundary_blocked_since.pop(name, None)
+                    continue
+                since = self.boundary_blocked_since.setdefault(name, now)
+                if now - since >= 8.0:
+                    self.release_exploration_regions(token, name, escape[1])
+                    return
+        order = list(enumerate(self.names))
+        if self.exploration_unrestricted:
+            order = order[self.cross_region_next:] + order[:self.cross_region_next]
+        for i, n in order:
             if n in getattr(self, "exploring", {}):
                 future, started, target = self.exploring[n]
                 if not future.done() and time.monotonic() - started < 150.0:
@@ -1166,21 +1226,37 @@ class Coordinator(Node):
                 self.event(
                     "explore_goal_result", robot=n, status=status, travel=self.travel[n]
                 )
+                if self.exploration_unrestricted:
+                    self.cross_region_next = (i + 1) % len(self.names)
+                    return
             if not self.valid(token) or n not in self.poses:
                 return
+            if self.exploration_unrestricted and self.exploring:
+                # Shared corridors get one moving robot at a time. Rotate after
+                # every goal; stationary robots are explicit planning obstacles.
+                continue
             with self.lock:
                 reserved = [t for name, t in self.goals.items() if name != n]
-            result = self.grid.frontiers(
-                self.poses[n],
-                self.regions[i],
-                reserved,
-                self.blacklist[n],
-                self.visits[n],
-                self.travel[n] < 3.2,
-            )
+            arguments = (self.poses[n], None if self.exploration_unrestricted else self.regions[i],
+                         reserved, self.blacklist[n], self.visits[n], self.travel[n] < 3.2)
+            if self.exploration_unrestricted:
+                others = [p for other, p in self.poses.items() if other != n]
+                result = self.grid.frontiers(*arguments, others=others)
+            else:
+                result = self.grid.frontiers(*arguments)
             if result is None:
                 self.explore_done[n] = True
+                if not self.exploration_unrestricted:
+                    since = self.region_stall_since.setdefault(n, time.monotonic())
+                    if time.monotonic() - since >= 8.0:
+                        escape = self.grid.region_escape(
+                            self.poses[n], self.regions[i], reserved,
+                            self.blacklist[n], self.visits[n])
+                        if escape is not None:
+                            self.release_exploration_regions(token, n, escape[1])
+                            return
                 continue
+            self.region_stall_since.pop(n, None)
             self.explore_done[n] = False
             p = result[1]
             heading = math.atan2(p[1] - self.poses[n][1], p[0] - self.poses[n][0])
@@ -1188,6 +1264,8 @@ class Coordinator(Node):
             f = self.send_goal(n, target, token)
             if f:
                 self.exploring[n] = (f, time.monotonic(), target)
+                if self.exploration_unrestricted:
+                    break
             else:
                 self.blacklist[n].append(target)
         if all(self.explore_done.values()) and not self.exploring:
@@ -1200,6 +1278,15 @@ class Coordinator(Node):
                 with self.lock:
                     if self.valid(token):
                         self.message = "等待足够的空闲观测后继续探索"
+                return
+            # Allow observed-map escape checks to mature before declaring a
+            # region-limited run complete. Never require a known truth coverage.
+            if not self.exploration_unrestricted and any(
+                time.monotonic() - since < 8.0 for since in self.region_stall_since.values()
+            ):
+                with self.lock:
+                    if self.valid(token):
+                        self.message = "正在检查分区是否阻挡后续探索"
                 return
             with self.lock:
                 if not self.valid(token):

@@ -105,6 +105,7 @@ def evaluate(run, map_path=None):
         minclear = float("inf")
         minpair = float("inf")
         outside = 0
+        authorized_crossings = 0
         body_margin = cfg["robot_radius"]
         times = np.array([t["sim_time"] for t in telemetry])
         actual_travel = {n: 0.0 for n in ["robot1", "robot2", "robot3"]}
@@ -131,15 +132,19 @@ def evaluate(run, map_path=None):
                         )
                 if sample.get("mode") == "EXPLORING":
                     b = regions[int(n[-1]) - 1]
-                    if (
+                    out_of_region = (
                         not b[0] + body_margin - 1e-3
                         <= p[0]
                         <= b[2] - body_margin + 1e-3
                         or not b[1] + body_margin - 1e-3
                         <= p[1]
                         <= b[3] - body_margin + 1e-3
-                    ):
-                        outside += 1
+                    )
+                    if out_of_region:
+                        if sample.get("region_enabled", True):
+                            outside += 1
+                        else:
+                            authorized_crossings += 1
                     if (
                         sample.get("mode") == "EXPLORING"
                         and previous_sample.get("mode") == "EXPLORING"
@@ -156,6 +161,8 @@ def evaluate(run, map_path=None):
             minimum_interrobot_clearance=minpair,
             collision_pass=minclear >= -0.015 and minpair >= -0.015,
             region_violation_samples=outside,
+            authorized_cross_region_samples=authorized_crossings,
+            exploration_region_releases=[e for e in events if e["event"] == "exploration_regions_released"],
             region_pass=outside == 0,
         )
         formations = []

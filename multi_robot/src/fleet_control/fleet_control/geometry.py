@@ -149,7 +149,7 @@ class Grid:
     def inside(self, c):
         return 0 <= c[0] < self.h and 0 <= c[1] < self.w
 
-    def allowed(self, region=None, others=(), radius=None):
+    def allowed(self, region=None, others=(), radius=None, other_clearance=None):
         if radius is None:
             radius = self.clearance_radius
         ok = (self.data == 0) & (self.free_clearance >= radius)
@@ -166,7 +166,7 @@ class Grid:
         for p in others:
             ok &= (
                 (x - p[0]) ** 2 + (y - p[1]) ** 2
-                > self.inter_robot_clearance**2
+                > (self.inter_robot_clearance if other_clearance is None else other_clearance)**2
             )
         return ok
 
@@ -218,12 +218,16 @@ class Grid:
         return None
 
     def frontiers(
-        self, start, region, reserved=(), blacklist=(), visits=(), min_travel=False
+        self, start, region, reserved=(), blacklist=(), visits=(), min_travel=False,
+        target_mask=None, others=(),
     ):
-        ok = self.allowed(region)
+        ok = self.allowed(region, others=others,
+                          other_clearance=max(0.8, self.inter_robot_clearance))
         unknown = self.data < 0
         near = ndimage.distance_transform_edt(~unknown) * self.res
         band = ok & (near < 0.9)
+        if target_mask is not None:
+            band &= target_mask
         # Information gain uses observed grid only; no synthetic arena obstacles.
         gain = ndimage.uniform_filter(unknown.astype(float), size=41, mode="constant")
         coords = np.argwhere(band)
@@ -282,6 +286,21 @@ class Grid:
             if route and (best is None or score - route[0] * 0.08 > best[0]):
                 best = (score - route[0] * 0.08, p, route)
         return best
+
+    def region_escape(self, start, region, reserved=(), blacklist=(), visits=()):
+        """Find a live-map frontier whose known-safe route needs a region exit."""
+        cell = self.cell(start)
+        if not self.inside(cell):
+            return None
+        labels, _ = ndimage.label(self.allowed(region))
+        component = labels[cell]
+        locally_reachable = labels == component if component else np.zeros(labels.shape, bool)
+        yy, xx = np.indices(labels.shape)
+        x = self.origin[0] + (xx + 0.5) * self.res
+        y = self.origin[1] + (yy + 0.5) * self.res
+        blocked = (~locally_reachable & (x >= region[0]) & (x <= region[2])
+                   & (y >= region[1]) & (y <= region[3]))
+        return self.frontiers(start, None, reserved, blacklist, visits, target_mask=blocked)
 
 
 def plan_formation(grid, poses, slots):

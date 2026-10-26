@@ -1,0 +1,113 @@
+{
+  "generator": "rectangles-v1",
+  "unit_tests": {
+    "passed": 63,
+    "native_tf2_regression": "PASS"
+  },
+  "seed_sample": {
+    "count": 100,
+    "minimum_free_fraction": 0.5018222222222222,
+    "maximum_sampling_attempts": 8824
+  },
+  "run_dir": "runs/random-traffic-seed24-20261026",
+  "explore_window_seconds": 240,
+  "preview_summary": {
+    "coverage": 0.9745930389423509,
+    "region_coverage": [
+      0.9849506542223017,
+      0.9691217751637482,
+      0.9696041685711674
+    ],
+    "actual_explore_distance": {
+      "robot1": 15.403979088514458,
+      "robot2": 13.17680363570572,
+      "robot3": 12.978989411301448
+    },
+    "minimum_static_clearance": 0.1320456070000003,
+    "minimum_interrobot_clearance": 0.4983787956992578,
+    "collision_pass": true,
+    "region_pass": true,
+    "authorized_cross_region_samples": 4354,
+    "exploration_region_releases": [
+      {
+        "wall_time": 1792998903.1760304,
+        "sim_time": 41.190000000000005,
+        "event": "exploration_regions_released",
+        "robot": "robot1",
+        "reason": "robot1 的区域限制阻断了实时地图中的可达探索路径",
+        "observed_target": [
+          -3.5749999415129423,
+          0.9250001255422831
+        ]
+      }
+    ]
+  },
+  "global_exploration_max_simultaneously_translating_robots": 1,
+  "safety_resume": {
+    "resume_after_pause_keeps_cross_region": true,
+    "estop_displacement": {
+      "robot1": 0.0,
+      "robot2": 0.0,
+      "robot3": 0.0
+    },
+    "clear_estop_does_not_resume": true,
+    "resume_after_estop_keeps_cross_region": true
+  },
+  "scene": {
+    "generator": "rectangles-v1",
+    "seed": 24,
+    "arena": [
+      -7.5,
+      -7.5,
+      7.5,
+      7.5
+    ],
+    "obstacle_count": 10,
+    "minimum_obstacle_side": 1.0,
+    "minimum_surface_gap": 1.2,
+    "geometry_sha256": "8538e02a35d31edcac502cf88793b584612e1a1a49c06f4f950faf29a3c06ce8",
+    "sampling_attempts": 1057,
+    "navigation_check": {
+      "connected": true,
+      "components": 1,
+      "start_labels": [
+        1,
+        1,
+        1
+      ],
+      "free_fraction": 0.5143555555555556,
+      "checked_resolution": 0.1,
+      "centre_clearance": 0.5
+    }
+  },
+  "arena_sdf_sha256": "ed88c3c879b364f2248e30c8d6f6c9d2a8debbf150ca32085033514731044ef9",
+  "map_roundtrip": {
+    "passed": true,
+    "cells": 90000,
+    "unknown": 15092,
+    "free": 70972,
+    "occupied": 3936
+  },
+  "cleanup": {
+    "residual_before_final_kill": [],
+    "launch_exit": 0,
+    "abnormal_process_exits": [
+      "[ERROR] [parameter_bridge-4]: process has died [pid 47787, exit code -6, cmd '/opt/ros/humble/lib/ros_gz_bridge/parameter_bridge /robot1/scan@sensor_msgs/msg/LaserScan[ignition.msgs.LaserScan --ros-args -r __node:=scan_bridge -r __ns:=/robot1 --params-file /tmp/launch_params_4gtpblpq'].",
+      "[ERROR] [parameter_bridge-8]: process has died [pid 47795, exit code -6, cmd '/opt/ros/humble/lib/ros_gz_bridge/parameter_bridge /robot2/scan@sensor_msgs/msg/LaserScan[ignition.msgs.LaserScan --ros-args -r __node:=scan_bridge -r __ns:=/robot2 --params-file /tmp/launch_params_lwqrs9ox'].",
+      "[ERROR] [parameter_bridge-2]: process has died [pid 47783, exit code -6, cmd '/opt/ros/humble/lib/ros_gz_bridge/parameter_bridge /clock@rosgraph_msgs/msg/Clock[ignition.msgs.Clock --ros-args -r __node:=clock_bridge']."
+    ]
+  },
+  "shutdown_preflight": {
+    "pause_command": {
+      "success": true,
+      "message": "已停车，等待新指令"
+    },
+    "simulator_pids": [
+      47781
+    ],
+    "simulator_stopped": true,
+    "bridge_drain_seconds": 0.3
+  },
+  "supervisor_exit": 1,
+  "shutdown_pass": false
+}

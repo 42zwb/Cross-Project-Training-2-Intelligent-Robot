@@ -7,10 +7,13 @@ from runtime_context import RuntimeClient
 p = argparse.ArgumentParser()
 p.add_argument("--headless", action="store_true")
 p.add_argument("--with-faults", action="store_true")
+p.add_argument("--seed", type=int)
 a = p.parse_args()
 root = Path(__file__).resolve().parents[1]
 run = root / "runs" / datetime.datetime.now().strftime("demo-%Y%m%d-%H%M%S")
 args = [str(root / "run.sh"), "--record-truth", "--run-dir", str(run)]
+if a.seed is not None:
+    args += ["--seed", str(a.seed)]
 if a.headless:
     args.append("--headless")
 backend = subprocess.Popen(args, start_new_session=True)

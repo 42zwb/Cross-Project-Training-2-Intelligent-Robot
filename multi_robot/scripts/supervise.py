@@ -3,6 +3,7 @@
 import argparse, datetime, fcntl, hashlib, json, os, signal, subprocess, sys, time
 import yaml
 import socket
+import secrets
 from pathlib import Path
 from shutdown_context import quiesce
 
@@ -13,6 +14,7 @@ p.add_argument("--record-truth", action="store_true")
 p.add_argument("--config")
 p.add_argument("--run-dir")
 p.add_argument("--planner", choices=["navfn", "smac2d"], help="覆盖配置中的全局规划器")
+p.add_argument("--seed", type=int, help="指定可复现场景种子；默认每次生成新种子")
 a = p.parse_args()
 root = Path(__file__).resolve().parents[1]
 lock = open(f'/tmp/turtlebot_fleet_{os.environ["ROS_DOMAIN_ID"]}.lock', "w")
@@ -85,6 +87,11 @@ if a.planner:
     cfg["planner"] = a.planner
 from fleet_bringup.prepare import validate_config
 validate_config(cfg)
+if a.seed is not None:
+    cfg["scene"]["seed"] = a.seed
+if cfg["scene"]["seed"] is None:
+    cfg["scene"]["seed"] = secrets.randbits(63)
+validate_config(cfg)
 if not a.base_only:
     with socket.socket() as probe_socket:
         probe_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -103,7 +110,7 @@ proc = subprocess.Popen(
 (run / "supervisor.pid").write_text(str(os.getpid()))
 (run / "launch.pid").write_text(str(proc.pid))
 print(
-    f"运行目录：{run}\n日志：{run}/launch.log\n网页：http://127.0.0.1:{cfg['dashboard_port']}\n规划器：{cfg['planner']}\n在此终端按 Ctrl+C 完整关闭本次仿真。",
+    f"运行目录：{run}\n日志：{run}/launch.log\n网页：http://127.0.0.1:{cfg['dashboard_port']}\n规划器：{cfg['planner']}\n场景：15×15 m，种子 {cfg['scene']['seed']}\n复现场景：./run.sh --seed {cfg['scene']['seed']}\n在此终端按 Ctrl+C 完整关闭本次仿真。",
     flush=True,
 )
 sampler = subprocess.Popen(

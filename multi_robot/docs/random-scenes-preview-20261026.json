@@ -1,0 +1,83 @@
+[
+  {
+    "generator": "rectangles-v1",
+    "seed": 42,
+    "arena": [
+      -7.5,
+      -7.5,
+      7.5,
+      7.5
+    ],
+    "obstacle_count": 10,
+    "minimum_obstacle_side": 1.0,
+    "minimum_surface_gap": 1.2,
+    "geometry_sha256": "14f01f5deb662cca2229c57952e4ad1ad9ef6dedcfaeea3579b31e4d76ee3bae",
+    "sampling_attempts": 774,
+    "navigation_check": {
+      "connected": true,
+      "components": 1,
+      "start_labels": [
+        1,
+        1,
+        1
+      ],
+      "free_fraction": 0.5208,
+      "checked_resolution": 0.1,
+      "centre_clearance": 0.5
+    }
+  },
+  {
+    "generator": "rectangles-v1",
+    "seed": 2026,
+    "arena": [
+      -7.5,
+      -7.5,
+      7.5,
+      7.5
+    ],
+    "obstacle_count": 10,
+    "minimum_obstacle_side": 1.0,
+    "minimum_surface_gap": 1.2,
+    "geometry_sha256": "65ffcef6a71546ab63210bef790fe9d334d4a97f66915cb471ea728472a90038",
+    "sampling_attempts": 5937,
+    "navigation_check": {
+      "connected": true,
+      "components": 1,
+      "start_labels": [
+        1,
+        1,
+        1
+      ],
+      "free_fraction": 0.5316444444444445,
+      "checked_resolution": 0.1,
+      "centre_clearance": 0.5
+    }
+  },
+  {
+    "generator": "rectangles-v1",
+    "seed": 12345,
+    "arena": [
+      -7.5,
+      -7.5,
+      7.5,
+      7.5
+    ],
+    "obstacle_count": 10,
+    "minimum_obstacle_side": 1.0,
+    "minimum_surface_gap": 1.2,
+    "geometry_sha256": "977985262630a30b30492eb261efbe0a06323a6a65f9f51af14bee9bd6085aa9",
+    "sampling_attempts": 358,
+    "navigation_check": {
+      "connected": true,
+      "components": 1,
+      "start_labels": [
+        1,
+        1,
+        1
+      ],
+      "free_fraction": 0.538,
+      "checked_resolution": 0.1,
+      "centre_clearance": 0.5
+    }
+  }
+]
