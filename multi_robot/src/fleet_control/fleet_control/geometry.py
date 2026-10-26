@@ -3,6 +3,7 @@
 import heapq
 import itertools
 import math
+import time
 import numpy as np
 from scipy import ndimage
 
@@ -149,7 +150,7 @@ class Grid:
     def inside(self, c):
         return 0 <= c[0] < self.h and 0 <= c[1] < self.w
 
-    def allowed(self, region=None, others=(), radius=None):
+    def allowed(self, region=None, others=(), radius=None, other_clearance=None):
         if radius is None:
             radius = self.clearance_radius
         ok = (self.data == 0) & (self.free_clearance >= radius)
@@ -166,7 +167,7 @@ class Grid:
         for p in others:
             ok &= (
                 (x - p[0]) ** 2 + (y - p[1]) ** 2
-                > self.inter_robot_clearance**2
+                > (self.inter_robot_clearance if other_clearance is None else other_clearance)**2
             )
         return ok
 
@@ -217,34 +218,88 @@ class Grid:
                     )
         return None
 
+    def visible_unknown(self, cell, sensor_range=3.0):
+        """Expected unknown area visible before the first mapped obstacle.
+
+        Ray marching is used only to rank viewpoints; navigation still requires
+        an entirely observed safe path. Unknown cells never become traversable.
+        """
+        if getattr(self, "_view_range", None) != sensor_range:
+            self._view_range = sensor_range
+            angles = np.linspace(-math.pi, math.pi, 180, endpoint=False)
+            steps = np.arange(1, int(math.ceil(sensor_range / self.res)) + 1)
+            self._view_rays = (np.rint(np.sin(angles[:, None]) * steps).astype(int),
+                               np.rint(np.cos(angles[:, None]) * steps).astype(int))
+        dy, dx = self._view_rays
+        yy, xx = cell[0] + dy, cell[1] + dx
+        inside = (yy >= 0) & (yy < self.h) & (xx >= 0) & (xx < self.w)
+        values = self.data[np.clip(yy, 0, self.h - 1), np.clip(xx, 0, self.w - 1)]
+        blocked = ~inside | (values >= 65)
+        visible = ~np.maximum.accumulate(blocked, axis=1)
+        ids = np.unique((yy * self.w + xx)[visible & (values < 0)])
+        return len(ids) * self.res**2
+
     def frontiers(
-        self, start, region, reserved=(), blacklist=(), visits=(), min_travel=False
+        self, start, region, reserved=(), blacklist=(), visits=(), min_travel=False,
+        target_mask=None, others=(),
     ):
-        ok = self.allowed(region)
+        ok = self.allowed(region, others=others,
+                          other_clearance=max(0.8, self.inter_robot_clearance))
+        start_cell = self.cell(start)
+        if not self.inside(start_cell):
+            return None
+        # Filter connectivity BEFORE ranking. A large unreachable pocket must
+        # not occupy every slot in the old top-12 candidate shortlist.
+        labels, _ = ndimage.label(ok)
+        roots = {int(labels[start_cell])} - {0}
+        if not roots and self.data[start_cell] == 0 and self.clearance[start_cell] >= 0.19:
+            for dy, dx in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+                cell = (start_cell[0] + dy, start_cell[1] + dx)
+                if self.inside(cell) and labels[cell]:
+                    roots.add(int(labels[cell]))
+        ok &= np.isin(labels, list(roots))
         unknown = self.data < 0
+        if not unknown.any():
+            return None
         near = ndimage.distance_transform_edt(~unknown) * self.res
-        band = ok & (near < 0.9)
-        # Information gain uses observed grid only; no synthetic arena obstacles.
-        gain = ndimage.uniform_filter(unknown.astype(float), size=41, mode="constant")
-        coords = np.argwhere(band)
+        band = ok & (near < 1.0)
+        if target_mask is not None:
+            band &= target_mask
+        stride = max(1, int(round(0.30 / self.res)))
+        yy, xx = np.indices(band.shape)
+        sample = band & (yy % stride == 0) & (xx % stride == 0)
+        # Also retain a representative of every thin/small frontier component;
+        # a fixed sampling lattice alone can miss a corner entirely.
+        pieces, _ = ndimage.label(band)
+        for label, bounds in enumerate(ndimage.find_objects(pieces), 1):
+            if bounds is None or np.any(sample[bounds] & (pieces[bounds] == label)):
+                continue
+            cells = np.argwhere(pieces[bounds] == label)
+            if len(cells):
+                cell = cells[len(cells) // 2] + [bounds[0].start, bounds[1].start]
+                sample[tuple(cell)] = True
+        coords = np.argwhere(sample)
+        active_blacklist = [q for q in blacklist if len(q) < 4 or q[3] > time.monotonic()]
         candidates = []
         for cy, cx in coords:
-            if cy % 6 or cx % 6:
-                continue
             p = self.point((cy, cx))
             dist = math.dist(start[:2], p)
             if (
-                dist < max(0.65, self.inter_robot_clearance)
+                dist < 0.35
                 or any(
                     math.dist(p, q[:2]) < max(0.65, self.inter_robot_clearance)
                     for q in reserved
                 )
-                or any(math.dist(p, q[:2]) < 0.55 for q in blacklist)
+                or any(math.dist(p, q[:2]) < 0.55 for q in active_blacklist)
             ):
                 continue
-            novelty = min([math.dist(p, q[:2]) for q in visits] or [3.0])
-            score = float(gain[cy, cx]) * 8 + min(novelty, 2.0) * 0.25 - dist * 0.08
-            candidates.append((score, p))
+            gain = self.visible_unknown((cy, cx))
+            if gain < 0.015:
+                continue
+            novelty = min([math.dist(p, q[:2]) for q in visits[-16:]] or [3.0])
+            score = (3.0 * math.log1p(gain) + min(novelty, 2.0) * 0.5
+                     - 1.5 * math.exp(-(novelty / 0.5)**2) - dist * 0.10)
+            candidates.append((score, p, gain))
         # If frontiers are exhausted before a robot has participated, choose a new
         # sensor viewpoint in its *observed* connected free area, never a fixed patrol.
         if not candidates and min_travel:
@@ -254,34 +309,51 @@ class Grid:
                         continue
                     p = self.point((cy, cx))
                     dist = math.dist(start[:2], p)
-                    if dist < 1.2 or any(math.dist(p, q[:2]) < 0.55 for q in blacklist):
+                    if dist < 1.2 or any(math.dist(p, q[:2]) < 0.55 for q in active_blacklist):
                         continue
                     novelty = min([math.dist(p, q[:2]) for q in visits] or [3.0])
                     candidates.append(
                         (
                             min(novelty, 3.0) * 0.3
-                            + float(gain[cy, cx]) * 8
                             - dist * 0.03,
                             p,
+                            0.0,
                         )
                     )
         ranked = sorted(candidates, reverse=True)
         selected = []
-        for score, p in ranked:
+        for score, p, gain in ranked:
             if any(
                 math.dist(p, q[1]) < max(0.8, self.inter_robot_clearance + 0.2)
                 for q in selected
             ):
                 continue
-            selected.append((score, p))
-            if len(selected) >= 12:
+            selected.append((score, p, gain))
+            if len(selected) >= 16:
                 break
         best = None
-        for score, p in selected:
+        for score, p, gain in selected:
             route = self.astar(start, p, ok)
             if route and (best is None or score - route[0] * 0.08 > best[0]):
-                best = (score - route[0] * 0.08, p, route)
+                best = (score - route[0] * 0.08, p, route,
+                        {"visible_unknown_m2": gain, "route_length": route[0],
+                         "viewpoints": len(candidates)})
         return best
+
+    def region_escape(self, start, region, reserved=(), blacklist=(), visits=()):
+        """Find a live-map frontier whose known-safe route needs a region exit."""
+        cell = self.cell(start)
+        if not self.inside(cell):
+            return None
+        labels, _ = ndimage.label(self.allowed(region))
+        component = labels[cell]
+        locally_reachable = labels == component if component else np.zeros(labels.shape, bool)
+        yy, xx = np.indices(labels.shape)
+        x = self.origin[0] + (xx + 0.5) * self.res
+        y = self.origin[1] + (yy + 0.5) * self.res
+        blocked = (~locally_reachable & (x >= region[0]) & (x <= region[2])
+                   & (y >= region[1]) & (y <= region[3]))
+        return self.frontiers(start, None, reserved, blacklist, visits, target_mask=blocked)
 
 
 def plan_formation(grid, poses, slots):

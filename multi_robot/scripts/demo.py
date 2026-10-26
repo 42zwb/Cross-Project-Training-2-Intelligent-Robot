@@ -70,7 +70,9 @@ try:
     wait_for(lambda s: s["ready"], 180)
     record("ready")
     if not a.skip_explore:
-        regions = [[-6, -6, -2, 6], [-2, -6, 2, 6], [2, -6, 6, 6]]
+        import yaml
+        fleet_cfg = yaml.safe_load((run / "assets/fleet.yaml").read_text())
+        regions = [r["region"] for r in fleet_cfg["robots"]]
         if a.keep_regions:
             if state()["regions"] != regions:
                 raise RuntimeError("前序任务的分区与演示默认分区不一致")
@@ -84,7 +86,8 @@ try:
         import yaml
 
         fleet_cfg = yaml.safe_load((run / "assets/fleet.yaml").read_text())
-        boxes = yaml.safe_load((run / "assets/ground_truth.yaml").read_text())["boxes"]
+        truth = yaml.safe_load((run / "assets/ground_truth.yaml").read_text())
+        boxes = truth.get("obstacles", truth.get("boxes", []))
         end = time.monotonic() + a.explore_timeout
         last = 0
         while time.monotonic() < end:

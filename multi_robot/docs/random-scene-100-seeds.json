@@ -1,0 +1,602 @@
+[
+  {
+    "seed": 0,
+    "hash": "0df4bae33858d63293b8b748d918143a295fe6aaac529907c6d70605989b81cb",
+    "free_fraction": 0.5214666666666666,
+    "attempts": 700
+  },
+  {
+    "seed": 1,
+    "hash": "6324e787cc1811c51e201f6f1396b9155661c2deb5f9fc827089e64104a31346",
+    "free_fraction": 0.5354222222222222,
+    "attempts": 847
+  },
+  {
+    "seed": 2,
+    "hash": "2a91f739d64b75856182f6383f063e104f07db7628b5d7543c0d080e14131163",
+    "free_fraction": 0.5521777777777778,
+    "attempts": 2343
+  },
+  {
+    "seed": 3,
+    "hash": "aa874e88328623f4bca6c0a1c027af4119bae7191a627af1c081aa06c886d786",
+    "free_fraction": 0.5224444444444445,
+    "attempts": 153
+  },
+  {
+    "seed": 4,
+    "hash": "a7db96ae426d62e2092da1fd690df90d128c12b7c91b00cdedb4a4e791ccd371",
+    "free_fraction": 0.5452444444444444,
+    "attempts": 3623
+  },
+  {
+    "seed": 5,
+    "hash": "7327ba4747bc9968a7625a63d08a7e58820fe17a8519d0cf36ae5f0c504a5e73",
+    "free_fraction": 0.5076888888888889,
+    "attempts": 2561
+  },
+  {
+    "seed": 6,
+    "hash": "9ea2697a13774fbefdcd8727070ab8478584d1cf097965537ac2a00ad00b5da0",
+    "free_fraction": 0.5050222222222223,
+    "attempts": 3542
+  },
+  {
+    "seed": 7,
+    "hash": "1086fa2e0a2796f2ff29e49d43e3f0d242f2db7569c2d79c20d66d0bc0942627",
+    "free_fraction": 0.5420888888888888,
+    "attempts": 1794
+  },
+  {
+    "seed": 8,
+    "hash": "c2fd854d56f1591d4b5c3c8ccfc0e5abbe164a8dbc791449facf1ff0cf2a0c32",
+    "free_fraction": 0.5181777777777777,
+    "attempts": 562
+  },
+  {
+    "seed": 9,
+    "hash": "fb1bf10324e8d54abefe569ab332b8c755d9b2f7a4f280bd6ccd052b3b362889",
+    "free_fraction": 0.5205333333333333,
+    "attempts": 2438
+  },
+  {
+    "seed": 10,
+    "hash": "8aced7488c3e9f94ecbb924d39e14afbc8f2474d099d9a5b02151d51329ec14a",
+    "free_fraction": 0.5406222222222222,
+    "attempts": 1827
+  },
+  {
+    "seed": 11,
+    "hash": "01ac1a4cdf7294810fcc95bae87390a00a3f04d0dd3964c66b6a8a02a55c6c5a",
+    "free_fraction": 0.5161333333333333,
+    "attempts": 4193
+  },
+  {
+    "seed": 12,
+    "hash": "36f0b6501906aba6e3b5942b0788fb11db1be91e569e5ae26cc69381581c41b2",
+    "free_fraction": 0.5567555555555556,
+    "attempts": 2826
+  },
+  {
+    "seed": 13,
+    "hash": "e7ffca2464cae1a0b6aca9dc0bce9203c9a2a6cab2403e212aa7a4ef0c482fc4",
+    "free_fraction": 0.5529333333333334,
+    "attempts": 4656
+  },
+  {
+    "seed": 14,
+    "hash": "a8074cb36a0d477ebebde9c3faeefff3cf98eb02089de4210b6b5aebfdacfdd2",
+    "free_fraction": 0.5303111111111111,
+    "attempts": 4920
+  },
+  {
+    "seed": 15,
+    "hash": "d5417047457216e00096ffb0d0a8351163827da0917789f6c0adac62a013d02a",
+    "free_fraction": 0.546,
+    "attempts": 887
+  },
+  {
+    "seed": 16,
+    "hash": "723eafda18f42f7f72bff0675d3369baaf4b289d1d9ab0644d4789bda66ae6d2",
+    "free_fraction": 0.5259555555555555,
+    "attempts": 6739
+  },
+  {
+    "seed": 17,
+    "hash": "818fa657a124ceb26cf431e80a9131470b6d73040231aba51fa55ff0d3aea194",
+    "free_fraction": 0.5436888888888889,
+    "attempts": 309
+  },
+  {
+    "seed": 18,
+    "hash": "1956ef3fd9b9a836806810aeaa3c727c8ad7354ddc4227b1545dc95ea5e85eb3",
+    "free_fraction": 0.5446222222222222,
+    "attempts": 494
+  },
+  {
+    "seed": 19,
+    "hash": "f40f396568ceaf0e9384172695ecf02ced832189545b554026e2d2df4f5c9b17",
+    "free_fraction": 0.5341777777777778,
+    "attempts": 4249
+  },
+  {
+    "seed": 20,
+    "hash": "51a76707fd6a803eedd7d9a68193a59810fbab18459b4090d5feea99690581ae",
+    "free_fraction": 0.5279555555555555,
+    "attempts": 1084
+  },
+  {
+    "seed": 21,
+    "hash": "a08a73a4d1400184d8cae0a324ef1094fa8856d189199eb9723040e02c4c8740",
+    "free_fraction": 0.5232888888888889,
+    "attempts": 1833
+  },
+  {
+    "seed": 22,
+    "hash": "abbebcab8770f2a5291d1b6ab7c5dd9d5be2d7f4af0ee0e0d11d8a5f5db3860a",
+    "free_fraction": 0.5453777777777777,
+    "attempts": 2487
+  },
+  {
+    "seed": 23,
+    "hash": "fe82eb0efa4bd9d8a3f0f9b520403f0c796ef94af77184c0a4d48aca9aa70470",
+    "free_fraction": 0.5465333333333333,
+    "attempts": 645
+  },
+  {
+    "seed": 24,
+    "hash": "8538e02a35d31edcac502cf88793b584612e1a1a49c06f4f950faf29a3c06ce8",
+    "free_fraction": 0.5143555555555556,
+    "attempts": 1057
+  },
+  {
+    "seed": 25,
+    "hash": "ca62a62ede05298af3f5a369febb38f8190498dc6949936ae3daff6f61e83990",
+    "free_fraction": 0.5403555555555556,
+    "attempts": 1096
+  },
+  {
+    "seed": 26,
+    "hash": "3ca03a2e1bb258459da95371e0e2acbcda069c316c18a007631041a3019e92d5",
+    "free_fraction": 0.5431555555555555,
+    "attempts": 441
+  },
+  {
+    "seed": 27,
+    "hash": "2a88a6065e54bb88bc175fa317caa6cbbdbba9da5fe6880f8f5c33e860c32d0e",
+    "free_fraction": 0.5283111111111111,
+    "attempts": 1930
+  },
+  {
+    "seed": 28,
+    "hash": "c39ac73b0faa721e8c8e9a8d8103cb6d6e3be92a8012917fabd13d8523038dac",
+    "free_fraction": 0.5099111111111111,
+    "attempts": 3673
+  },
+  {
+    "seed": 29,
+    "hash": "18c321d67f625e86275a04ef26a3d2ad8b225805f32a40184dd2da9a15703ee1",
+    "free_fraction": 0.5063555555555556,
+    "attempts": 486
+  },
+  {
+    "seed": 30,
+    "hash": "17e14fc21b7bb00d70e95f751e42d5d6da3c4512c72d77de7ab9d9192162fd67",
+    "free_fraction": 0.5211111111111111,
+    "attempts": 263
+  },
+  {
+    "seed": 31,
+    "hash": "59453b1b768b7e486b70a7942e5181d62dafe2a4b206e66b4136cbe65a66dd34",
+    "free_fraction": 0.5463555555555556,
+    "attempts": 5796
+  },
+  {
+    "seed": 32,
+    "hash": "a00d4bbb525025d738b8bc2be7fbaacef2c0d1e2b69fe37703c25016fd81f4e7",
+    "free_fraction": 0.5632888888888888,
+    "attempts": 4540
+  },
+  {
+    "seed": 33,
+    "hash": "6ba0c0711f9f217a333049115f904cd8267f31259ce8a433863252b8b354aaca",
+    "free_fraction": 0.5115555555555555,
+    "attempts": 771
+  },
+  {
+    "seed": 34,
+    "hash": "598d166af3da98f8617943e1e43ff8e2ac6317c8ac4db066295cf73127da0ec9",
+    "free_fraction": 0.5235111111111111,
+    "attempts": 1110
+  },
+  {
+    "seed": 35,
+    "hash": "72855eadb4e510254404835a266a28c3670d2f19e7977f3a403f86c8d1562b69",
+    "free_fraction": 0.5238222222222222,
+    "attempts": 1779
+  },
+  {
+    "seed": 36,
+    "hash": "acd4d61b9baf9b8d4b304674016c7a4dc96ba7b1485a9aa732d87716241eefde",
+    "free_fraction": 0.5261333333333333,
+    "attempts": 360
+  },
+  {
+    "seed": 37,
+    "hash": "65e421cf4cf0bf68084535620bbe409e5cf5b18d6a2058659450352a46dd27e3",
+    "free_fraction": 0.5031111111111111,
+    "attempts": 795
+  },
+  {
+    "seed": 38,
+    "hash": "a000d4ffe982d7b31aa33676edf4f2b8cfcb2ba7d2563e944a2f3666a2e9f610",
+    "free_fraction": 0.5228888888888888,
+    "attempts": 702
+  },
+  {
+    "seed": 39,
+    "hash": "d9c8e21b62a45fe6f1d353a841240c887ee2116d9542d52438cc34606c6d88c6",
+    "free_fraction": 0.5717777777777778,
+    "attempts": 2118
+  },
+  {
+    "seed": 40,
+    "hash": "d1f4b32de8a09b1d4171fad78f75db48bf411204d481c80c46d12eda2fd8e420",
+    "free_fraction": 0.5388888888888889,
+    "attempts": 524
+  },
+  {
+    "seed": 41,
+    "hash": "10afcabd07f604bf88cabe1e0655bc4c062015c64237c3c23057757913c80761",
+    "free_fraction": 0.5581333333333334,
+    "attempts": 253
+  },
+  {
+    "seed": 42,
+    "hash": "14f01f5deb662cca2229c57952e4ad1ad9ef6dedcfaeea3579b31e4d76ee3bae",
+    "free_fraction": 0.5208,
+    "attempts": 774
+  },
+  {
+    "seed": 43,
+    "hash": "d06d128b9fff18e1f3e68a13fe835cea542e55efabc6c0727214a6c6d7e28888",
+    "free_fraction": 0.5408,
+    "attempts": 3210
+  },
+  {
+    "seed": 44,
+    "hash": "682a3180485d333893e76318b55a26e9a5bbc4e4fd12f192cf9dd247c68b0041",
+    "free_fraction": 0.5321777777777777,
+    "attempts": 6207
+  },
+  {
+    "seed": 45,
+    "hash": "bfac6e6de0c4c9fcf4481910f9cf7ce5ac703bbc8de89270d4fecc4a11fc5373",
+    "free_fraction": 0.5464888888888889,
+    "attempts": 7803
+  },
+  {
+    "seed": 46,
+    "hash": "3c5245dbc61c5279a537796d1ef7b303a99f8dad62649ba6c45ccaea499668ef",
+    "free_fraction": 0.5603555555555556,
+    "attempts": 990
+  },
+  {
+    "seed": 47,
+    "hash": "2876af35caa8c1d6151a673fbab363d553878034c30025739ef9e65fcacb6c74",
+    "free_fraction": 0.5104888888888889,
+    "attempts": 2008
+  },
+  {
+    "seed": 48,
+    "hash": "a291a747554fac407f39547bb19ce4d68adb0e8bfa30ee98bdd042c040317175",
+    "free_fraction": 0.5485777777777778,
+    "attempts": 6971
+  },
+  {
+    "seed": 49,
+    "hash": "9c1d205f43a7ddac7b81f837a5a36a83e0a03d16ed0084a17e2f0072efcd6f13",
+    "free_fraction": 0.5242666666666667,
+    "attempts": 697
+  },
+  {
+    "seed": 50,
+    "hash": "eccf3aa8ae47c203752cc11953fb27f68854656c9f5549d3b70fa8fcb78bb1f3",
+    "free_fraction": 0.5223111111111111,
+    "attempts": 1247
+  },
+  {
+    "seed": 51,
+    "hash": "84fa263ca7b0ce803e3a5070539b1c4ff1bf953f99687ed08a089b2b6972b51d",
+    "free_fraction": 0.5412,
+    "attempts": 1121
+  },
+  {
+    "seed": 52,
+    "hash": "b61dee1fc98172b5d937a8b13a5ee16f3ec8ebe85b8a7a4f6c2e4a1bd6a83ce5",
+    "free_fraction": 0.5531555555555555,
+    "attempts": 5236
+  },
+  {
+    "seed": 53,
+    "hash": "34987daccb48e79826cfc9bdfa1c506b6a198721edc370a277b34df59af98a27",
+    "free_fraction": 0.5018222222222222,
+    "attempts": 456
+  },
+  {
+    "seed": 54,
+    "hash": "8e2868ff1bdead9229bcbf08dd4561b5241ab5928261b232447c9b538bf282df",
+    "free_fraction": 0.5057333333333334,
+    "attempts": 1854
+  },
+  {
+    "seed": 55,
+    "hash": "a4843e4aec3940ec702e33232ee931ba6bb2f9b56af797da8a4b8d603a1ff9b5",
+    "free_fraction": 0.5227111111111111,
+    "attempts": 3431
+  },
+  {
+    "seed": 56,
+    "hash": "f58037f62113b6de86cac2a73bbfe95f2f73854b8ca0aec5295ac5356ebd90e0",
+    "free_fraction": 0.5266666666666666,
+    "attempts": 781
+  },
+  {
+    "seed": 57,
+    "hash": "3260e71bfbde0aea5771ecf441d49871c0fc9d16f48b9640cbb59774247b36e0",
+    "free_fraction": 0.5455555555555556,
+    "attempts": 850
+  },
+  {
+    "seed": 58,
+    "hash": "1c3fb95c32dc2173d42284f22e4756c62a729b881974d0fd6f89ee974205769b",
+    "free_fraction": 0.5570222222222222,
+    "attempts": 476
+  },
+  {
+    "seed": 59,
+    "hash": "e81f85433fb1e29f26ecadc0d15fb5d3bb2fcf5a475b6c6e1fc29db6978cb6e1",
+    "free_fraction": 0.5033777777777778,
+    "attempts": 1400
+  },
+  {
+    "seed": 60,
+    "hash": "c8346c549e0bf08262453d917bbc911215b710c6e79e0765cbca6e232ab2389e",
+    "free_fraction": 0.5386222222222222,
+    "attempts": 2949
+  },
+  {
+    "seed": 61,
+    "hash": "133203c8a0f827c728a9d303466b61e5982771ddc46142e40bcca51e419a2651",
+    "free_fraction": 0.5543111111111111,
+    "attempts": 577
+  },
+  {
+    "seed": 62,
+    "hash": "fafbf374d4a86330e6b3eef4f862d955827a16210a2bf0c2421efd126d920e96",
+    "free_fraction": 0.5471555555555555,
+    "attempts": 2274
+  },
+  {
+    "seed": 63,
+    "hash": "fbce20e8559f7bee003f0f9b6e98a4d118b288e059d3a4db09780edf80016ec3",
+    "free_fraction": 0.5349333333333334,
+    "attempts": 1691
+  },
+  {
+    "seed": 64,
+    "hash": "a849b2a9cb389db8916f214f748b43b904d1777cac2e0728b829e80bcccc98e0",
+    "free_fraction": 0.5431555555555555,
+    "attempts": 6788
+  },
+  {
+    "seed": 65,
+    "hash": "14a861fd36e46650abbf47fe9a483d75046ea9a3ada5b2ada145d0777d7cbed0",
+    "free_fraction": 0.5228888888888888,
+    "attempts": 1767
+  },
+  {
+    "seed": 66,
+    "hash": "a0d24a12d8e2f27a9a82b9dad51ef42b4cbe5f45b5b71dfefed225c03a984a6d",
+    "free_fraction": 0.5608444444444445,
+    "attempts": 484
+  },
+  {
+    "seed": 67,
+    "hash": "2a3d9e1c9ee8462b4e84ebc662c6934d1963d7d0b6a681a497e67bcbdab43a0a",
+    "free_fraction": 0.5025777777777778,
+    "attempts": 676
+  },
+  {
+    "seed": 68,
+    "hash": "1e65f1d954deca5d078044d15e39b78119c60f7eb6b0cc3f86cfa31746cceb6a",
+    "free_fraction": 0.5098222222222222,
+    "attempts": 1486
+  },
+  {
+    "seed": 69,
+    "hash": "130c1b041b768631e2e442eb3412c26e7fb0a0b8987490b61831eb7d0d718cba",
+    "free_fraction": 0.5265777777777778,
+    "attempts": 277
+  },
+  {
+    "seed": 70,
+    "hash": "fa3362e22e376fbc2caa5f6cecd74367103a6142dc587ca6e6674e3b384c6122",
+    "free_fraction": 0.5432444444444444,
+    "attempts": 2624
+  },
+  {
+    "seed": 71,
+    "hash": "047cd3f78e2715ce3031dd85864455145821b914cd2b6c198754bd463e4d550e",
+    "free_fraction": 0.5216444444444445,
+    "attempts": 4483
+  },
+  {
+    "seed": 72,
+    "hash": "ecdfc21290b8042fe7160960626cdb70cc1db7d24273222be09a28a8947667ef",
+    "free_fraction": 0.5038222222222222,
+    "attempts": 371
+  },
+  {
+    "seed": 73,
+    "hash": "b61248071b124b2e6e2fc4cc4047d2f8d851b85f2ac5ad0974e2e1a1b4617f25",
+    "free_fraction": 0.5204888888888889,
+    "attempts": 3258
+  },
+  {
+    "seed": 74,
+    "hash": "ce62f7e5ff459e44305810861cc11d268cf84339988a36fab654ec3a7a5519b2",
+    "free_fraction": 0.5375555555555556,
+    "attempts": 283
+  },
+  {
+    "seed": 75,
+    "hash": "21fe6a26539767b1b9086f94df13bc07a775012039a47dcf30e6ac066a3363e9",
+    "free_fraction": 0.5822222222222222,
+    "attempts": 179
+  },
+  {
+    "seed": 76,
+    "hash": "3ee658c15efae1d58acea6af7caee0900cab7443140f597ed4f72665db257c0e",
+    "free_fraction": 0.5199555555555555,
+    "attempts": 1898
+  },
+  {
+    "seed": 77,
+    "hash": "83d800cd1449a010c53960dbcbd36ec91f394344bd92001a4603a49b32b86678",
+    "free_fraction": 0.532,
+    "attempts": 3193
+  },
+  {
+    "seed": 78,
+    "hash": "7f50f894255c43962048ec282a6e3fbc69da0cb9bad697bccce61cb4e87df08d",
+    "free_fraction": 0.5220888888888889,
+    "attempts": 431
+  },
+  {
+    "seed": 79,
+    "hash": "ab64c44a192426ebe044511d9ff64dd827c05d6673b33cfe78179944ba03f8ef",
+    "free_fraction": 0.5293333333333333,
+    "attempts": 365
+  },
+  {
+    "seed": 80,
+    "hash": "e12ae0ca9ba2236b7dd6a09b7cd76fcacf55b769381ca95e5a38eaf1e6e5aec9",
+    "free_fraction": 0.5026666666666667,
+    "attempts": 355
+  },
+  {
+    "seed": 81,
+    "hash": "2f66b5a713ae3d84000f6fc25688cd8a40ede6823e8fd191a7db5523035f6f74",
+    "free_fraction": 0.5494222222222223,
+    "attempts": 362
+  },
+  {
+    "seed": 82,
+    "hash": "3524b9fda68f003b56f9c4e9860530d48571d6eab1ef71ed16a96ae29ffd31ed",
+    "free_fraction": 0.5181777777777777,
+    "attempts": 1975
+  },
+  {
+    "seed": 83,
+    "hash": "895704d9457091e3f95d20c65ebfced0440f7d52613e8e88e61f460a83a66727",
+    "free_fraction": 0.5341333333333333,
+    "attempts": 3446
+  },
+  {
+    "seed": 84,
+    "hash": "e74175991ca075625da797e9cd95333cccc1959b090927b8624353e2f2b0f83c",
+    "free_fraction": 0.5388,
+    "attempts": 8011
+  },
+  {
+    "seed": 85,
+    "hash": "f35312864fc7b73a3b83590a433743cbc28b4283bdd94a7071a88dda4705a623",
+    "free_fraction": 0.5163555555555556,
+    "attempts": 525
+  },
+  {
+    "seed": 86,
+    "hash": "5cba7a5a8891fb85b13732d65636795b25cc6577d11a9bccd2bf82be561fd205",
+    "free_fraction": 0.5224888888888889,
+    "attempts": 4850
+  },
+  {
+    "seed": 87,
+    "hash": "ce2d43771c1a8f0ef331dfb11c0e3b0101153db0c1ca74e7ae6be823d4459985",
+    "free_fraction": 0.5274222222222222,
+    "attempts": 2200
+  },
+  {
+    "seed": 88,
+    "hash": "1a82c44a3ebb3878f64d05dcd55cfc6ef637dada6c6a6f0180a2392ddfbe1f19",
+    "free_fraction": 0.5141333333333333,
+    "attempts": 5979
+  },
+  {
+    "seed": 89,
+    "hash": "cb77362a43c6561a1ba33bee82e659d3277f69e241c7181f14eaefe3a030d835",
+    "free_fraction": 0.5586222222222222,
+    "attempts": 150
+  },
+  {
+    "seed": 90,
+    "hash": "d0104bb8b38587ccaf50e522fea94b7bc28e6764c79feec6fd2ef06556752746",
+    "free_fraction": 0.5051555555555556,
+    "attempts": 544
+  },
+  {
+    "seed": 91,
+    "hash": "274341c5b209241b7930d887ef48a58b24df05a853ec10b841765079228398db",
+    "free_fraction": 0.5136,
+    "attempts": 1899
+  },
+  {
+    "seed": 92,
+    "hash": "e624da3dfe3fed4fb8ed0dcf3eb46acd250240526f94070359a2d8861ac61be0",
+    "free_fraction": 0.5627111111111112,
+    "attempts": 3870
+  },
+  {
+    "seed": 93,
+    "hash": "3d49c1a2231cf5037d34af94857dc7806cab9528822e5f5b360ffe7b887d6022",
+    "free_fraction": 0.5398666666666667,
+    "attempts": 4901
+  },
+  {
+    "seed": 94,
+    "hash": "2b554d1bdbb2226943151d907923f8f73b208e3a3d48152981ac293c547dd79c",
+    "free_fraction": 0.5580888888888889,
+    "attempts": 565
+  },
+  {
+    "seed": 95,
+    "hash": "581e3c84c4717f7de77518317948094f6c471a552fd3ec8aaff086463b4109ca",
+    "free_fraction": 0.5526222222222222,
+    "attempts": 618
+  },
+  {
+    "seed": 96,
+    "hash": "b7ee81e0fc13655e6768f26e75a21452e7a37efb0026994863058e1d63c3b9e3",
+    "free_fraction": 0.5789333333333333,
+    "attempts": 787
+  },
+  {
+    "seed": 97,
+    "hash": "9cf139ddf64eec9f9e108206aafffbfe77a481e11fbeb8c0969e794b2ee80e72",
+    "free_fraction": 0.5348,
+    "attempts": 8824
+  },
+  {
+    "seed": 98,
+    "hash": "c7b7cd7378b377431618ffcd6008c5bd83d16b17ed7977f0b78b8c699ba1c983",
+    "free_fraction": 0.5178666666666667,
+    "attempts": 288
+  },
+  {
+    "seed": 99,
+    "hash": "13b3879c4820ad8661a6da4bcb67974ff5be6a0ee09f74ae38cee5db47655623",
+    "free_fraction": 0.5479555555555555,
+    "attempts": 445
+  }
+]

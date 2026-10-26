@@ -7,35 +7,19 @@ from pathlib import Path
 import argparse
 import copy
 import math
+import json
+import secrets
 import subprocess
 import xml.etree.ElementTree as ET
 import yaml
 from ament_index_python.packages import get_package_share_directory as share
-
-
-def boxes():
-    b = [
-        ("west", -5.9, 0.0, 0.2, 12.0),
-        ("east", 5.9, 0.0, 0.2, 12.0),
-        ("south", 0.0, -5.9, 11.6, 0.2),
-        ("north", 0.0, 5.9, 11.6, 0.2),
-    ]
-    b += [
-        (f"partition_{x}_{y}", x, y, 0.15, 3.0)
-        for x in [-2.0, 2.0]
-        for y in [-3.5, 3.5]
-    ]
-    b += [
-        (f"box_{i}", x, y, 0.8, 0.8)
-        for i, (x, y) in enumerate(
-            [(-4, 0), (-4, 3.5), (4, 0), (4, 3.5), (0, 4), (0, -3)]
-        )
-    ]
-    return b
+from fleet_bringup.scene import ARENA, walls, generate_scene
+from fleet_mapping.shapes import local_vertices, is_convex, triangulate
+from fleet_bringup.meshes import write_prism
 
 
 def validate_config(cfg):
-    """Reject fleet settings that the fixed 12 m course cannot honor safely."""
+    """Validate the 15 m seeded course before launching any simulator."""
     if not isinstance(cfg, dict):
         raise ValueError("fleet 配置必须是 YAML 映射。")
     arena = cfg.get("arena")
@@ -45,11 +29,22 @@ def validate_config(cfg):
         or not all(isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) for v in arena)
         or any(
             not math.isclose(float(v), expected, abs_tol=1e-9)
-            for v, expected in zip(arena, [-6.0, -6.0, 6.0, 6.0])
+            for v, expected in zip(arena, ARENA)
         )
     ):
-        raise ValueError("当前场景固定为 arena [-6, -6, 6, 6]。")
+        raise ValueError("当前随机场景要求 arena [-7.5, -7.5, 7.5, 7.5]（15 m × 15 m）。")
     cfg["arena"] = [float(v) for v in arena]
+    scene = cfg.setdefault("scene", {"seed": None, "obstacle_count": 10})
+    if not isinstance(scene, dict) or set(scene) - {"seed", "obstacle_count", "generator"}:
+        raise ValueError("scene 仅支持 seed、obstacle_count 和 generator。")
+    if scene.setdefault("generator", "mixed-shapes-v2") not in ["rectangles-v1", "mixed-shapes-v2"]:
+        raise ValueError("不支持的场景生成器")
+    seed = scene.setdefault("seed", None)
+    count = scene.setdefault("obstacle_count", 10)
+    if seed is not None and (isinstance(seed, bool) or not isinstance(seed, int) or not 0 <= seed < 2**63):
+        raise ValueError("场景种子必须是 0 到 2^63-1 的整数，或 null（每轮随机）。")
+    if isinstance(count, bool) or not isinstance(count, int) or not 4 <= count <= 16:
+        raise ValueError("obstacle_count 必须是 4 到 16 的整数。")
     if cfg.get("planner", "navfn") not in ["navfn", "smac2d"]:
         raise ValueError("planner 仅支持 navfn 或 smac2d。")
     cfg.setdefault("planner", "navfn")
@@ -67,9 +62,9 @@ def validate_config(cfg):
         if not math.isfinite(value) or not low <= value <= high:
             raise ValueError(f"配置 {key} 必须在 {low} 到 {high} 之间。")
         cfg[key] = value
-    cells_per_axis = 12.0 / cfg["resolution"]
+    cells_per_axis = 15.0 / cfg["resolution"]
     if not math.isclose(cells_per_axis, round(cells_per_axis), abs_tol=1e-8):
-        raise ValueError("resolution 必须能整除 12 m 场地边长。")
+        raise ValueError("resolution 必须能整除 15 m 场地边长。")
 
     port = cfg.get("dashboard_port")
     if isinstance(port, bool) or not isinstance(port, int) or not 1024 <= port <= 65535:
@@ -114,22 +109,22 @@ def validate_config(cfg):
         if (
             x1 - x0 < 2.0 * (margin + radius + 0.03) + 0.2
             or y1 - y0 < 2.0 * (margin + radius + 0.03) + 0.2
-            or x0 < -6.0
-            or y0 < -6.0
-            or x1 > 6.0
-            or y1 > 6.0
+            or x0 < -7.5
+            or y0 < -7.5
+            or x1 > 7.5
+            or y1 > 7.5
             or not x0 + margin + radius + 0.03 <= start[0] <= x1 - margin - radius - 0.03
             or not y0 + margin + radius + 0.03 <= start[1] <= y1 - margin - radius - 0.03
         ):
             raise ValueError(f"robot{i+1} 区域越界、过窄或未安全包含起点。")
         if (
-            not -6.0 + radius <= start[0] <= 6.0 - radius
-            or not -6.0 + radius <= start[1] <= 6.0 - radius
+            not -6.8 <= start[0] <= 6.8
+            or not -6.8 <= start[1] <= 6.8
         ):
             raise ValueError(f"robot{i+1} 起点超出场地安全边界。")
         starts.append(start)
         regions.append(region)
-        for _, bx, by, dx, dy in boxes():
+        for _, bx, by, dx, dy in walls():
             distance = math.hypot(max(abs(start[0] - bx) - dx / 2, 0),
                                   max(abs(start[1] - by) - dy / 2, 0))
             if distance < radius + 0.03:
@@ -144,8 +139,8 @@ def validate_config(cfg):
                 and min(y1, other[3]) - max(y0, other[1]) > 1e-6
             ):
                 raise ValueError("三个默认区域不能重叠。")
-    if not math.isclose(area, 144.0, abs_tol=1e-4):
-        raise ValueError("三个默认区域必须覆盖整个 12 m × 12 m 场地。")
+    if not math.isclose(area, 225.0, abs_tol=1e-4):
+        raise ValueError("三个默认区域必须覆盖整个 15 m × 15 m 场地。")
     if any(
         math.dist(a[:2], b[:2]) <= 2.0 * radius
         for i, a in enumerate(starts)
@@ -155,7 +150,7 @@ def validate_config(cfg):
     return cfg
 
 
-def world(out):
+def world(out, geometry, metadata):
     w = ET.Element("sdf", version="1.8")
     root = ET.SubElement(w, "world", name="fleet_arena")
     ET.SubElement(root, "physics", name="physics", type="ignored")
@@ -189,12 +184,48 @@ def world(out):
         g = ET.SubElement(elem, "geometry")
         plane = ET.SubElement(g, "plane")
         ET.SubElement(plane, "normal").text = "0 0 1"
-        ET.SubElement(plane, "size").text = "12 12"
+        ET.SubElement(plane, "size").text = "15 15"
         if tag == "visual":
             ET.SubElement(ET.SubElement(elem, "material"), "diffuse").text = (
                 "0.72 0.75 0.78 1"
             )
-    for name, x, y, dx, dy in boxes():
+    for item in geometry:
+        if isinstance(item, dict):
+            shape = item
+            name, kind = shape["name"], shape["kind"]
+            m = ET.SubElement(root, "model", name=name)
+            ET.SubElement(m, "static").text = "true"
+            ET.SubElement(m, "pose").text = f"{shape['x']} {shape['y']} .6 0 0 {shape['yaw']}"
+            link = ET.SubElement(m, "link", name="link")
+            colors = {"rectangle":"0.35 0.45 0.6 1", "circle":"0.3 0.55 0.45 1",
+                      "convex_polygon":"0.5 0.4 0.65 1", "concave_polygon":"0.55 0.32 0.28 1",
+                      "sector":"0.65 0.48 0.22 1"}
+            def primitive(element):
+                geom = ET.SubElement(element, "geometry")
+                if kind == "circle":
+                    cylinder = ET.SubElement(geom, "cylinder")
+                    ET.SubElement(cylinder, "radius").text = str(shape["radius"])
+                    ET.SubElement(cylinder, "length").text = "1.2"
+                else:
+                    ET.SubElement(ET.SubElement(geom, "box"), "size").text = f"{shape['size'][0]} {shape['size'][1]} 1.2"
+            def mesh(element, filename, points):
+                relative = Path("meshes") / filename
+                write_prism(out / relative, points)
+                ET.SubElement(ET.SubElement(ET.SubElement(element, "geometry"), "mesh"), "uri").text = str(relative)
+            visual = ET.SubElement(link, "visual", name="visual")
+            ET.SubElement(ET.SubElement(visual, "material"), "diffuse").text = colors[kind]
+            if kind in ["rectangle", "circle"]:
+                primitive(visual)
+                primitive(ET.SubElement(link, "collision", name="collision"))
+            else:
+                points = local_vertices(shape)
+                mesh(visual, name+".stl", points)
+                pieces = [points] if is_convex(points) else [points[t] for t in triangulate(points)]
+                for index, piece in enumerate(pieces):
+                    mesh(ET.SubElement(link, "collision", name=f"collision_{index}"),
+                         f"{name}_piece_{index}.stl", piece)
+            continue
+        name, x, y, dx, dy = item
         m = ET.SubElement(root, "model", name=name)
         ET.SubElement(m, "static").text = "true"
         ET.SubElement(m, "pose").text = f"{x} {y} .6 0 0 0"
@@ -210,7 +241,9 @@ def world(out):
                 )
     # Ground truth transport is intentionally not bridged into runtime ROS nodes.
     (out / "arena.sdf").write_text(ET.tostring(w, encoding="unicode"))
-    (out / "ground_truth.yaml").write_text(yaml.safe_dump({"boxes": boxes()}))
+    key = "obstacles" if geometry and isinstance(geometry[0], dict) else "boxes"
+    (out / "ground_truth.yaml").write_text(yaml.safe_dump({key: geometry, **metadata}))
+    (out / "scene.json").write_text(json.dumps(metadata, ensure_ascii=False, indent=2))
 
 
 def nav_config(name, cfg):
@@ -337,8 +370,13 @@ def prepare(out, config):
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
     cfg = validate_config(yaml.safe_load(Path(config).read_text()))
+    if cfg["scene"]["seed"] is None:
+        cfg["scene"]["seed"] = secrets.randbits(63)
+    geometry, metadata = generate_scene(cfg["scene"]["seed"],
+                                        [r["start"] for r in cfg["robots"]],
+                                        cfg["scene"]["obstacle_count"], cfg["scene"]["generator"])
     (out / "fleet.yaml").write_text(yaml.safe_dump(cfg))
-    world(out)
+    world(out, geometry, metadata)
     for robot in cfg["robots"]:
         n = robot["name"]
         cmd = [

@@ -1,10 +1,12 @@
 from pathlib import Path
+import os
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
     ExecuteProcess,
     OpaqueFunction,
     TimerAction,
+    SetEnvironmentVariable,
 )
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
@@ -17,12 +19,13 @@ def setup(context):
     cfg = prepare(out, LaunchConfiguration("config").perform(context))
     full = LaunchConfiguration("mode").perform(context) == "full"
     actions = [
+        SetEnvironmentVariable("IGN_GAZEBO_RESOURCE_PATH", str(out) + os.pathsep + os.environ.get("IGN_GAZEBO_RESOURCE_PATH", "")),
         ExecuteProcess(
             cmd=["ign", "gazebo", str(out / "arena.sdf"), "-r", "-s", "-v", "2"],
             output="log",
         ),
         Node(
-            package="ros_gz_bridge",
+            package="fleet_bridge",
             executable="parameter_bridge",
             name="clock_bridge",
             arguments=["/clock@rosgraph_msgs/msg/Clock[ignition.msgs.Clock"],
@@ -99,7 +102,7 @@ def setup(context):
                     ],
                 ),
                 Node(
-                    package="ros_gz_bridge",
+                    package="fleet_bridge",
                     executable="parameter_bridge",
                     namespace=n,
                     name="scan_bridge",
@@ -151,7 +154,7 @@ def setup(context):
                         package="cartographer_ros",
                         executable="cartographer_occupancy_grid_node",
                         namespace=n,
-                        arguments=["-resolution", ".05", "-publish_period_sec", "1.0"],
+                        arguments=["-resolution", str(cfg["resolution"]), "-publish_period_sec", "1.0"],
                         parameters=[{"use_sim_time": True}],
                         remappings=[("map", "local_map")],
                         output="log",

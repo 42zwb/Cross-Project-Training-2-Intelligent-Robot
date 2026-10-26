@@ -59,15 +59,19 @@
     send('command', {command:'patrol', argument:JSON.stringify(plan)});
   }));
 
-  const point = p => [(p[0]+6)*80, (6-p[1])*80];
+  const arena = () => state.arena || [-7.5,-7.5,7.5,7.5];
+  const point = p => {const a=arena();return [(p[0]-a[0])*960/(a[2]-a[0]), (a[3]-p[1])*960/(a[3]-a[1])];};
   function draw() {
     ctx.fillStyle = '#445160'; ctx.fillRect(0,0,960,960);
     if (image) ctx.drawImage(image,0,0,960,960);
     ctx.strokeStyle='#778a9e33'; ctx.lineWidth=1;
-    for(let i=0;i<=12;i++){ctx.beginPath();ctx.moveTo(i*80,0);ctx.lineTo(i*80,960);ctx.moveTo(0,i*80);ctx.lineTo(960,i*80);ctx.stroke();}
-    (state.regions || []).forEach((r,i) => {const a=point([r[0],r[3]]),b=point([r[2],r[1]]);ctx.strokeStyle=colors[i]+'99';ctx.lineWidth=3;ctx.setLineDash([10,10]);ctx.strokeRect(a[0],a[1],b[0]-a[0],b[1]-a[1]);ctx.setLineDash([]);});
+    const bounds=arena();
+    for(let x=Math.ceil(bounds[0]);x<bounds[2];x++){const q=point([x,0]);ctx.beginPath();ctx.moveTo(q[0],0);ctx.lineTo(q[0],960);ctx.stroke();}
+    for(let y=Math.ceil(bounds[1]);y<bounds[3];y++){const q=point([0,y]);ctx.beginPath();ctx.moveTo(0,q[1]);ctx.lineTo(960,q[1]);ctx.stroke();}
+    (state.regions || []).forEach((r,i) => {const a=point([r[0],r[3]]),b=point([r[2],r[1]]);ctx.strokeStyle=colors[i]+(state.region_enabled?'99':'44');ctx.lineWidth=3;ctx.setLineDash([10,10]);ctx.strokeRect(a[0],a[1],b[0]-a[0],b[1]-a[1]);ctx.setLineDash([]);});
     Object.entries(state.robots || {}).forEach(([name,r],i) => {
       ctx.strokeStyle=colors[i];ctx.lineWidth=2;ctx.beginPath();(r.trail||[]).forEach((p,j)=>{const q=point(p);j?ctx.lineTo(...q):ctx.moveTo(...q);});ctx.stroke();
+      ctx.save();ctx.setLineDash([9,6]);ctx.lineWidth=3;ctx.beginPath();(r.planned_path||[]).forEach((p,j)=>{const q=point(p);j?ctx.lineTo(...q):ctx.moveTo(...q);});ctx.stroke();ctx.restore();
       if(r.goal){const p=point(r.goal);ctx.strokeRect(p[0]-6,p[1]-6,12,12);}
       if(r.pose){const p=point(r.pose);ctx.save();ctx.translate(...p);ctx.rotate(-r.pose[2]);ctx.fillStyle=colors[i];ctx.beginPath();ctx.arc(0,0,14,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#102030';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(22,0);ctx.stroke();ctx.restore();ctx.fillStyle='#172433';ctx.font='bold 16px sans-serif';ctx.fillText(name,p[0]+18,p[1]-18);}
     });
@@ -78,16 +82,21 @@
   function render() {
     $('mode').textContent=labels[state.mode] || state.mode || '正在启动';
     $('message').textContent=state.message || '';
-    $('known').textContent='已观测栅格比例：'+((state.known_fraction||0)*100).toFixed(1)+'%（非真值覆盖率）';
+    $('known').textContent='地图已知比例：'+((state.known_fraction||0)*100).toFixed(1)+'%（非真值覆盖率）\n直接观测 '+((state.observed_fraction||0)*100).toFixed(1)+'% + 封闭障碍推断 '+((state.inferred_obstacle_fraction||0)*100).toFixed(1)+'%';
     $('planner').textContent='全局规划器：'+(state.planner === 'smac2d' ? 'Smac2D' : 'Navfn A*');
-    $('robots').textContent=Object.entries(state.robots||{}).map(([n,r])=>n+' 探索 '+metric(r.travel,' m')+' / 总行驶 '+metric(r.distance,' m')+' · '+(r.safety?.reason||'运行中')).join('\n');
+    const generatorName=state.scene?.generator==='mixed-shapes-v2'?'混合形状':state.scene?.generator==='rectangles-v1'?'旧版矩形':'';
+    $('scene').textContent='场地 15 × 15 m · 种子 '+(state.scene?.seed || '等待启动')+(generatorName?' · '+generatorName:'');
+    $('scope').textContent=state.exploration_unrestricted ? '已解除分区限制，轮流跨区通行 · '+state.region_release_reason : '探索分工：三个矩形区域；必要时自动跨区补盲';
+    $('robots').textContent=Object.entries(state.robots||{}).map(([n,r])=>n+' 探索 '+metric(r.travel,' m')+' / 总行驶 '+metric(r.distance,' m')+' · '+(r.safety?.reason||'运行中')+(r.goal && r.exploration_target ? '\n  目标可见未知 '+metric(r.exploration_target.visible_unknown_m2,' m²')+' · 路线 '+metric(r.exploration_target.route_length,' m') : '')).join('\n');
     $('errors').textContent=Object.entries(state.formation_errors||{}).map(([n,e])=>n+': '+metric(e.position,' m')+' / '+metric(e.yaw*180/Math.PI,'°')).join(' | ');
     const names={nav2:'Nav2',navigation_pose:'导航位姿',mapping_and_safety:'建图与安全',localization:'定位',initial_free:'起点空闲观测'};
     $('readiness').textContent=Object.entries(state.readiness||{}).map(([k,v])=>(v?'✓ ':'… ')+(names[k]||k)).join(' · ');
     $('health').replaceChildren(...Object.entries(state.robots||{}).map(([n,r])=>{const tr=document.createElement('tr'),s=r.safety||{};[n,metric(s.scan_age,' s'),metric(s.odom_age,' s'),metric(s.localization_age,' s'),metric(s.nearest_obstacle,' m')].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.append(td);});if(!s.scan_valid||!s.odom_valid||!s.localization_ok)tr.className='bad';return tr;}));
     const patrol=state.patrol, statuses={preparing:'准备中',running:'运行中',completed:'已完成',cancelled:'已取消',failed:'失败'};
     $('patrol-progress').textContent=patrol ? (statuses[patrol.status]||patrol.status)+' · '+Object.entries(patrol.robots).map(([n,p])=>n+' '+p.completed+'/'+p.total).join(' · ')+(patrol.error?' · '+patrol.error:'') : '尚未提交巡逻任务';
-    if(!initialized && state.regions){$('regions').replaceChildren(...state.regions.map(r=>{const d=document.createElement('div');d.className='regions';r.forEach(v=>{const e=document.createElement('input');e.type='number';e.step='.1';e.value=v;d.append(e);});return d;}));initialized=true;}
+    if(!initialized && state.regions){$('regions').replaceChildren(...state.regions.map(r=>{const d=document.createElement('div');d.className='regions';r.forEach(v=>{const e=document.createElement('input');e.type='number';e.step='.1';e.value=v;d.append(e);});return d;}));
+      if(state.starts){$('routes').value=JSON.stringify(Object.fromEntries(Object.entries(state.starts).map(([n,p])=>[n,[[p[0]+(p[0]>0?.6:-.6),p[1],p[2]],p]])));}
+      initialized=true;}
     if(state.map_version!==version){version=state.map_version;const requested=version,img=new Image();img.onload=()=>{if(requested===version){image=img;draw();}};img.src='/api/map.png?v='+version;}
     draw(); updateControls();
   }

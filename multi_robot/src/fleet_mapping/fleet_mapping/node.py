@@ -28,6 +28,7 @@ from tf2_ros import (
 )
 from cartographer_ros_msgs.srv import WriteState
 from fleet_mapping.grid import fuse, save_map, mask_robot_returns, valid_grid_message
+from fleet_mapping.completion import ObstacleCompletion, map_metrics
 
 
 def yaw(q):
@@ -58,6 +59,8 @@ class Mapping(Node):
         self.static_sent = 0
         self.align = {}
         self.maps = {}
+        self.map_revision = 0
+        self.completion = ObstacleCompletion()
         self.last_mask_drop = {}
         self.subs = []
         self.scanpub = {}
@@ -109,6 +112,7 @@ class Mapping(Node):
     def local_map(self, name, message):
         if valid_grid_message(message):
             self.maps[name] = message
+            self.map_revision += 1
         else:
             self.maps.pop(name, None)
 
@@ -263,7 +267,16 @@ class Mapping(Node):
                 (self.cfg["arena"][2] - self.cfg["arena"][0]) / self.cfg["resolution"]
             ),
         )
-        self.data = fuse(layers, shape, self.cfg["resolution"], self.cfg["arena"][:2])
+        self.observed = fuse(layers, shape, self.cfg["resolution"], self.cfg["arena"][:2])
+        # Keep moderate occupied probabilities as contour evidence instead of
+        # discarding them in trinary fusion. This layer is never published as
+        # direct observation or used to clear a navigation cell.
+        contour_layers = [(np.where(data >= 55, 100, data), *rest)
+                          for data, *rest in layers]
+        self.contour = fuse(contour_layers, shape, self.cfg["resolution"], self.cfg["arena"][:2])
+        self.data, self.inferred = self.completion.update(
+            self.observed, self.cfg["resolution"], self.map_revision, boundary=self.contour)
+        self.map_metrics = map_metrics(self.observed, self.inferred)
         m = OccupancyGrid()
         m.header.stamp = self.get_clock().now().to_msg()
         m.header.frame_id = "map"
@@ -280,7 +293,7 @@ class Mapping(Node):
                     {
                         "aligned": list(self.align),
                         "local_maps": list(self.maps),
-                        "known_fraction": float(np.mean(self.data >= 0)),
+                        **self.map_metrics,
                         "scan_age": {
                             n: time.monotonic() - t for n, t in self.received.items()
                         },
@@ -318,6 +331,11 @@ class Mapping(Node):
                 self.cfg["resolution"],
                 self.cfg["arena"][:2],
             )
+            save_map(dest / "observed_map", self.observed, self.cfg["resolution"], self.cfg["arena"][:2])
+            save_map(dest / "contour_evidence_map", self.contour, self.cfg["resolution"], self.cfg["arena"][:2])
+            save_map(dest / "inferred_obstacles", self.inferred.astype(np.int16) * 100,
+                     self.cfg["resolution"], self.cfg["arena"][:2])
+            (dest / "mapping_evidence.json").write_text(json.dumps(self.map_metrics, indent=2))
             (dest / "alignment.yaml").write_text(
                 yaml.safe_dump({n: list(t) for n, t in self.align.items()})
             )

@@ -6,6 +6,7 @@ import numpy as np
 import yaml
 from scipy import ndimage
 from fleet_mapping.grid import load_map
+from fleet_mapping.shapes import shape_distance
 from fleet_control.geometry import formation_pass, FORMATION_CLEARANCE_MARGIN
 
 
@@ -14,8 +15,8 @@ def coverage(data, res, origin, boxes, regions, robot_radius=0.18, starts=None):
     x = origin[0] + (xx + 0.5) * res
     y = origin[1] + (yy + 0.5) * res
     obstacles = np.zeros(data.shape, bool)
-    for _, bx, by, dx, dy in boxes:
-        obstacles |= (abs(x - bx) <= dx / 2) & (abs(y - by) <= dy / 2)
+    for shape in boxes:
+        obstacles |= shape_distance(x, y, shape) <= 1e-9
     # Reachability uses the true robot-centre configuration space, not all wall pixels.
     free = ndimage.distance_transform_edt(~obstacles) * res >= robot_radius + 0.02
     labels, _ = ndimage.label(free)
@@ -47,10 +48,8 @@ def coverage(data, res, origin, boxes, regions, robot_radius=0.18, starts=None):
 
 def clearance(p, boxes, robot_radius=0.18):
     values = []
-    for _, bx, by, dx, dy in boxes:
-        x = max(abs(p[0] - bx) - dx / 2, 0)
-        y = max(abs(p[1] - by) - dy / 2, 0)
-        values.append(math.hypot(x, y) - robot_radius)
+    for shape in boxes:
+        values.append(float(shape_distance(p[0], p[1], shape)) - robot_radius)
     return min(values)
 
 
@@ -82,7 +81,7 @@ def evaluate(run, map_path=None):
         data,
         meta["resolution"],
         meta["origin"],
-        gt["boxes"],
+        gt.get("obstacles", gt.get("boxes", [])),
         regions,
         cfg["robot_radius"],
         starts=[r["start"] for r in cfg["robots"]],
@@ -105,6 +104,7 @@ def evaluate(run, map_path=None):
         minclear = float("inf")
         minpair = float("inf")
         outside = 0
+        authorized_crossings = 0
         body_margin = cfg["robot_radius"]
         times = np.array([t["sim_time"] for t in telemetry])
         actual_travel = {n: 0.0 for n in ["robot1", "robot2", "robot3"]}
@@ -122,7 +122,7 @@ def evaluate(run, map_path=None):
                 else {}
             )
             for i, (n, p) in enumerate(t["robots"].items()):
-                minclear = min(minclear, clearance(p, gt["boxes"], cfg["robot_radius"]))
+                minclear = min(minclear, clearance(p, gt.get("obstacles", gt.get("boxes", [])), cfg["robot_radius"]))
                 for name, q in t["robots"].items():
                     if name != n:
                         minpair = min(
@@ -131,15 +131,19 @@ def evaluate(run, map_path=None):
                         )
                 if sample.get("mode") == "EXPLORING":
                     b = regions[int(n[-1]) - 1]
-                    if (
+                    out_of_region = (
                         not b[0] + body_margin - 1e-3
                         <= p[0]
                         <= b[2] - body_margin + 1e-3
                         or not b[1] + body_margin - 1e-3
                         <= p[1]
                         <= b[3] - body_margin + 1e-3
-                    ):
-                        outside += 1
+                    )
+                    if out_of_region:
+                        if sample.get("region_enabled", True):
+                            outside += 1
+                        else:
+                            authorized_crossings += 1
                     if (
                         sample.get("mode") == "EXPLORING"
                         and previous_sample.get("mode") == "EXPLORING"
@@ -156,6 +160,8 @@ def evaluate(run, map_path=None):
             minimum_interrobot_clearance=minpair,
             collision_pass=minclear >= -0.015 and minpair >= -0.015,
             region_violation_samples=outside,
+            authorized_cross_region_samples=authorized_crossings,
+            exploration_region_releases=[e for e in events if e["event"] == "exploration_regions_released"],
             region_pass=outside == 0,
         )
         formations = []

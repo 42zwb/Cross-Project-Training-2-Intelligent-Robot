@@ -41,7 +41,7 @@ def quiesce(run, process_group, base_only=False):
         except (OSError, ValueError):
             pass
     report["simulator_pids"] = pids
-    if len(pids) > 1:
+    if len(pids) != 1:
         report.update(simulator_stopped=False, error="无法唯一确定本次 Gazebo 服务器，交给 launch 清理")
         return report
     for pid in pids:

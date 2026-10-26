@@ -109,7 +109,8 @@ try:
         n for n, r in s["robots"].items() if abs(r["safety"].get("v", 0)) > 0.04
     )
     pid = find_pid(
-        lambda c: "/ros_gz_bridge/parameter_bridge" in c and f"__ns:=/{name}" in c
+        lambda c: any(path in c for path in ["/fleet_bridge/parameter_bridge", "/ros_gz_bridge/parameter_bridge"])
+        and f"__ns:=/{name}" in c
     )
     os.kill(pid, signal.SIGSTOP)
     resumed.append(pid)

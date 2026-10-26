@@ -5,14 +5,14 @@
 <body>
 <header><div><h1>TurtleBot 协同实验室</h1><small>三机器人 · 协同建图 · 航点巡逻 · 队形切换</small></div><strong id="mode">连接中…</strong></header>
 <main><div class="scene"><canvas id="map" width="960" height="960" aria-label="共享地图与机器人轨迹"></canvas>
-<div class="legend"><span class="robot1">● robot1</span><span class="robot2">● robot2</span><span class="robot3">● robot3</span><small>浅色：空闲 · 深色：障碍 · 灰蓝：未知</small></div>
+<div class="legend"><span class="robot1">● robot1</span><span class="robot2">● robot2</span><span class="robot3">● robot3</span><small>浅色：空闲 · 深色：障碍 · 灰蓝：未知 · 实线：已走轨迹 · 虚线：Nav2 当前规划</small></div>
 <section><h2>传感与定位诊断</h2><p id="readiness" class="note">等待状态…</p><div class="table-wrap"><table><thead><tr><th>机器人</th><th>雷达延迟</th><th>里程计延迟</th><th>定位延迟</th><th>最近回波</th></tr></thead><tbody id="health"></tbody></table></div></section></div>
 <aside>
-<section><h2>任务状态</h2><div id="message"></div><p id="known"></p><p id="planner" class="note"></p><div id="robots"></div><p id="response" role="status" aria-live="polite">等待连接</p></section>
+<section><h2>任务状态</h2><div id="message"></div><p id="scene" class="note"></p><p id="scope" class="note"></p><p id="known"></p><p id="planner" class="note"></p><div id="robots"></div><p id="response" role="status" aria-live="polite">等待连接</p></section>
 <section><h2>协同建图</h2><div class="row"><button class="primary" data-command="explore" data-motion>开始 / 恢复探索</button><button data-command="pause">暂停停车</button></div><button data-command="save" class="wide">保存地图与运行结果</button>
-<details><summary>首次任务前调整分区（m）</summary><p class="note">每行 xmin、ymin、xmax、ymax。三个矩形须覆盖场地、不重叠且包含各自起点。首次运动任务后锁定。</p><div id="regions"></div><button id="apply-regions">应用区域</button></details></section>
+<details><summary>首次任务前调整分区（m）</summary><p class="note">每行 xmin、ymin、xmax、ymax。三个矩形须覆盖 15×15 m 场地、不重叠且包含各自起点。首次运动任务后锁定；探索受分区阻挡时自动解除边界。</p><div id="regions"></div><button id="apply-regions">应用区域</button></details></section>
 <section><h2>航点巡逻</h2><p class="note">仅在所属分区的已观测安全空闲区运行。每个航点为 [x, y, yaw]；可为一台或多台车指定路线。暂停后重新提交会从第一点开始。</p>
-<label for="routes">各车路线（JSON）</label><textarea id="routes" rows="7" spellcheck="false">{"robot1":[[-4.8,-4,0],[-4,-4,0]],"robot2":[[-0.8,-4,0],[0,-4,0]],"robot3":[[4.8,-4,0],[4,-4,0]]}</textarea>
+<label for="routes">各车路线（JSON）</label><textarea id="routes" rows="7" spellcheck="false">{"robot1":[[-5.6,-5,0],[-5,-5,0]],"robot2":[[-0.6,-5,0],[0,-5,0]],"robot3":[[5.6,-5,0],[5,-5,0]]}</textarea>
 <div class="row"><label>循环次数<input id="cycles" type="number" min="1" max="20" step="1" value="1"></label><label>停留（s）<input id="dwell" type="number" min="0" max="30" step="0.5" value="0"></label><label>单点超时（s）<input id="goal-timeout" type="number" min="5" max="240" value="120"></label></div>
 <button id="start-patrol" data-motion class="primary wide">执行航点巡逻</button><p id="patrol-progress" class="note"></p></section>
 <section><h2>集合与队形</h2><select id="shape" aria-label="队形"><option value="triangle">等边三角形</option><option value="row">横排（局部 Y 轴）</option><option value="column">纵队（局部 X 轴）</option></select>

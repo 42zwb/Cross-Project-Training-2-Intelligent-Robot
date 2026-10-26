@@ -24,31 +24,35 @@ def valid_grid_message(message):
 
 def fuse(layers, shape=(240, 240), resolution=0.05, origin=(-6.0, -6.0)):
     result = np.full(shape, -1, dtype=np.int8)
+    yy, xx = np.indices(shape)
+    world_x = origin[0] + (xx + 0.5) * resolution
+    world_y = origin[1] + (yy + 0.5) * resolution
     for data, res, ox, oy, oyaw, transform in layers:
         a = np.asarray(data)
-        yy, xx = np.where((a >= 0) & ((a <= 25) | (a >= 65)))
-        x = ox + (xx + 0.5) * res
-        y = oy + (yy + 0.5) * res
-        c, s = math.cos(oyaw), math.sin(oyaw)
-        # Origin yaw rotates the grid around its origin, not the map frame origin.
-        x, y = ox + c * ((xx + 0.5) * res) - s * ((yy + 0.5) * res), oy + s * (
-            (xx + 0.5) * res
-        ) + c * ((yy + 0.5) * res)
         tx, ty, th = transform
         c, s = math.cos(th), math.sin(th)
-        gx = tx + c * x - s * y
-        gy = ty + s * x + c * y
-        ix = np.floor((gx - origin[0]) / resolution).astype(int)
-        iy = np.floor((gy - origin[1]) / resolution).astype(int)
+        # Pull each output centre into the source grid. Forward centre splatting
+        # leaves holes when upsampling or rotating, fragmenting safe free space.
+        local_x = c * (world_x - tx) + s * (world_y - ty) - ox
+        local_y = -s * (world_x - tx) + c * (world_y - ty) - oy
+        origin_cos, origin_sin = math.cos(oyaw), math.sin(oyaw)
+        sx = np.floor((origin_cos * local_x + origin_sin * local_y) / res).astype(int)
+        sy = np.floor((-origin_sin * local_x + origin_cos * local_y) / res).astype(int)
+        inside = (sx >= 0) & (sy >= 0) & (sx < a.shape[1]) & (sy < a.shape[0])
+        values = np.full(shape, -1, dtype=np.int16)
+        values[inside] = a[sy[inside], sx[inside]]
+        result[(values >= 0) & (values <= 25) & (result != 100)] = 0
+        result[values >= 65] = 100
+
+        # Also forward-project occupied source samples. A small obstacle must
+        # survive downsampling even if no coarse output centre lands inside it.
+        by, bx = np.where(a >= 65)
+        x = ox + origin_cos * ((bx + 0.5) * res) - origin_sin * ((by + 0.5) * res)
+        y = oy + origin_sin * ((bx + 0.5) * res) + origin_cos * ((by + 0.5) * res)
+        ix = np.floor((tx + c * x - s * y - origin[0]) / resolution).astype(int)
+        iy = np.floor((ty + s * x + c * y - origin[1]) / resolution).astype(int)
         valid = (ix >= 0) & (iy >= 0) & (ix < shape[1]) & (iy < shape[0])
-        ix = ix[valid]
-        iy = iy[valid]
-        v = a[yy[valid], xx[valid]]
-        free = v <= 25
-        occ = v >= 65
-        # Preserve occupied cells regardless of duplicate resampling indices/order.
-        result[iy[free], ix[free]] = np.maximum(result[iy[free], ix[free]], 0)
-        result[iy[occ], ix[occ]] = 100
+        result[iy[valid], ix[valid]] = 100
     return result
 
 

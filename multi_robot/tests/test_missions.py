@@ -164,14 +164,14 @@ def test_blind_motion_direction_stops_despite_valid_side_returns():
     assert reports[0]["robot1"]["reason"] == "运动方向雷达数据无效"
 
 
-def test_custom_spawn_cannot_overlap_a_wall_or_box():
+def test_custom_spawn_cannot_overlap_a_wall():
     import yaml
     from pathlib import Path
     from fleet_bringup.prepare import validate_config
     config = yaml.safe_load((Path(__file__).resolve().parents[1] / "src/fleet_bringup/config/fleet.yaml").read_text())
     assert validate_config(copy.deepcopy(config))["planner"] == "navfn"
-    config["robots"][0]["start"] = [-4.0, 0.0, 0.0]
-    with pytest.raises(ValueError, match="静态障碍"):
+    config["robots"][0]["start"] = [-7.4, 0.0, 0.0]
+    with pytest.raises(ValueError):
         validate_config(config)
 
 

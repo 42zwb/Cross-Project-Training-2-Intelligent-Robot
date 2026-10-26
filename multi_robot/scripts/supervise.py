@@ -3,8 +3,10 @@
 import argparse, datetime, fcntl, hashlib, json, os, signal, subprocess, sys, time
 import yaml
 import socket
+import secrets
 from pathlib import Path
 from shutdown_context import quiesce
+from runtime_context import reproduction_command
 
 p = argparse.ArgumentParser()
 p.add_argument("--headless", action="store_true")
@@ -13,6 +15,8 @@ p.add_argument("--record-truth", action="store_true")
 p.add_argument("--config")
 p.add_argument("--run-dir")
 p.add_argument("--planner", choices=["navfn", "smac2d"], help="覆盖配置中的全局规划器")
+p.add_argument("--seed", type=int, help="指定可复现场景种子；默认每次生成新种子")
+p.add_argument("--scene-generator", choices=["mixed-shapes-v2", "rectangles-v1"], help="选择混合形状或旧矩形生成器")
 a = p.parse_args()
 root = Path(__file__).resolve().parents[1]
 lock = open(f'/tmp/turtlebot_fleet_{os.environ["ROS_DOMAIN_ID"]}.lock', "w")
@@ -40,8 +44,8 @@ for folder in [root / "src", root / "scripts", root / "vendor/tf2_compat"]:
         p
         for p in folder.rglob("*")
         if p.is_file()
-        and p.suffix
-        in [".py", ".sh", ".yaml", ".lua", ".config", ".srv", ".cpp", ".hpp", ".html", ".js", ".css", ".xml"]
+        and (p.name == "CMakeLists.txt" or p.suffix
+        in [".py", ".sh", ".yaml", ".lua", ".config", ".cfg", ".srv", ".cpp", ".h", ".hpp", ".cmake", ".html", ".js", ".css", ".xml"])
     )
 sources.extend(root / name for name in ["env.sh", "build.sh", "run.sh", "demo.sh"])
 manifest = {
@@ -81,9 +85,18 @@ cmd = [
 ]
 config = Path(a.config).expanduser().resolve() if a.config else root / "src/fleet_bringup/config/fleet.yaml"
 cfg = yaml.safe_load(config.read_text())
+if a.scene_generator:
+    if not isinstance(cfg, dict) or not isinstance(cfg.setdefault("scene", {}), dict):
+        raise ValueError("配置及 scene 必须为映射。")
+    cfg.setdefault("scene", {})["generator"] = a.scene_generator
 if a.planner:
     cfg["planner"] = a.planner
 from fleet_bringup.prepare import validate_config
+validate_config(cfg)
+if a.seed is not None:
+    cfg["scene"]["seed"] = a.seed
+if cfg["scene"]["seed"] is None:
+    cfg["scene"]["seed"] = secrets.randbits(63)
 validate_config(cfg)
 if not a.base_only:
     with socket.socket() as probe_socket:
@@ -103,20 +116,15 @@ proc = subprocess.Popen(
 (run / "supervisor.pid").write_text(str(os.getpid()))
 (run / "launch.pid").write_text(str(proc.pid))
 print(
-    f"运行目录：{run}\n日志：{run}/launch.log\n网页：http://127.0.0.1:{cfg['dashboard_port']}\n规划器：{cfg['planner']}\n在此终端按 Ctrl+C 完整关闭本次仿真。",
+    f"运行目录：{run}\n日志：{run}/launch.log\n网页：http://127.0.0.1:{cfg['dashboard_port']}\n规划器：{cfg['planner']}\n场景：15×15 m，种子 {cfg['scene']['seed']}\n复现场景：{reproduction_command(effective_config, cfg['scene']['seed'])}\n在此终端按 Ctrl+C 完整关闭本次仿真。",
     flush=True,
 )
-sampler = subprocess.Popen(
-    [sys.executable, str(root / "scripts/resources.py"), str(run)],
-    start_new_session=True,
-)
+sampler = None
 probe = None
-if a.record_truth:
-    probe = subprocess.Popen(
-        [str(tool), str(run / "truth.jsonl")], start_new_session=True
-    )
 stop = False
 shutdown_failed = False
+auxiliary_error = None
+starting_auxiliary = "resource_sampler"
 
 
 def shutdown(sig, frame):
@@ -127,8 +135,25 @@ def shutdown(sig, frame):
 for s in [signal.SIGINT, signal.SIGTERM, signal.SIGHUP]:
     signal.signal(s, shutdown)
 try:
+    # Child creation belongs inside the cleanup scope too. A missing/unusable
+    # probe must not orphan a live simulator and resource sampler.
+    sampler = subprocess.Popen(
+        [sys.executable, str(root / "scripts/resources.py"), str(run)],
+        start_new_session=True,
+    )
+    if a.record_truth:
+        starting_auxiliary = "truth_probe"
+        probe = subprocess.Popen([str(tool), str(run / "truth.jsonl")], start_new_session=True)
     while proc.poll() is None and not stop:
+        for name, child in [("resource_sampler", sampler), ("truth_probe", probe)]:
+            if child is not None and child.poll() is not None:
+                auxiliary_error = {"process": name, "returncode": child.returncode}
+                stop = True
+                break
         time.sleep(0.25)
+except OSError as error:
+    auxiliary_error = {"process": starting_auxiliary, "error": str(error)}
+    raise
 finally:
     if proc.poll() is None:
         try:
@@ -192,15 +217,16 @@ finally:
     (run / "cleanup.json").write_text(
         json.dumps(
             {"residual_before_final_kill": alive, "launch_exit": proc.returncode,
-             "abnormal_process_exits": abnormal_exits}
+             "abnormal_process_exits": abnormal_exits, "auxiliary_error": auxiliary_error}
         )
     )
-    sampler.send_signal(signal.SIGTERM)
-    try:
-        sampler.wait(timeout=4)
-    except subprocess.TimeoutExpired:
-        sampler.kill()
-        sampler.wait()
+    if sampler is not None and sampler.poll() is None:
+        sampler.send_signal(signal.SIGTERM)
+        try:
+            sampler.wait(timeout=4)
+        except subprocess.TimeoutExpired:
+            sampler.kill()
+            sampler.wait()
     if probe:
         probe.send_signal(signal.SIGINT)
         try:
@@ -209,4 +235,4 @@ finally:
             probe.kill()
             probe.wait()
     log.close()
-sys.exit(1 if abnormal_exits or alive or shutdown_failed else proc.returncode if not stop else 0)
+sys.exit(1 if abnormal_exits or alive or shutdown_failed or auxiliary_error else proc.returncode if not stop else 0)
