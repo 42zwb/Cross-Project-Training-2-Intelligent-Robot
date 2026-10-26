@@ -1,10 +1,12 @@
 from pathlib import Path
+import os
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
     ExecuteProcess,
     OpaqueFunction,
     TimerAction,
+    SetEnvironmentVariable,
 )
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
@@ -17,6 +19,7 @@ def setup(context):
     cfg = prepare(out, LaunchConfiguration("config").perform(context))
     full = LaunchConfiguration("mode").perform(context) == "full"
     actions = [
+        SetEnvironmentVariable("IGN_GAZEBO_RESOURCE_PATH", str(out) + os.pathsep + os.environ.get("IGN_GAZEBO_RESOURCE_PATH", "")),
         ExecuteProcess(
             cmd=["ign", "gazebo", str(out / "arena.sdf"), "-r", "-s", "-v", "2"],
             output="log",

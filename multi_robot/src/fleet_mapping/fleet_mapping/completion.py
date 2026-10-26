@@ -44,17 +44,19 @@ def enclosed_obstacles(data, resolution, boundary=None):
             convex_area = ConvexHull(points).volume
         except QhullError:
             continue
-        if hole.sum() / max(1.0, convex_area) < 0.90:
+        solidity = hole.sum() / max(1.0, convex_area)
+        if solidity < 0.55:
             continue
         if boundary is not None:
             # Moderate occupancy may connect a measured edge, but cannot alone
-            # establish an object: at least half the immediate contour must
-            # have strong (>=65) support in the original fused observations.
+            # establish an object: >=50% (>=65% for concave contours) of the
+            # rim needs strong support in the original fused observations.
             padded = np.pad(hole, 1)
             rim = ndimage.binary_dilation(padded) & ~padded
             patch = data[bounds[0].start - 1:bounds[0].stop + 1,
                          bounds[1].start - 1:bounds[1].stop + 1]
-            if np.sum(rim & (patch >= 65)) < 0.5 * np.sum(rim):
+            required_support = 0.65 if solidity < 0.90 else 0.5
+            if np.sum(rim & (patch >= 65)) < required_support * np.sum(rim):
                 continue
         # Known free cells near a noisy contour remain free as well.
         inferred[bounds] |= hole & (data[bounds] < 0)
@@ -114,10 +116,12 @@ def map_metrics(observed, inferred):
         "observed_cells": int(np.sum(observed >= 0)),
         "inferred_obstacle_cells": int(inferred.sum()),
         "total_cells": int(total),
-        "completion_method": "closed-compact-solid-v3",
+        "completion_method": "closed-compact-solid-v4",
         "completion_policy": {"direct_occupied_threshold": 65,
                               "contour_probability_threshold": 55,
                               "minimum_strong_contour_fraction": 0.5,
+                              "minimum_concave_strong_contour_fraction": 0.65,
+                              "minimum_solidity": 0.55,
                               "maximum_contour_gap_m": 0.20,
                               "new_updates_required": 3, "support_seconds": 2.0,
                               "hold_seconds": 5.0},

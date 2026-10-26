@@ -1,0 +1,1813 @@
+{
+  "date": "2026-10-26",
+  "generator": "mixed-shapes-v2",
+  "tests": {
+    "python": 122,
+    "native_bridge_retained": "0/9",
+    "tf2_lock_regression": "passed",
+    "both_workspaces_built": true
+  },
+  "generation": {
+    "count": 34,
+    "passed": true,
+    "records": [
+      {
+        "seed": 0,
+        "seconds": 7.246920163997856,
+        "minimum_gap": 1.2129937813628642,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 0,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "bc5a5e489f23d4dab4907aa9beb6221f93122c3c4b73a1a2a7d22fcd087d6159",
+          "sampling_attempts": 16603,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5413777777777777,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 1,
+        "seconds": 3.8528775530030543,
+        "minimum_gap": 1.219007077982024,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 1,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "6f63e9b982f5127883e747a8cb2ae5d821d87beac589436039f0feda6e7fe016",
+          "sampling_attempts": 10444,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5485333333333333,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 2,
+        "seconds": 1.987705414998345,
+        "minimum_gap": 1.200904619163898,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 2,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "c8982298b28c9a8385d9e36cf07b077e6f63205a8c0c9897b387449686e31362",
+          "sampling_attempts": 4604,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5670666666666667,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 3,
+        "seconds": 0.4515422180011228,
+        "minimum_gap": 1.2655981206991025,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 3,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "e3b4a16cddeba7ad98afa944286893014cc55bd07092fc2abb3d512ac79fa837",
+          "sampling_attempts": 1358,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5583111111111111,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 4,
+        "seconds": 0.2888843649998307,
+        "minimum_gap": 1.2008090402962726,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 4,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "a66a2a224fa7f466e7e3bf2f8ab1ae48b6268000c03b7641981419ebc9870bfe",
+          "sampling_attempts": 359,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5604,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 5,
+        "seconds": 0.6320366179970733,
+        "minimum_gap": 1.2109321858009685,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 5,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "d53feed3668377dbb6d97ccc099a050ed913ede056988d1e592590b39b7b600b",
+          "sampling_attempts": 1057,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5721333333333334,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 6,
+        "seconds": 1.0485074979987985,
+        "minimum_gap": 1.2055319646421623,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 6,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "50c555a7f36aa3bba5780492ba57ee4ef2ccc254a78e19a9109b60b97c848cfb",
+          "sampling_attempts": 2889,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.556,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 7,
+        "seconds": 2.0349577039996802,
+        "minimum_gap": 1.2222187655709762,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 7,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "8a13826798752e334bee06305c2aac24bb1462f5b56fe643082dbff4517d703b",
+          "sampling_attempts": 6397,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5376,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 8,
+        "seconds": 0.6866259400012495,
+        "minimum_gap": 1.2376172096064426,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 8,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "c7c2b16b5aa9066562d161a8cc75b99fb06146a0ee6fd12043b763b3e040210a",
+          "sampling_attempts": 2064,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5774222222222222,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 9,
+        "seconds": 18.477869129001192,
+        "minimum_gap": 1.3637859705188062,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 9,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "9b1ec2b3d8703fde08d2048d979cb79fbc9abb2499ad9254795e6bc823cea320",
+          "sampling_attempts": 49119,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5593777777777778,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 10,
+        "seconds": 0.5481693580004503,
+        "minimum_gap": 1.2485624656266303,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 10,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "df40dd40057c8fa8bd797c8a23b79a8b25e6f4dff2e72041cc578d93af2e4b6f",
+          "sampling_attempts": 1517,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5437777777777778,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 11,
+        "seconds": 0.2087931120004214,
+        "minimum_gap": 1.2052452896087023,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 11,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "b7ce4aa23384475036ed1ca81dc5083a508cce840aae9c404ee2d277df8a4907",
+          "sampling_attempts": 698,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5505777777777778,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 12,
+        "seconds": 1.6940790549997473,
+        "minimum_gap": 1.2900483324936818,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 12,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "1d4fed3ccd5017e9cb284b29f815872fd137bd402d14379f0e85ffd942948bac",
+          "sampling_attempts": 5006,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5671111111111111,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 13,
+        "seconds": 2.225723248997383,
+        "minimum_gap": 1.2556929091853601,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 13,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "877d8a457794d28c7958ee7d0626f75131a130fdcfcfd11090ee7d436e3279f8",
+          "sampling_attempts": 3480,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5664444444444444,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 14,
+        "seconds": 4.052205899999535,
+        "minimum_gap": 1.2043968994937753,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 14,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "1bafb64e8400ebfa3363e01e35332ee9332285b8977e10f22049ba82951b597e",
+          "sampling_attempts": 10134,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5526666666666666,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 15,
+        "seconds": 0.8794179709984746,
+        "minimum_gap": 1.225814859518348,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 15,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "58b059b944b0db1ca339b710dfd23ba4af60815bf50b189d1156f5107fa3fdc2",
+          "sampling_attempts": 2732,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5520888888888889,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 16,
+        "seconds": 1.573200677998102,
+        "minimum_gap": 1.2051748546075185,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 16,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "2bb9020bea57ee84cca6115ed835cf2b279654bad9b39f4ecd2148e54099089c",
+          "sampling_attempts": 4005,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5418666666666667,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 17,
+        "seconds": 3.1514020809991052,
+        "minimum_gap": 1.2426827070670228,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 17,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "d6e1c2b95e7cc5a3fabfeacfd3ef6b539853925176ed274107ce3e9e87922aae",
+          "sampling_attempts": 7889,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5585333333333333,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 18,
+        "seconds": 8.378994429000159,
+        "minimum_gap": 1.2311865242259838,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 18,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "0fdc9c92844a701aac0efc994e840bf840d0f646fb30c46cfa2d7ee638459de0",
+          "sampling_attempts": 22644,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5418666666666667,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 19,
+        "seconds": 2.318537290000677,
+        "minimum_gap": 1.2011129705079253,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 19,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "3bbf09ea33fec255acd8e7f9481235e3aa74ee603ac5ed37ca314046a7ff11d0",
+          "sampling_attempts": 6688,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5560888888888889,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 20,
+        "seconds": 4.379702955997345,
+        "minimum_gap": 1.218227262045732,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 20,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "bf4199897d2910b26d7b9e410dfbc6528f1f6679f1578c76eaa7bd3e3b7cbe6f",
+          "sampling_attempts": 14339,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5730666666666666,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 21,
+        "seconds": 12.025221528001566,
+        "minimum_gap": 1.2175064239246782,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 21,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "9db3fac4bd8ca3e0dff8eee51b9dda5b2f6ffa756282143c88d9e1dc642a4e35",
+          "sampling_attempts": 32602,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5426666666666666,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 22,
+        "seconds": 2.6413152249988343,
+        "minimum_gap": 1.2790153446397294,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 22,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "1294959f627e45c08370c5a72b1dc66b17745d53f87b6a22ad2391b33a915f61",
+          "sampling_attempts": 9198,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5611111111111111,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 23,
+        "seconds": 0.2055836290019215,
+        "minimum_gap": 1.3113569401037526,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 23,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "45ea62e26be30eef9a907dea182dc067bd08b94dfb5c03b422002f335fcc4bad",
+          "sampling_attempts": 362,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5560888888888889,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 24,
+        "seconds": 1.882190628999524,
+        "minimum_gap": 1.2473149890792943,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 24,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "039068ba1820139737c16a993b164284a50daf74b7b95c413528da0a0d1678b1",
+          "sampling_attempts": 4134,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5452,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 25,
+        "seconds": 7.129731074997835,
+        "minimum_gap": 1.2646084917543323,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 25,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "c2de3354ad6d6ad68f59135407cb4d46ca19fd4f6b6284233e2b1a56083dc64c",
+          "sampling_attempts": 17569,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5428444444444445,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 26,
+        "seconds": 1.354648840999289,
+        "minimum_gap": 1.2068081351681927,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 26,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "e311d495bb0187ed5ad70ebdd788ca8a30255766f0c0d0530cf6fbdb2811cdf8",
+          "sampling_attempts": 5018,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5663111111111111,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 27,
+        "seconds": 4.394200717997592,
+        "minimum_gap": 1.2282101651072312,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 27,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "cd703cedaa9d94d795e2a60298f273ad1149c47cc250dd2aa91139d0834e134c",
+          "sampling_attempts": 8723,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5825333333333333,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 28,
+        "seconds": 2.471780555002624,
+        "minimum_gap": 1.2689950879016378,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 28,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "fee84fee1322394f07dedb53bbf80a1f6dbbeea30fdbcab74d5860c08a6c94ef",
+          "sampling_attempts": 8241,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5683555555555555,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 29,
+        "seconds": 1.1290579060005257,
+        "minimum_gap": 1.3085648197978512,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 29,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "b990801bde369489e2f7b4835ca2612dfe70750a57c2bb596d207cdb28ffb71e",
+          "sampling_attempts": 3364,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5512888888888889,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 42,
+        "seconds": 3.1629026160007925,
+        "minimum_gap": 1.392151420198551,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 42,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "a7134916dee39b05201489c972f69d07390da5933f8003cfbacee6bdee975bd3",
+          "sampling_attempts": 8194,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5448888888888889,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 2026,
+        "seconds": 2.069930990001012,
+        "minimum_gap": 1.2430688504199008,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 2026,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "e2bfd000a041b5691f681b934eb8e6d5b55614c4c7c79a62306b28808f46d291",
+          "sampling_attempts": 5635,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5504888888888889,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 12345,
+        "seconds": 0.42071803900034865,
+        "minimum_gap": 1.243010804205393,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 12345,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "4b2055468e632ba29e44d3c26531061463503d838477a4a581098d0a860c3b10",
+          "sampling_attempts": 1019,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5509777777777778,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      },
+      {
+        "seed": 9223372036854775807,
+        "seconds": 11.861068783997325,
+        "minimum_gap": 1.201999013898219,
+        "metadata": {
+          "generator": "mixed-shapes-v2",
+          "seed": 9223372036854775807,
+          "arena": [
+            -7.5,
+            -7.5,
+            7.5,
+            7.5
+          ],
+          "obstacle_count": 10,
+          "shape_counts": {
+            "rectangle": 2,
+            "convex_polygon": 2,
+            "concave_polygon": 2,
+            "circle": 2,
+            "sector": 2
+          },
+          "minimum_surface_gap": 1.2,
+          "minimum_concave_arm_width": 0.65,
+          "rotation_range_rad": [
+            -3.141592653589793,
+            3.141592653589793
+          ],
+          "maximum_arc_chord_error_m": 0.0011,
+          "geometry_sha256": "08413efdd3a69cf86bed9b15eff1c5723cfc0c3e2b4895e2ae294a7e13559b0a",
+          "sampling_attempts": 26933,
+          "navigation_check": {
+            "connected": true,
+            "components": 1,
+            "start_labels": [
+              1,
+              1,
+              1
+            ],
+            "free_fraction": 0.5520888888888889,
+            "checked_resolution": 0.1,
+            "centre_clearance": 0.5
+          }
+        }
+      }
+    ]
+  },
+  "completion_generated_cases": {
+    "passed": true,
+    "shapes": 100,
+    "resolutions": [
+      0.025,
+      0.05,
+      0.1
+    ],
+    "checks": 1200,
+    "solid_inferred_cases": 300
+  },
+  "base_shape_acceptance": {
+    "passed": true,
+    "samples": [
+      {
+        "view": "spawn",
+        "robot": "robot1",
+        "pose": [
+          -4.998660623,
+          -5.000000449,
+          3.242290652e-06,
+          -0.004493175425
+        ],
+        "rays": 603,
+        "median_error_m": 0.002096138219044974,
+        "p95_error_m": 0.022908116201587773,
+        "within_6cm": 0.9834162520729685
+      },
+      {
+        "view": "spawn",
+        "robot": "robot2",
+        "pose": [
+          0.0005541403716,
+          -5.000000004,
+          5.097939683e-09,
+          -0.004697116592
+        ],
+        "rays": 609,
+        "median_error_m": 0.0024660936432014946,
+        "p95_error_m": 0.024337353130429132,
+        "within_6cm": 0.9917898193760263
+      },
+      {
+        "view": "spawn",
+        "robot": "robot3",
+        "pose": [
+          5.00055414,
+          -5.000000004,
+          5.097939661e-09,
+          -0.004697116592
+        ],
+        "rays": 625,
+        "median_error_m": 0.001583147957088027,
+        "p95_error_m": 0.017752466130760414,
+        "within_6cm": 0.9904
+      },
+      {
+        "view": "obstacle_00_bay",
+        "robot": "robot1",
+        "pose": [
+          0.6206872481,
+          3.425855663,
+          3.266094128e-06,
+          -0.004558922943
+        ],
+        "rays": 640,
+        "median_error_m": 0.000775097908351341,
+        "p95_error_m": 0.007377778164914739,
+        "within_6cm": 0.9984375
+      },
+      {
+        "view": "obstacle_01_bay",
+        "robot": "robot1",
+        "pose": [
+          5.051865144,
+          5.100394528,
+          3.290112883e-06,
+          -0.004493687276
+        ],
+        "rays": 640,
+        "median_error_m": 0.0007248219325886041,
+        "p95_error_m": 0.0040825293600796455,
+        "within_6cm": 0.9984375
+      },
+      {
+        "view": "obstacle_05_bay",
+        "robot": "robot1",
+        "pose": [
+          2.569870841,
+          -5.884338948,
+          3.309099343e-06,
+          -0.004538517993
+        ],
+        "rays": 640,
+        "median_error_m": 0.0007731718687098432,
+        "p95_error_m": 0.014250867982201208,
+        "within_6cm": 0.9890625
+      },
+      {
+        "view": "obstacle_08_bay",
+        "robot": "robot1",
+        "pose": [
+          -4.736698438,
+          -3.618467526,
+          3.334796647e-06,
+          -0.004574099821
+        ],
+        "rays": 627,
+        "median_error_m": 0.0009303943461649311,
+        "p95_error_m": 0.009551242822649183,
+        "within_6cm": 1.0
+      }
+    ],
+    "by_kind": {
+      "sector": {
+        "rays": 923,
+        "median_error_m": 0.0007033926668392754,
+        "p95_error_m": 0.005963564138008668,
+        "within_6cm": 1.0
+      },
+      "convex_polygon": {
+        "rays": 84,
+        "median_error_m": 0.002130862746160922,
+        "p95_error_m": 0.046856972511400814,
+        "within_6cm": 0.9642857142857143
+      },
+      "concave_polygon": {
+        "rays": 888,
+        "median_error_m": 0.0006690056107319653,
+        "p95_error_m": 0.007605735207819414,
+        "within_6cm": 0.9988738738738738
+      },
+      "rectangle": {
+        "rays": 2372,
+        "median_error_m": 0.001807010535813225,
+        "p95_error_m": 0.017137898436775587,
+        "within_6cm": 0.989460370994941
+      },
+      "circle": {
+        "rays": 117,
+        "median_error_m": 0.0032441984244737654,
+        "p95_error_m": 0.016744661906778226,
+        "within_6cm": 0.9914529914529915
+      }
+    },
+    "concave_bays": [
+      {
+        "obstacle": "obstacle_00",
+        "kind": "sector",
+        "point": [
+          0.6199010281321031,
+          3.425856117177302
+        ],
+        "stationary_displacement_m": 1.0667539418727459e-05,
+        "collision_bay_clear": true
+      },
+      {
+        "obstacle": "obstacle_01",
+        "kind": "concave_polygon",
+        "point": [
+          5.051082840181672,
+          5.100394991385477
+        ],
+        "stationary_displacement_m": 9.163052439540916e-06,
+        "collision_bay_clear": true
+      },
+      {
+        "obstacle": "obstacle_05",
+        "kind": "sector",
+        "point": [
+          2.5690844993076474,
+          -5.884338474112112
+        ],
+        "stationary_displacement_m": 1.158109135604465e-05,
+        "collision_bay_clear": true
+      },
+      {
+        "obstacle": "obstacle_08",
+        "kind": "concave_polygon",
+        "point": [
+          -4.737484835889958,
+          -3.6184670408409167
+        ],
+        "stationary_displacement_m": 1.1280124512447924e-05,
+        "collision_bay_clear": true
+      }
+    ]
+  },
+  "base_cleanup": {
+    "residual_before_final_kill": [],
+    "launch_exit": 0,
+    "abnormal_process_exits": [],
+    "auxiliary_error": null
+  },
+  "full_exploration": {
+    "run": "runs/mixed-full24-20261026",
+    "seed": 24,
+    "requested_seconds": 480,
+    "summary": {
+      "coverage": 1.0,
+      "region_coverage": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "actual_explore_distance": {
+        "robot1": 21.713231143685444,
+        "robot2": 22.580219736600725,
+        "robot3": 20.11160563396146
+      },
+      "minimum_static_clearance": 0.15432224051054605,
+      "minimum_interrobot_clearance": 4.020429451976023,
+      "collision_pass": true,
+      "region_pass": true,
+      "authorized_cross_region_samples": 5413,
+      "exploration_region_releases": [
+        {
+          "wall_time": 1793017034.8653316,
+          "sim_time": 41.905,
+          "event": "exploration_regions_released",
+          "robot": "robot1",
+          "reason": "robot1 的区域限制阻断了实时地图中的可达探索路径",
+          "observed_target": [
+            -5.074999963864684,
+            -0.2749998923391104
+          ]
+        }
+      ],
+      "mapping_evidence": {
+        "known_fraction": 0.9134777777777778,
+        "observed_fraction": 0.8824666666666666,
+        "inferred_obstacle_fraction": 0.03101111111111111,
+        "unknown_fraction": 0.08652222222222222,
+        "observed_cells": 79422,
+        "inferred_obstacle_cells": 2791,
+        "total_cells": 90000,
+        "completion_method": "closed-compact-solid-v4",
+        "completion_policy": {
+          "direct_occupied_threshold": 65,
+          "contour_probability_threshold": 55,
+          "minimum_strong_contour_fraction": 0.5,
+          "minimum_concave_strong_contour_fraction": 0.65,
+          "minimum_solidity": 0.55,
+          "maximum_contour_gap_m": 0.2,
+          "new_updates_required": 3,
+          "support_seconds": 2.0,
+          "hold_seconds": 5.0
+        }
+      }
+    },
+    "inference_validation": {
+      "inferred_cells": 2791,
+      "inferred_outside_true_obstacles": 0,
+      "outside_more_than_15cm": 0,
+      "maximum_outside_distance_m": 0.0,
+      "observed_cells_preserved": true,
+      "inferred_was_unknown": true,
+      "inferred_saved_as_occupied": true
+    },
+    "map_roundtrip": {
+      "passed": true,
+      "cells": 90000,
+      "unknown": 7787,
+      "free": 74681,
+      "occupied": 7532
+    },
+    "browser_readonly": {
+      "browser": "156.0.8078.4",
+      "errors": [],
+      "scene": "场地 15 × 15 m · 种子 24 · 混合形状",
+      "passed": true
+    },
+    "source_validation": {
+      "files": 117,
+      "changed_during_run": [],
+      "canonical_differences": []
+    },
+    "cleanup": {
+      "residual_before_final_kill": [],
+      "launch_exit": 0,
+      "abnormal_process_exits": [],
+      "auxiliary_error": null
+    },
+    "shutdown_preflight": {
+      "pause_command": {
+        "success": true,
+        "message": "已停车，等待新指令"
+      },
+      "simulator_pids": [
+        95263
+      ],
+      "simulator_stopped": true,
+      "bridge_drain_seconds": 0.3
+    }
+  },
+  "legacy_exact_comparison_seeds": [
+    0,
+    24,
+    42,
+    2026
+  ]
+}

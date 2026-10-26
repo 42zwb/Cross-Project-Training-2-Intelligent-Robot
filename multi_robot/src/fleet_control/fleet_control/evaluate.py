@@ -6,6 +6,7 @@ import numpy as np
 import yaml
 from scipy import ndimage
 from fleet_mapping.grid import load_map
+from fleet_mapping.shapes import shape_distance
 from fleet_control.geometry import formation_pass, FORMATION_CLEARANCE_MARGIN
 
 
@@ -14,8 +15,8 @@ def coverage(data, res, origin, boxes, regions, robot_radius=0.18, starts=None):
     x = origin[0] + (xx + 0.5) * res
     y = origin[1] + (yy + 0.5) * res
     obstacles = np.zeros(data.shape, bool)
-    for _, bx, by, dx, dy in boxes:
-        obstacles |= (abs(x - bx) <= dx / 2) & (abs(y - by) <= dy / 2)
+    for shape in boxes:
+        obstacles |= shape_distance(x, y, shape) <= 1e-9
     # Reachability uses the true robot-centre configuration space, not all wall pixels.
     free = ndimage.distance_transform_edt(~obstacles) * res >= robot_radius + 0.02
     labels, _ = ndimage.label(free)
@@ -47,10 +48,8 @@ def coverage(data, res, origin, boxes, regions, robot_radius=0.18, starts=None):
 
 def clearance(p, boxes, robot_radius=0.18):
     values = []
-    for _, bx, by, dx, dy in boxes:
-        x = max(abs(p[0] - bx) - dx / 2, 0)
-        y = max(abs(p[1] - by) - dy / 2, 0)
-        values.append(math.hypot(x, y) - robot_radius)
+    for shape in boxes:
+        values.append(float(shape_distance(p[0], p[1], shape)) - robot_radius)
     return min(values)
 
 
@@ -82,7 +81,7 @@ def evaluate(run, map_path=None):
         data,
         meta["resolution"],
         meta["origin"],
-        gt["boxes"],
+        gt.get("obstacles", gt.get("boxes", [])),
         regions,
         cfg["robot_radius"],
         starts=[r["start"] for r in cfg["robots"]],
@@ -123,7 +122,7 @@ def evaluate(run, map_path=None):
                 else {}
             )
             for i, (n, p) in enumerate(t["robots"].items()):
-                minclear = min(minclear, clearance(p, gt["boxes"], cfg["robot_radius"]))
+                minclear = min(minclear, clearance(p, gt.get("obstacles", gt.get("boxes", [])), cfg["robot_radius"]))
                 for name, q in t["robots"].items():
                     if name != n:
                         minpair = min(

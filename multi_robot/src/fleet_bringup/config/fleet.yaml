@@ -41,5 +41,6 @@ max_speed: 0.2
 dashboard_port: 8765
 planner: navfn
 scene:
+  generator: mixed-shapes-v2
   seed: null
   obstacle_count: 10

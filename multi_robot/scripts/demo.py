@@ -86,7 +86,8 @@ try:
         import yaml
 
         fleet_cfg = yaml.safe_load((run / "assets/fleet.yaml").read_text())
-        boxes = yaml.safe_load((run / "assets/ground_truth.yaml").read_text())["boxes"]
+        truth = yaml.safe_load((run / "assets/ground_truth.yaml").read_text())
+        boxes = truth.get("obstacles", truth.get("boxes", []))
         end = time.monotonic() + a.explore_timeout
         last = 0
         while time.monotonic() < end:

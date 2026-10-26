@@ -33,7 +33,7 @@ def test_scene_seed_and_export_are_reproducible(tmp_path):
 
 @pytest.mark.parametrize("seed", [0, 1, 2, 3, 7, 42, 99, 2026, 12345, 2**63-1])
 def test_scene_has_large_separated_obstacles_and_connected_navigation(seed):
-    geometry, metadata = generate_scene(seed, STARTS)
+    geometry, metadata = generate_scene(seed, STARTS, generator="rectangles-v1")
     assert len(geometry) == 14
     assert navigation_space(geometry, STARTS)["connected"]
     assert metadata["navigation_check"]["free_fraction"] >= 0.5

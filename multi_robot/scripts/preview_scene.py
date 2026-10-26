@@ -7,22 +7,24 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle, Circle
+from matplotlib.patches import Rectangle, Circle, Polygon, Patch
 import yaml
 
 from fleet_bringup.scene import generate_scene
+from fleet_mapping.shapes import as_shape, vertices
 
 p = argparse.ArgumentParser()
 p.add_argument("--seeds", type=int, nargs="+", default=[42, 2026, 12345])
 p.add_argument("--config", default=str(Path(__file__).resolve().parents[1] / "src/fleet_bringup/config/fleet.yaml"))
 p.add_argument("--output", required=True)
+p.add_argument("--generator", choices=["mixed-shapes-v2", "rectangles-v1"])
 a = p.parse_args()
 cfg = yaml.safe_load(Path(a.config).read_text())
 fig, axes = plt.subplots(1, len(a.seeds), figsize=(5 * len(a.seeds), 5), squeeze=False)
 records = []
 colors = ["#56a8df", "#e5a440", "#9a7dd1"]
 for ax, seed in zip(axes[0], a.seeds):
-    geometry, record = generate_scene(seed, [r["start"] for r in cfg["robots"]], cfg["scene"]["obstacle_count"])
+    geometry, record = generate_scene(seed, [r["start"] for r in cfg["robots"]], cfg["scene"]["obstacle_count"], a.generator or cfg["scene"].get("generator", "mixed-shapes-v2"))
     records.append(record)
     for robot, color in zip(cfg["robots"], colors):
         x0, y0, x1, y1 = robot["region"]
@@ -31,13 +33,21 @@ for ax, seed in zip(axes[0], a.seeds):
         x, y, _ = robot["start"]
         ax.add_patch(Circle((x, y), 0.18, color=color))
         ax.text(x, y-0.55, robot["name"], ha="center", fontsize=8)
-    for name, x, y, dx, dy in geometry:
-        ax.add_patch(Rectangle((x-dx/2, y-dy/2), dx, dy, color="#425265"))
+    palette = {"rectangle":"#425265", "circle":"#3a896c", "convex_polygon":"#8763a9",
+               "concave_polygon":"#b2674e", "sector":"#ca9a3b"}
+    for item in geometry:
+        shape = as_shape(item)
+        if shape["kind"] == "circle":
+            ax.add_patch(Circle((shape["x"],shape["y"]),shape["radius"],color=palette[shape["kind"]]))
+        else:
+            ax.add_patch(Polygon(vertices(shape),color=palette[shape["kind"]]))
     ax.set(xlim=(-7.5,7.5), ylim=(-7.5,7.5), aspect="equal",
            xlabel="X [m]", ylabel="Y [m]", title=f"Seed {seed} | 15 x 15 m | {record['obstacle_count']} obstacles")
     ax.set_xticks(range(-7,8,2)); ax.set_yticks(range(-7,8,2)); ax.grid(alpha=0.15)
 fig.suptitle("Seeded scene preview (offline ground truth; robots build their own lidar map)")
-fig.tight_layout()
+fig.legend(handles=[Patch(color=color,label=kind.replace('_',' ')) for kind,color in palette.items()],
+           loc="lower center",ncol=5)
+fig.tight_layout(rect=(0,.06,1,.95))
 out = Path(a.output); out.parent.mkdir(parents=True, exist_ok=True)
 fig.savefig(out, dpi=160)
 out.with_suffix(".json").write_text(json.dumps(records, indent=2))

@@ -14,6 +14,8 @@ import xml.etree.ElementTree as ET
 import yaml
 from ament_index_python.packages import get_package_share_directory as share
 from fleet_bringup.scene import ARENA, walls, generate_scene
+from fleet_mapping.shapes import local_vertices, is_convex, triangulate
+from fleet_bringup.meshes import write_prism
 
 
 def validate_config(cfg):
@@ -33,8 +35,10 @@ def validate_config(cfg):
         raise ValueError("当前随机场景要求 arena [-7.5, -7.5, 7.5, 7.5]（15 m × 15 m）。")
     cfg["arena"] = [float(v) for v in arena]
     scene = cfg.setdefault("scene", {"seed": None, "obstacle_count": 10})
-    if not isinstance(scene, dict) or set(scene) - {"seed", "obstacle_count"}:
-        raise ValueError("scene 仅支持 seed 和 obstacle_count。")
+    if not isinstance(scene, dict) or set(scene) - {"seed", "obstacle_count", "generator"}:
+        raise ValueError("scene 仅支持 seed、obstacle_count 和 generator。")
+    if scene.setdefault("generator", "mixed-shapes-v2") not in ["rectangles-v1", "mixed-shapes-v2"]:
+        raise ValueError("不支持的场景生成器")
     seed = scene.setdefault("seed", None)
     count = scene.setdefault("obstacle_count", 10)
     if seed is not None and (isinstance(seed, bool) or not isinstance(seed, int) or not 0 <= seed < 2**63):
@@ -185,7 +189,43 @@ def world(out, geometry, metadata):
             ET.SubElement(ET.SubElement(elem, "material"), "diffuse").text = (
                 "0.72 0.75 0.78 1"
             )
-    for name, x, y, dx, dy in geometry:
+    for item in geometry:
+        if isinstance(item, dict):
+            shape = item
+            name, kind = shape["name"], shape["kind"]
+            m = ET.SubElement(root, "model", name=name)
+            ET.SubElement(m, "static").text = "true"
+            ET.SubElement(m, "pose").text = f"{shape['x']} {shape['y']} .6 0 0 {shape['yaw']}"
+            link = ET.SubElement(m, "link", name="link")
+            colors = {"rectangle":"0.35 0.45 0.6 1", "circle":"0.3 0.55 0.45 1",
+                      "convex_polygon":"0.5 0.4 0.65 1", "concave_polygon":"0.55 0.32 0.28 1",
+                      "sector":"0.65 0.48 0.22 1"}
+            def primitive(element):
+                geom = ET.SubElement(element, "geometry")
+                if kind == "circle":
+                    cylinder = ET.SubElement(geom, "cylinder")
+                    ET.SubElement(cylinder, "radius").text = str(shape["radius"])
+                    ET.SubElement(cylinder, "length").text = "1.2"
+                else:
+                    ET.SubElement(ET.SubElement(geom, "box"), "size").text = f"{shape['size'][0]} {shape['size'][1]} 1.2"
+            def mesh(element, filename, points):
+                relative = Path("meshes") / filename
+                write_prism(out / relative, points)
+                ET.SubElement(ET.SubElement(ET.SubElement(element, "geometry"), "mesh"), "uri").text = str(relative)
+            visual = ET.SubElement(link, "visual", name="visual")
+            ET.SubElement(ET.SubElement(visual, "material"), "diffuse").text = colors[kind]
+            if kind in ["rectangle", "circle"]:
+                primitive(visual)
+                primitive(ET.SubElement(link, "collision", name="collision"))
+            else:
+                points = local_vertices(shape)
+                mesh(visual, name+".stl", points)
+                pieces = [points] if is_convex(points) else [points[t] for t in triangulate(points)]
+                for index, piece in enumerate(pieces):
+                    mesh(ET.SubElement(link, "collision", name=f"collision_{index}"),
+                         f"{name}_piece_{index}.stl", piece)
+            continue
+        name, x, y, dx, dy = item
         m = ET.SubElement(root, "model", name=name)
         ET.SubElement(m, "static").text = "true"
         ET.SubElement(m, "pose").text = f"{x} {y} .6 0 0 0"
@@ -201,7 +241,8 @@ def world(out, geometry, metadata):
                 )
     # Ground truth transport is intentionally not bridged into runtime ROS nodes.
     (out / "arena.sdf").write_text(ET.tostring(w, encoding="unicode"))
-    (out / "ground_truth.yaml").write_text(yaml.safe_dump({"boxes": geometry, **metadata}))
+    key = "obstacles" if geometry and isinstance(geometry[0], dict) else "boxes"
+    (out / "ground_truth.yaml").write_text(yaml.safe_dump({key: geometry, **metadata}))
     (out / "scene.json").write_text(json.dumps(metadata, ensure_ascii=False, indent=2))
 
 
@@ -333,7 +374,7 @@ def prepare(out, config):
         cfg["scene"]["seed"] = secrets.randbits(63)
     geometry, metadata = generate_scene(cfg["scene"]["seed"],
                                         [r["start"] for r in cfg["robots"]],
-                                        cfg["scene"]["obstacle_count"])
+                                        cfg["scene"]["obstacle_count"], cfg["scene"]["generator"])
     (out / "fleet.yaml").write_text(yaml.safe_dump(cfg))
     world(out, geometry, metadata)
     for robot in cfg["robots"]:

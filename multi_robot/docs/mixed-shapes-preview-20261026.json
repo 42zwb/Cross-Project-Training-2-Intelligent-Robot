@@ -1,0 +1,119 @@
+[
+  {
+    "generator": "mixed-shapes-v2",
+    "seed": 24,
+    "arena": [
+      -7.5,
+      -7.5,
+      7.5,
+      7.5
+    ],
+    "obstacle_count": 10,
+    "shape_counts": {
+      "rectangle": 2,
+      "convex_polygon": 2,
+      "concave_polygon": 2,
+      "circle": 2,
+      "sector": 2
+    },
+    "minimum_surface_gap": 1.2,
+    "minimum_concave_arm_width": 0.65,
+    "rotation_range_rad": [
+      -3.141592653589793,
+      3.141592653589793
+    ],
+    "maximum_arc_chord_error_m": 0.0011,
+    "geometry_sha256": "039068ba1820139737c16a993b164284a50daf74b7b95c413528da0a0d1678b1",
+    "sampling_attempts": 4134,
+    "navigation_check": {
+      "connected": true,
+      "components": 1,
+      "start_labels": [
+        1,
+        1,
+        1
+      ],
+      "free_fraction": 0.5452,
+      "checked_resolution": 0.1,
+      "centre_clearance": 0.5
+    }
+  },
+  {
+    "generator": "mixed-shapes-v2",
+    "seed": 42,
+    "arena": [
+      -7.5,
+      -7.5,
+      7.5,
+      7.5
+    ],
+    "obstacle_count": 10,
+    "shape_counts": {
+      "rectangle": 2,
+      "convex_polygon": 2,
+      "concave_polygon": 2,
+      "circle": 2,
+      "sector": 2
+    },
+    "minimum_surface_gap": 1.2,
+    "minimum_concave_arm_width": 0.65,
+    "rotation_range_rad": [
+      -3.141592653589793,
+      3.141592653589793
+    ],
+    "maximum_arc_chord_error_m": 0.0011,
+    "geometry_sha256": "a7134916dee39b05201489c972f69d07390da5933f8003cfbacee6bdee975bd3",
+    "sampling_attempts": 8194,
+    "navigation_check": {
+      "connected": true,
+      "components": 1,
+      "start_labels": [
+        1,
+        1,
+        1
+      ],
+      "free_fraction": 0.5448888888888889,
+      "checked_resolution": 0.1,
+      "centre_clearance": 0.5
+    }
+  },
+  {
+    "generator": "mixed-shapes-v2",
+    "seed": 2026,
+    "arena": [
+      -7.5,
+      -7.5,
+      7.5,
+      7.5
+    ],
+    "obstacle_count": 10,
+    "shape_counts": {
+      "rectangle": 2,
+      "convex_polygon": 2,
+      "concave_polygon": 2,
+      "circle": 2,
+      "sector": 2
+    },
+    "minimum_surface_gap": 1.2,
+    "minimum_concave_arm_width": 0.65,
+    "rotation_range_rad": [
+      -3.141592653589793,
+      3.141592653589793
+    ],
+    "maximum_arc_chord_error_m": 0.0011,
+    "geometry_sha256": "e2bfd000a041b5691f681b934eb8e6d5b55614c4c7c79a62306b28808f46d291",
+    "sampling_attempts": 5635,
+    "navigation_check": {
+      "connected": true,
+      "components": 1,
+      "start_labels": [
+        1,
+        1,
+        1
+      ],
+      "free_fraction": 0.5504888888888889,
+      "checked_resolution": 0.1,
+      "centre_clearance": 0.5
+    }
+  }
+]

@@ -16,6 +16,7 @@ p.add_argument("--config")
 p.add_argument("--run-dir")
 p.add_argument("--planner", choices=["navfn", "smac2d"], help="覆盖配置中的全局规划器")
 p.add_argument("--seed", type=int, help="指定可复现场景种子；默认每次生成新种子")
+p.add_argument("--scene-generator", choices=["mixed-shapes-v2", "rectangles-v1"], help="选择混合形状或旧矩形生成器")
 a = p.parse_args()
 root = Path(__file__).resolve().parents[1]
 lock = open(f'/tmp/turtlebot_fleet_{os.environ["ROS_DOMAIN_ID"]}.lock', "w")
@@ -84,6 +85,10 @@ cmd = [
 ]
 config = Path(a.config).expanduser().resolve() if a.config else root / "src/fleet_bringup/config/fleet.yaml"
 cfg = yaml.safe_load(config.read_text())
+if a.scene_generator:
+    if not isinstance(cfg, dict) or not isinstance(cfg.setdefault("scene", {}), dict):
+        raise ValueError("配置及 scene 必须为映射。")
+    cfg.setdefault("scene", {})["generator"] = a.scene_generator
 if a.planner:
     cfg["planner"] = a.planner
 from fleet_bringup.prepare import validate_config
