@@ -1,0 +1,521 @@
+{
+  "date": "2026-10-26",
+  "baseline_commit": "769a73735db15719af7ad49517f18f864b36f031",
+  "delivery_branch": "preview/seeded-scenes-15m",
+  "environment": {
+    "ros": "Humble",
+    "gazebo": "Fortress",
+    "ros_gz_bridge": "0.244.26",
+    "rclcpp": "16.0.21"
+  },
+  "tests": {
+    "fleet_python_passed": 80,
+    "single_robot_python_passed": 18,
+    "single_robot_existing_deprecation_warnings": 2,
+    "native_retained_after_close": "0/9",
+    "stock_retained_without_close": "9/9",
+    "tf2_lock_regression": "passed",
+    "syntax_checks": {
+      "python": 45,
+      "xml": 5,
+      "yaml": 2,
+      "shell": 6
+    }
+  },
+  "exit_threads": [
+    {
+      "stock": true,
+      "gdb_exit": 0,
+      "dds_thread_stacks_present": true,
+      "signal_thread_stacks_present": true
+    },
+    {
+      "stock": false,
+      "gdb_exit": 0,
+      "dds_thread_stacks_present": false,
+      "signal_thread_stacks_present": false
+    }
+  ],
+  "signal_handler_probe": [
+    {
+      "stock": true,
+      "returncode": 4,
+      "output": "ready\n[INFO] [1793002845.799860855] [rclcpp]: signal_handler(SIGINT/SIGTERM)\nshutdown callback joined: yes\nsignal handlers still installed: yes\n"
+    },
+    {
+      "stock": false,
+      "returncode": 0,
+      "output": "ready\n[INFO] [1793002846.335561362] [rclcpp]: signal_handler(SIGINT/SIGTERM)\nshutdown callback joined: yes\nsignal handlers still installed: no\n"
+    }
+  ],
+  "traffic": {
+    "stock-traffic-final-20": {
+      "all_pass": true,
+      "rounds": 20,
+      "returncodes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "payload_valid": true,
+      "payload_received": {
+        "clock": 381,
+        "scan": 60
+      }
+    },
+    "fixed-traffic-final-20": {
+      "all_pass": true,
+      "rounds": 20,
+      "returncodes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "payload_valid": true,
+      "payload_received": {
+        "clock": 406,
+        "scan": 60
+      }
+    },
+    "fixed-memcheck-final-3": {
+      "all_pass": true,
+      "rounds": 3,
+      "returncodes": [
+        0,
+        0,
+        0
+      ],
+      "payload_valid": true,
+      "payload_received": {
+        "clock": 133,
+        "scan": 9
+      }
+    }
+  },
+  "memcheck": [
+    {
+      "file": "runs/bridge-investigation-20261026/fixed-memcheck-final-3/memcheck-0.txt",
+      "error_summary": "0 errors from 0 contexts (suppressed: 0 from 0)"
+    },
+    {
+      "file": "runs/bridge-investigation-20261026/fixed-memcheck-final-3/memcheck-1.txt",
+      "error_summary": "0 errors from 0 contexts (suppressed: 0 from 0)"
+    },
+    {
+      "file": "runs/bridge-investigation-20261026/fixed-memcheck-final-3/memcheck-2.txt",
+      "error_summary": "0 errors from 0 contexts (suppressed: 0 from 0)"
+    }
+  ],
+  "long_run": {
+    "run": "runs/bridge-fixed-long-20261026",
+    "summary": {
+      "coverage": 0.9816680157088468,
+      "region_coverage": [
+        0.9989282365024784,
+        0.9737111794323398,
+        0.9721638175335954
+      ],
+      "actual_explore_distance": {
+        "robot1": 15.193036928511667,
+        "robot2": 14.772408806702137,
+        "robot3": 8.590412166104247
+      },
+      "minimum_static_clearance": 0.21469521700000055,
+      "minimum_interrobot_clearance": 0.8822387429589017,
+      "collision_pass": true,
+      "region_pass": true,
+      "authorized_cross_region_samples": 3976,
+      "exploration_region_releases": [
+        {
+          "wall_time": 1793002306.6753244,
+          "sim_time": 83.415,
+          "event": "exploration_regions_released",
+          "robot": "robot1",
+          "reason": "robot1 的区域限制阻断了实时地图中的可达探索路径",
+          "observed_target": [
+            -2.6749999281018972,
+            -3.8749999459832907
+          ]
+        }
+      ]
+    },
+    "cleanup": {
+      "residual_before_final_kill": [],
+      "launch_exit": 0,
+      "abnormal_process_exits": []
+    },
+    "shutdown": {
+      "pause_command": {
+        "success": true,
+        "message": "已停车，等待新指令"
+      },
+      "simulator_pids": [
+        52465
+      ],
+      "simulator_stopped": true,
+      "bridge_drain_seconds": 0.3
+    }
+  },
+  "long_run_safety": {
+    "invalid_target_rejected": {
+      "success": false,
+      "message": "队形目标包含未知、障碍或安全余量不足的区域，请先探索或调整中心/间距。"
+    },
+    "estop_stop_displacement": {
+      "robot1": 0.0,
+      "robot2": 0.0,
+      "robot3": 0.0
+    },
+    "clear_estop_does_not_resume": true,
+    "lidar_loss": {
+      "robot": "robot1",
+      "reason": "安全停车：雷达超时",
+      "stop_displacement": {
+        "robot1": 0.0,
+        "robot2": 0.0,
+        "robot3": 0.0
+      }
+    },
+    "localization_loss": {
+      "robot": "robot1",
+      "reason": "安全停车：定位超时,机群传感或定位中断",
+      "stop_displacement": {
+        "robot1": 0.0,
+        "robot2": 0.0,
+        "robot3": 0.0
+      }
+    },
+    "passed": true
+  },
+  "cold_starts": [
+    {
+      "run": "runs/cold-final-1-20261026-162325",
+      "cold_start_pass": true,
+      "cleanup_pass": true,
+      "supervisor_exit": 0,
+      "shutdown": {
+        "pause_command": {
+          "success": true,
+          "message": "已停车，等待新指令"
+        },
+        "simulator_pids": [
+          57143
+        ],
+        "simulator_stopped": true,
+        "bridge_drain_seconds": 0.3
+      }
+    },
+    {
+      "run": "runs/cold-final-2-20261026-162444",
+      "cold_start_pass": true,
+      "cleanup_pass": true,
+      "supervisor_exit": 0,
+      "shutdown": {
+        "pause_command": {
+          "success": true,
+          "message": "已停车，等待新指令"
+        },
+        "simulator_pids": [
+          58999
+        ],
+        "simulator_stopped": true,
+        "bridge_drain_seconds": 0.3
+      }
+    },
+    {
+      "run": "runs/cold-final-3-20261026-162549",
+      "cold_start_pass": true,
+      "cleanup_pass": true,
+      "supervisor_exit": 0,
+      "shutdown": {
+        "pause_command": {
+          "success": true,
+          "message": "已停车，等待新指令"
+        },
+        "simulator_pids": [
+          60201
+        ],
+        "simulator_stopped": true,
+        "bridge_drain_seconds": 0.3
+      }
+    }
+  ],
+  "final_fusion_run": {
+    "run": "runs/audit-default-final-20261026",
+    "summary": {
+      "coverage": 0.913496417543544,
+      "region_coverage": [
+        0.9267628276693609,
+        0.9001024818428909,
+        0.9136575555352409
+      ],
+      "actual_explore_distance": {
+        "robot1": 7.630911954116838,
+        "robot2": 9.564228242968206,
+        "robot3": 5.816876630504109
+      },
+      "minimum_static_clearance": 0.14252210999999987,
+      "minimum_interrobot_clearance": 0.39582391730726585,
+      "collision_pass": true,
+      "region_pass": true,
+      "authorized_cross_region_samples": 828,
+      "exploration_region_releases": [
+        {
+          "wall_time": 1793004526.3160186,
+          "sim_time": 41.595000000000006,
+          "event": "exploration_regions_released",
+          "robot": "robot1",
+          "reason": "robot1 的区域限制阻断了实时地图中的可达探索路径",
+          "observed_target": [
+            -3.5749999415129423,
+            0.9250001255422831
+          ]
+        }
+      ]
+    },
+    "cleanup": {
+      "residual_before_final_kill": [],
+      "launch_exit": 0,
+      "abnormal_process_exits": [],
+      "auxiliary_error": null
+    },
+    "shutdown": {
+      "pause_command": {
+        "success": true,
+        "message": "已停车，等待新指令"
+      },
+      "simulator_pids": [
+        66483
+      ],
+      "simulator_stopped": true,
+      "bridge_drain_seconds": 0.3
+    }
+  },
+  "map_roundtrip": {
+    "passed": true,
+    "cells": 90000,
+    "unknown": 21149,
+    "free": 66039,
+    "occupied": 2812
+  },
+  "auxiliary_spawn_failure": {
+    "supervisor_exit": 1,
+    "cleanup": {
+      "residual_before_final_kill": [],
+      "launch_exit": 1,
+      "abnormal_process_exits": [],
+      "auxiliary_error": {
+        "process": "truth_probe",
+        "error": "[Errno 2] No such file or directory: 'build/tools/truth_probe'"
+      }
+    },
+    "residuals": []
+  },
+  "bounds": [
+    "Historical first corrupting write instruction not captured; lifecycle defects verified separately.",
+    "Stock short tests also pass and do not reliably reproduce the historical abort.",
+    "Memcheck used --leak-check=no; zero memory-error reports do not assert zero leaks.",
+    "Fine/rotated seed42 configurations stopped at BOOTSTRAP for insufficient observed free clearance (about 0.18m versus 0.28m), not navigation passes.",
+    "Random-scene full three-formation workflow not rerun this audit.",
+    "Single-robot source unchanged; project-local native bridge integrated into fleet only."
+  ],
+  "source_sha256": {
+    "build.sh": "9fc7b9595ee573c65a9b9780e361ccdaa8ce471066323c339af905eb4e5d923c",
+    "demo.sh": "fa9a971584f43c6359865b95e7c14ed3f73fde2e859f56373b05286171751a18",
+    "env.sh": "dc3e0dfcd597050395b7976f9c0ca3b3d235af7c1bbc2a4564dd8e9ec1b142c3",
+    "run.sh": "bc9b1f4c4cbb42f61b218564223b33723ed911b75a9d3d2355b715c6cc592a44",
+    "scripts/base_smoke.py": "6dc80b2218b3befe8776e97b2a7681461ff815bd6d3e8168be584fdb9ab7513b",
+    "scripts/bridge_exit_regression.py": "5402393858e36f3479a6cd8e6d8efa98edc32395786bed91e66074c3023b2776",
+    "scripts/browser_acceptance.py": "826d2438324e113ff3d2dc298a944b420008042861b2afa6019f8c6a14bf869e",
+    "scripts/build_tools.sh": "ea9462f04de8b9f5a0cd8935b77c15dbbd9366fc60c35c6c5d4ec64eccead1e0",
+    "scripts/cold_smoke.py": "fb328e9784c21b5891ad03c38edc9fcc7e48761920ee0428d8d0a695069ff0fc",
+    "scripts/demo.py": "2c0f75c14f4bccf43508c827beabff7acbbc0a27de065c2587f9e22747cd86cb",
+    "scripts/map_roundtrip.py": "a46e81b07d3bdf361553defb19cdbcf56ba1e588d5614ee838f0f380a7e1b75e",
+    "scripts/node_failure_acceptance.py": "039289f8bd9c6986704f15e05639c5caba30c2dcce2482018e5fd72afa418f85",
+    "scripts/one_click_demo.py": "eb4d45664c40df76a01799768d5a33a1fcf0685636662a402e275616284ff6c9",
+    "scripts/patrol_failure_acceptance.py": "e2679d1e8c49264bc61b7e57ea64b15e430cb047e64daec07756520dedd2b327",
+    "scripts/planner_acceptance.py": "a5bf025433ac16aa283e7196f81abb62ade33ea1e48146289ed1eb76498c1d3a",
+    "scripts/plot_results.py": "c293a66bae386998886f41df373a56aab015e2aa0f7cc5fb87b290ce80cc000b",
+    "scripts/preview_random_run.py": "d106ce79e18195040410d9993323a12505b356106786a2cea27422e23afe499c",
+    "scripts/preview_scene.py": "228de7a3f4933019eac80869131a1cd0ada1e0f37603dada524737db22d301c9",
+    "scripts/repeat_cold_starts.py": "6f3ababe127960b9b997b41a1949bb7c06cdf10fbc3fa89a15b5745949fa6550",
+    "scripts/resources.py": "03cbae57ff76fc05057cb0ae24cbc937489e0784363ea5cfa3844e4a12502bb4",
+    "scripts/runtime_acceptance.py": "085076cd0e7a28c88137e9447bef4f589b7a628c0bf75c3c520a996ee2e6940c",
+    "scripts/runtime_context.py": "a6784b8f1406d78ec43a849f65ec31edc0f40702654a3bf562db0211a013566c",
+    "scripts/safety_acceptance.py": "2603df8cc4045f6d0c0ef0ac276c60ee014e5a23bd69681f86acc534dab70c6f",
+    "scripts/shutdown_context.py": "715e2fc77cbc3cb071e83540c055e10611aad1a6a48cca8fccb5ede9fa60ec9b",
+    "scripts/supervise.py": "73fa7e40b9bef204b096bde89ab847195953c0d164bc755000f2bd7c0e1e577d",
+    "scripts/test.sh": "857f4121027c57e4cf69902180053685be898ca239911e232033e3e245817717",
+    "src/fleet_bridge/CMakeLists.txt": "3a4686a8bac2af4c03aa347f7bd4a145b1405c2ca269c5c3631e3d9e320f2f96",
+    "src/fleet_bridge/include/fleet_bridge/managed_bridge.hpp": "1cf92eb31edd142b5f2e5276b850f92cdb007c7eda646a221110c3d868e663a2",
+    "src/fleet_bridge/package.xml": "8eefdfee7311ba93859fc96dbaa4458eae95a1cb9a923383bd10a9e744f5eed8",
+    "src/fleet_bridge/src/bridge_lifecycle_probe.cpp": "2a0106e4f112959122bc5cbeb7f5085d15674bcee6e37e917ac8c7f6959c83b1",
+    "src/fleet_bridge/src/bridge_traffic_source.cpp": "5f4a3f45fe3d8a615bb50fa38bfeb1947559d322c952b7b91b21561c184c48f2",
+    "src/fleet_bridge/src/parameter_bridge.cpp": "462861f962318be36dc6299706bff308f2538df5bf379036282c601604b85ddc",
+    "src/fleet_bridge/src/signal_join_probe.cpp": "8b69acb0db88d951ba532df33be4c2e42f267a0daf7136312949efa16a23bd00",
+    "src/fleet_bringup/config/fleet.yaml": "18efc1712c6602926e12f1d3282829a7500c7c194a9a78fc88219ff33e069865",
+    "src/fleet_bringup/fleet_bringup/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "src/fleet_bringup/fleet_bringup/nav_ready.py": "8f1cee55b75482fa3d4d1ac4def7d7faec89e24e173808d33cf75b6783958643",
+    "src/fleet_bringup/fleet_bringup/prepare.py": "da7e1b2bf9302e1ffe2daeeff8dc008d90d6d3a1dbc7a904ff43c07fe7b5cbcf",
+    "src/fleet_bringup/fleet_bringup/scene.py": "2933b6843332b3d8560d34486cfdbd0be29a5258929c7723cb746a36e9df2b82",
+    "src/fleet_bringup/launch/fleet.launch.py": "42c521dd4402cf7ad08db3d8d8f45c7c35e9f22568f38bf8f730499a1be48a04",
+    "src/fleet_bringup/launch/navigation.launch.py": "0573479abf3fec0a34c39adeda95ef1903d960d55bc610451e014e8d23963a13",
+    "src/fleet_bringup/package.xml": "e1fb30e427f8c9b29e4050b42cc096e95dfd8bed8a902ce06b834c9c526741ab",
+    "src/fleet_bringup/setup.py": "50a4ca0db42216890a518eeaeca11ccaaee53292aa92ef7922ff13c5bd94a9b8",
+    "src/fleet_control/config/patrol_example.yaml": "25f753e66b4467c62a8afcfa2ce0bdd5e463919489be9199d67a34a3c6cb4016",
+    "src/fleet_control/fleet_control/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "src/fleet_control/fleet_control/cli.py": "5201592e0474d42a401eea3a417fb945a532a08b2e535c30ac964c70ff8ffedf",
+    "src/fleet_control/fleet_control/coordinator.py": "5e8609b26dc87937f6e20ca361f69adae5499d067bbd48b20fdf553acbda403f",
+    "src/fleet_control/fleet_control/dashboard.py": "1a38bbd61f366016e7a883eba10f6d7f8811dc5fd918ec445616b8c8637de302",
+    "src/fleet_control/fleet_control/evaluate.py": "84f09ff415c4bc01db82ad37a04ddb7c43e8994bc307562e89d0eff841444c1a",
+    "src/fleet_control/fleet_control/geometry.py": "5cef08f3398f0787f3692048f33e0a6bcfd1ee40bb8e84c28eaf6558f7f0900a",
+    "src/fleet_control/fleet_control/health.py": "e84cca3c082ba24427d6988c20fa93d3df7299f360d732684860a6da7da71933",
+    "src/fleet_control/fleet_control/patrol.py": "54ebea817c06ee040e92524130e3e980114c3373d30229dda53b10b04a0fef4d",
+    "src/fleet_control/fleet_control/safety.py": "b570652209928028d9aa194367d3b40391abe57fb96ba47067858ad5adea75b1",
+    "src/fleet_control/package.xml": "19588adbc74a901e1530d5bd7cd62ee2315136bcc2d8969f4acb2a0fc968f5cd",
+    "src/fleet_control/setup.py": "2b5c2200cce7f9f9fab2af094698f026c225770c6b36f22ad7144d0a9cc12898",
+    "src/fleet_control/web/app.js": "d321dfc58edf217ff6e03eb126ee4f3d0464151390c7c721b8926c2e9a088c62",
+    "src/fleet_control/web/index.html": "90936c86f3679106d1ba3846f437d102e0b011121cea52d0b9b083000fc79746",
+    "src/fleet_control/web/style.css": "70ed7a2170ec189877998c8a772960f0d0210f9040c758b3de4b038367692a60",
+    "src/fleet_interfaces/CMakeLists.txt": "e6aa59fc8d733e7cba2e79a817f6ac59692c3ce8af4062b2fe9fa7e64e36f777",
+    "src/fleet_interfaces/package.xml": "ccc21057e48a3802b617fc3a3af3b16cf132f800c52d8ff16086bcab689c5b6a",
+    "src/fleet_interfaces/srv/FleetCommand.srv": "8fbf9c8608d00f081dbff40b931f67b923694bbd0f9d66f80aac562e1e01594b",
+    "src/fleet_interfaces/srv/SetFormation.srv": "bf05bbcf0211b6e62edf23dda8018ad8a6277a8b22740413ea861a754d1dd8c2",
+    "src/fleet_interfaces/srv/SetRegions.srv": "f9c49a723cea097c9001e4ff74c33b4a7eaa2bcd352c4eddbe00eac334ba6dfa",
+    "src/fleet_mapping/fleet_mapping/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "src/fleet_mapping/fleet_mapping/grid.py": "4552d73b2ade8108e1515d54696db3c47c51ee9328efdfe2628d8b1162dd315c",
+    "src/fleet_mapping/fleet_mapping/node.py": "46966dfebe10c760bb3d926cf33573d8a76e573f8d091bbb6bd955f538720e31",
+    "src/fleet_mapping/package.xml": "33c324de9c6fdf53fae131ca6118b3eb8562d7b1825dea0b75ad8641ad57732a",
+    "src/fleet_mapping/setup.py": "698cad5027769884b00be0b6275dce9b0c6fb14ded6af57bbaaec2d4c3e6c44e",
+    "tests/test_algorithms.py": "eba386ae6ee22961bf48b8717aeda8ed7af7d0c22f83b2643a166667583a1d65",
+    "tests/test_missions.py": "9e226e13b86fb0ba602ef340f3a5e9bf9d2a1a08acf26be52035c4acc587063c",
+    "tests/test_random_scene.py": "f84e8d90c1ac22fe4cba3cd28e32a871cf3e45ce73bbcd32f4a2796fc31bc5b7",
+    "tests/test_runtime_lifecycle.py": "d5d6e31151819be69cfffc3dd8663131038e5fdd9983c12741232eced3a20c4d",
+    "tests/tf2_lock_regression.cpp": "275bb4f9d5df0e744c38d213e5bda8ef8c6f8c076f81c8d82b61122f18af5712",
+    "vendor/tf2_compat/CMakeLists.txt": "86163dcfb4f0601370d1c678790a23217971d6132c91d9f6f257d347063e2d3d",
+    "vendor/tf2_compat/include/tf2/LinearMath/Matrix3x3.h": "318b26d7ad7a086fba45855d4e2b8ea2e76c8c1900a7e06aaff798c6342bcea9",
+    "vendor/tf2_compat/include/tf2/LinearMath/Matrix3x3.hpp": "e44eed6c9f1321863f244391baf83bea72212a114c1af70cf0d7bd53df389619",
+    "vendor/tf2_compat/include/tf2/LinearMath/MinMax.h": "f713385e6fae951646ce17b829fee808424b92ddaee916fdb5dc5a25b15f4a8f",
+    "vendor/tf2_compat/include/tf2/LinearMath/MinMax.hpp": "568adcc8baab2d7494c0cd24661fcc5e7891892ea69041c4313305a5e143970a",
+    "vendor/tf2_compat/include/tf2/LinearMath/QuadWord.h": "b5afccb8da229b590f8f3f4fed2d30a53e36973d7b68129cb520e870e66c626d",
+    "vendor/tf2_compat/include/tf2/LinearMath/QuadWord.hpp": "5b1bdb013dcb318a4ee962d528fea751abdb17d3deaa831794d1d8032034a231",
+    "vendor/tf2_compat/include/tf2/LinearMath/Quaternion.h": "f59904042ff2652b1e8902ebeca3e833712cb6b0d3e96eac3a982e77e2228864",
+    "vendor/tf2_compat/include/tf2/LinearMath/Quaternion.hpp": "cf3fbf86b281f8c1965c3acc5f165061a0f31b2da4ef2d51613394186a1cfc60",
+    "vendor/tf2_compat/include/tf2/LinearMath/Scalar.h": "5b49f07e1348f2f15220078d3a6eef56ce1fdec58b080a7a921a83ec49de1f83",
+    "vendor/tf2_compat/include/tf2/LinearMath/Scalar.hpp": "4a623268710d7d58ab4e6edca3998ea19f22749c00563824094e02c401c780f1",
+    "vendor/tf2_compat/include/tf2/LinearMath/Transform.h": "b252e0f49e012f40d174c5b88459e6f86800f0001d00914c0096ba693287dd0e",
+    "vendor/tf2_compat/include/tf2/LinearMath/Transform.hpp": "7f9b3ceda58e5a7704b8249872892c61d1bb3fed51ba5885884d63d50cc365c4",
+    "vendor/tf2_compat/include/tf2/LinearMath/Vector3.h": "5824c57dd580344862846cf5c308447449cf435259cb04e697e2aac2e26054a5",
+    "vendor/tf2_compat/include/tf2/LinearMath/Vector3.hpp": "8a4d0017a09c61ba709d0784883162792a28c1269257c4587cc6ccb9050ff208",
+    "vendor/tf2_compat/include/tf2/buffer_core.h": "5f9878256e3f00fb0b38ebcc0781c996f67dd4877436ed6790872f7800091c28",
+    "vendor/tf2_compat/include/tf2/buffer_core.hpp": "43f2c2d181e9a637b50341d02be39aaf577e478cfd2ec83fe53bdb0ec0107eb2",
+    "vendor/tf2_compat/include/tf2/buffer_core_interface.h": "0a88bb5122c1a8c7e0beaa0988ea4ba4b165c9f4da398bcbfa2708608b75bd31",
+    "vendor/tf2_compat/include/tf2/buffer_core_interface.hpp": "dd4e2e17988e997911f669d31a92092064246e7a9ce41f71aa6b5687b31a2804",
+    "vendor/tf2_compat/include/tf2/convert.h": "4324305819a8681dca391e3d4c7e5ef548e17bccb6cac2168c0ebe7aed895e50",
+    "vendor/tf2_compat/include/tf2/convert.hpp": "6bf06e6bd49ecd1851764df919741acd3901f94976ad5803bdcbc85805b698e1",
+    "vendor/tf2_compat/include/tf2/exceptions.h": "48802a750c313008c70e6000407cea6710d6a0b67318cd9347470bdb8e21642f",
+    "vendor/tf2_compat/include/tf2/exceptions.hpp": "78dfc2d62c122bc4b8a1420d25e9ee20edf609dcb5b4a2aa639afc6c2c705fb8",
+    "vendor/tf2_compat/include/tf2/impl/convert.h": "871fb208e81beef01b914c8531bdba679c424c464b04fe096d607b450d2129d6",
+    "vendor/tf2_compat/include/tf2/impl/convert.hpp": "25e194e8a24e56da5b0886a972c7b5592bb1b5e85958a827be9896c75ef38868",
+    "vendor/tf2_compat/include/tf2/impl/utils.h": "97e45aeae1692b0af03a96869e7c556657a2d0a3736ba88a91ef026c2ec0c9b0",
+    "vendor/tf2_compat/include/tf2/impl/utils.hpp": "97e7a13f95d4d43541d86753fc8e41112e8243a1afdbbf20d34f8bbbc0c87c3f",
+    "vendor/tf2_compat/include/tf2/time.h": "66473a5a0d9c66675bfba96f0c46ea1d37dc3512d4f606a8562e2f6dee83b976",
+    "vendor/tf2_compat/include/tf2/time.hpp": "b3af5120a8edfb4b3b8be3b3ba3169d87a5fdc53a33bfbd55336051c91dce25f",
+    "vendor/tf2_compat/include/tf2/time_cache.h": "1d7b51e4b821d08820cd102b6b2900b2651be0628264efb6f0080697ccd3970b",
+    "vendor/tf2_compat/include/tf2/time_cache.hpp": "de757b2b3ff54bb14193e00bc4b9444858a3e0808984eee88cec0c79a524ccf2",
+    "vendor/tf2_compat/include/tf2/transform_datatypes.h": "cfdb7ab5dc90f74e081e6daa13b9de451521ad40b83a8df1c0f727741ae62305",
+    "vendor/tf2_compat/include/tf2/transform_datatypes.hpp": "d0ea6ba5c30e4643b35db679794e063186c8f0d32e13b0e824214bbefa8aa756",
+    "vendor/tf2_compat/include/tf2/transform_storage.h": "d7a95077155c7e0a48bc7dd67eaab747f0f08336c03de37dcf0231a8767342b8",
+    "vendor/tf2_compat/include/tf2/transform_storage.hpp": "d5427fd29770bcac2048c9009624eb4573401e1e30aa1e78c56871384f4369fc",
+    "vendor/tf2_compat/include/tf2/utils.h": "3a1243484d88033c9d0a62157bf2857206e6b1dd361051aa4fe9112b72cd4edf",
+    "vendor/tf2_compat/include/tf2/utils.hpp": "c5398f00318f647e7cdd040f0cc51cc7167f4e7b7b0d0f568041b582a9af8039",
+    "vendor/tf2_compat/include/tf2/visibility_control.h": "09d28d77e781dffed0b7d3c8c93eae6814bb3e299e19f7a0a440d5dab8a6c182",
+    "vendor/tf2_compat/src/buffer_core.cpp": "f1c3262c2f37a907793145baa0937d50f794650e33906c0cba7e6222123337e8",
+    "vendor/tf2_compat/src/cache.cpp": "8f9d3dd10bcc4d14d6ee7099568ce863f21cba0a2e34796ec0474b585c62457b",
+    "vendor/tf2_compat/src/static_cache.cpp": "e6d74f8b21629cbb933cad5691565d7667070b11371ecf9cbe19c73a7b3a6f28",
+    "vendor/tf2_compat/src/time.cpp": "267cafcd47d07cd9a08cf4d2d4de7eb803d703e65db83972b9cc9afced5b63d2"
+  },
+  "delivery_recheck": {
+    "ros_packages_built": 5,
+    "fleet_python_passed": 80,
+    "native_retained_after_close": "0/9",
+    "tf2_lock_regression": "passed",
+    "delivery-traffic-20": {
+      "all_pass": true,
+      "rounds": 20,
+      "returncodes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "payload_valid": true
+    },
+    "delivery-memcheck-3": {
+      "all_pass": true,
+      "rounds": 3,
+      "returncodes": [
+        0,
+        0,
+        0
+      ],
+      "payload_valid": true,
+      "memcheck_summaries": [
+        "0 errors from 0 contexts (suppressed: 0 from 0)",
+        "0 errors from 0 contexts (suppressed: 0 from 0)",
+        "0 errors from 0 contexts (suppressed: 0 from 0)"
+      ]
+    },
+    "single_robot_source_matches_delivery": true
+  }
+}

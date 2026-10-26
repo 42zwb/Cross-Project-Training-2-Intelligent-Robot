@@ -22,7 +22,7 @@ def setup(context):
             output="log",
         ),
         Node(
-            package="ros_gz_bridge",
+            package="fleet_bridge",
             executable="parameter_bridge",
             name="clock_bridge",
             arguments=["/clock@rosgraph_msgs/msg/Clock[ignition.msgs.Clock"],
@@ -99,7 +99,7 @@ def setup(context):
                     ],
                 ),
                 Node(
-                    package="ros_gz_bridge",
+                    package="fleet_bridge",
                     executable="parameter_bridge",
                     namespace=n,
                     name="scan_bridge",
@@ -151,7 +151,7 @@ def setup(context):
                         package="cartographer_ros",
                         executable="cartographer_occupancy_grid_node",
                         namespace=n,
-                        arguments=["-resolution", ".05", "-publish_period_sec", "1.0"],
+                        arguments=["-resolution", str(cfg["resolution"]), "-publish_period_sec", "1.0"],
                         parameters=[{"use_sim_time": True}],
                         remappings=[("map", "local_map")],
                         output="log",

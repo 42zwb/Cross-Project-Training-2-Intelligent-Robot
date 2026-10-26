@@ -4,6 +4,8 @@
 
 现已结合单机器人课程的航点导航、状态监测与 Smac2D 规划内容，增加三车分区巡逻、标准 ROS 诊断及网页诊断面板，并修复新版浏览器中“开始”按钮的函数名冲突。旧固定场景的核查见 [优化与回归报告](docs/优化与回归报告-20261026.md)。
 
+最新核查修复了桥接节点循环引用、退出时 ROS 信号处理器未完成清理、地图重采样孔洞和监督脚本异常清理问题。原生生命周期对照、带负载退出、Memcheck、冷启动与真实仿真结果见 [桥接退出与代码修复报告](docs/桥接退出与代码修复报告-20261026.md)。
+
 采用已知起点标定、独立 Cartographer SLAM、占据栅格融合和集中任务调度。**没有将场地真值地图输入 SLAM 或控制，也没有实现多机器人联合位姿图优化。**
 
 ## 最快开始
@@ -99,6 +101,7 @@ Gazebo 仅用于查看物理运动；操作任务请使用网页或 `fleetctl`�
 | 路径 | 用途 |
 |---|---|
 | `src/fleet_interfaces` | 区域、队形和任务自定义服务 |
+| `src/fleet_bridge` | 使用系统消息转换的原生桥接入口，显式完成节点和信号线程清理 |
 | `src/fleet_bringup` | 官方 TurtleBot 模型裁剪、场地生成、ROS2 控制器、SLAM / Nav2 启动 |
 | `src/fleet_mapping` | 其他车回波过滤、初始地图对齐、共享栅格融合、地图 / PBStream 保存 |
 | `src/fleet_control` | 自主前沿探索、队形位置和顺序规划、状态机、安全门控、网页、CLI、独立评估 |
@@ -240,4 +243,11 @@ Ctrl+C 退出时，监督脚本先停车并关闭本次进程组的 Gazebo 数�
 ```bash
 source ./env.sh
 python3 scripts/repeat_cold_starts.py --count 3 --planner smac2d --node-fault --move-before-stop
+```
+
+时钟和三个雷达桥使用项目内的 `fleet_bridge/parameter_bridge`，继续链接系统 `libros_gz_bridge.so`，显式退订和释放循环引用，并完成 ROS shutdown。兼容入口针对已验证的 Humble `ros_gz_bridge 0.244.26` API；更新系统桥接后应重新构建并复验。隔离数据源持续发送时的退出回归：
+
+```bash
+source ./env.sh
+python3 scripts/bridge_exit_regression.py --rounds 20 --output runs/bridge-exit-check
 ```

@@ -449,6 +449,19 @@ class Coordinator(Node):
                 self.mode = "IDLE"
                 self.message = "三车就绪，可以划分区域并开始探索"
                 self.event("ready")
+            elif self.mode == "BOOTSTRAP" and self.grid is not None:
+                blocked = []
+                for name in self.names:
+                    if name not in self.poses or not self.grid.inside(self.grid.cell(self.poses[name])):
+                        continue
+                    gap = self.grid.free_clearance[self.grid.cell(self.poses[name])]
+                    if gap < self.grid.clearance_radius:
+                        blocked.append(f"{name} {gap:.2f} m")
+                if not self.initial_free_confirmed and blocked:
+                    self.message = ("等待起点周围安全空闲观测：" + "、".join(blocked)
+                                    + f"；需 ≥{self.grid.clearance_radius:.2f} m。请检查雷达遮挡及地图分辨率。")
+                else:
+                    self.message = "等待三车雷达、SLAM、TF 和 Nav2 就绪"
             critical = [
                 v.get("reason")
                 for n, v in self.safety.items()

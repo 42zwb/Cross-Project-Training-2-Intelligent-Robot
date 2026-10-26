@@ -17,19 +17,7 @@ if not 10 <= a.seconds <= 1800:
     p.error("seconds must be in [10, 1800]")
 run = Path(a.run_dir).resolve()
 api = RuntimeClient(run)
-deadline = time.monotonic() + 180
-while time.monotonic() < deadline:
-    try:
-        state = api.state()
-        if state["ready"]:
-            break
-        if state["mode"] in ["FAULT", "ESTOP"]:
-            raise RuntimeError(state["message"])
-    except (OSError, ValueError):
-        pass
-    time.sleep(0.5)
-else:
-    raise TimeoutError("等待三车就绪超时")
+state = api.wait_ready()
 result = api.request("command", {"command": "explore"})
 if not result["success"]:
     raise RuntimeError(result["message"])

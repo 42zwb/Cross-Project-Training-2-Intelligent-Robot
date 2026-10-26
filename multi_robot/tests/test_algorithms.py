@@ -79,6 +79,25 @@ def test_fusion_rotated_origin():
     assert result[1, 0] == 100
 
 
+def test_fusion_upsamples_free_cells_without_unknown_holes():
+    layer=(np.zeros((4,4)),1.0,0.0,0.0,0.0,(0,0,0))
+    assert np.all(fuse([layer],(8,8),.5,(0,0))==0)
+
+
+def test_fusion_rotation_does_not_fragment_known_free_interior():
+    layer=(np.zeros((80,80)),.1,-4.0,-4.0,0.0,(0,0,.6))
+    result=fuse([layer],(40,40),.1,(-2,-2))
+    assert np.all(result==0)
+
+
+def test_fusion_downsampling_preserves_small_occupied_samples():
+    data=np.zeros((8,8));data[0,0]=100
+    layer=(data,.5,0.0,0.0,0.0,(0,0,0))
+    result=fuse([layer],(4,4),1.0,(0,0))
+    assert result[0,0]==100
+    assert np.count_nonzero(result==100)==1
+
+
 def test_unknown_pgm_roundtrip(tmp_path):
     a = np.array([[-1, 0, 100], [100, -1, 0]], dtype=np.int8)
     save_map(tmp_path / "map", a, 0.05, (-6, -6))
