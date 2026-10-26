@@ -9,7 +9,7 @@ from fleet_mapping.grid import load_map
 from fleet_control.geometry import formation_pass, FORMATION_CLEARANCE_MARGIN
 
 
-def coverage(data, res, origin, boxes, regions, robot_radius=0.18):
+def coverage(data, res, origin, boxes, regions, robot_radius=0.18, starts=None):
     yy, xx = np.indices(data.shape)
     x = origin[0] + (xx + 0.5) * res
     y = origin[1] + (yy + 0.5) * res
@@ -20,8 +20,11 @@ def coverage(data, res, origin, boxes, regions, robot_radius=0.18):
     free = ndimage.distance_transform_edt(~obstacles) * res >= robot_radius + 0.02
     labels, _ = ndimage.label(free)
     reachable = np.zeros(data.shape, bool)
-    for sx, sy in [(-4, -4), (0, -4), (4, -4)]:
+    for start in starts if starts is not None else [(-4, -4), (0, -4), (4, -4)]:
+        sx, sy = start[:2]
         cy, cx = int((sy - origin[1]) / res), int((sx - origin[0]) / res)
+        if not (0 <= cy < data.shape[0] and 0 <= cx < data.shape[1]):
+            raise ValueError("验收起点超出地图范围")
         lab = labels[cy, cx]
         if lab:
             reachable |= labels == lab
@@ -82,6 +85,7 @@ def evaluate(run, map_path=None):
         gt["boxes"],
         regions,
         cfg["robot_radius"],
+        starts=[r["start"] for r in cfg["robots"]],
     )
     report["map"] = str(map_path)
     report["travel"] = telemetry[-1]["robots"] if telemetry else {}

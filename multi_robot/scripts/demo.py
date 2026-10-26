@@ -4,21 +4,23 @@ Does not inject maps, poses or motion. Uses the same commands as the dashboard.
 """
 import argparse, json, time, urllib.request
 from pathlib import Path
+from runtime_context import RuntimeClient
 
 p = argparse.ArgumentParser()
 p.add_argument("--explore-timeout", type=float, default=1200)
 p.add_argument("--formation-timeout", type=float, default=500)
 p.add_argument("--skip-explore", action="store_true")
+p.add_argument("--keep-regions", action="store_true", help="保留前序网页验收已经锁定的默认分区")
+p.add_argument("--run-dir")
 a = p.parse_args()
 root = Path(__file__).resolve().parents[1]
-run = Path((root / "runs/latest.txt").read_text())
+run = Path(a.run_dir or (root / "runs/latest.txt").read_text()).resolve()
+api = RuntimeClient(run)
 log = open(run / "demo.jsonl", "a", buffering=1)
 
 
 def state():
-    return json.load(
-        urllib.request.urlopen("http://127.0.0.1:8765/api/state", timeout=5)
-    )
+    return api.state()
 
 
 def record(event_type, **kw):
@@ -28,13 +30,7 @@ def record(event_type, **kw):
 
 
 def send(kind, data):
-    req = urllib.request.Request(
-        "http://127.0.0.1:8765/api/" + kind,
-        json.dumps(data).encode(),
-        {"Content-Type": "application/json"},
-        method="POST",
-    )
-    r = json.load(urllib.request.urlopen(req, timeout=20))
+    r = api.request(kind, data)
     record("command", kind=kind, data=data, result=r)
     if not r["success"]:
         raise RuntimeError(r["message"])
@@ -74,7 +70,12 @@ try:
     wait_for(lambda s: s["ready"], 180)
     record("ready")
     if not a.skip_explore:
-        send("regions", {"regions": [[-6, -6, -2, 6], [-2, -6, 2, 6], [2, -6, 6, 6]]})
+        regions = [[-6, -6, -2, 6], [-2, -6, 2, 6], [2, -6, 6, 6]]
+        if a.keep_regions:
+            if state()["regions"] != regions:
+                raise RuntimeError("前序任务的分区与演示默认分区不一致")
+        else:
+            send("regions", {"regions": regions})
         send("command", {"command": "explore"})
         # Evaluate saved observations against independent truth; stop only if the
         # required coverage AND every robot's actual participation have passed.
@@ -102,6 +103,7 @@ try:
                     boxes,
                     s["regions"],
                     fleet_cfg["robot_radius"],
+                    starts=[r["start"] for r in fleet_cfg["robots"]],
                 )
                 record(
                     "coverage",

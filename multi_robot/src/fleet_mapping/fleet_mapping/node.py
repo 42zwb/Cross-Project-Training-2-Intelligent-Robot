@@ -27,7 +27,7 @@ from tf2_ros import (
     TransformException,
 )
 from cartographer_ros_msgs.srv import WriteState
-from fleet_mapping.grid import fuse, save_map, mask_robot_returns
+from fleet_mapping.grid import fuse, save_map, mask_robot_returns, valid_grid_message
 
 
 def yaw(q):
@@ -97,7 +97,7 @@ class Mapping(Node):
                 self.create_subscription(
                     OccupancyGrid,
                     f"/{n}/local_map",
-                    lambda m, n=n: self.maps.update({n: m}),
+                    lambda m, n=n: self.local_map(n, m),
                     self.qos,
                 )
             )
@@ -105,6 +105,12 @@ class Mapping(Node):
             String, "/fleet/save_request", self.save, self.save_qos
         )
         self.create_timer(0.5, self.tick)
+
+    def local_map(self, name, message):
+        if valid_grid_message(message):
+            self.maps[name] = message
+        else:
+            self.maps.pop(name, None)
 
     def lookup(self, parent, child, stamp=None, require_fresh=False):
         t = self.buffer.lookup_transform(parent, child, stamp or rclpy.time.Time())
@@ -117,7 +123,10 @@ class Mapping(Node):
                     f"stale transform {parent} -> {child}: {age:.3f}s"
                 )
         p = t.transform.translation
-        return p.x, p.y, yaw(t.transform.rotation)
+        pose = (p.x, p.y, yaw(t.transform.rotation))
+        if not all(math.isfinite(v) for v in pose):
+            raise TransformException("nonfinite pose")
+        return pose
 
     def global_pose(self, name, child, stamp=None, require_fresh=False):
         try:
@@ -193,7 +202,19 @@ class Mapping(Node):
         m.ranges = ranges.tolist()
         self.scanpub[n].publish(m)
 
+    def expire_saves(self):
+        # A dead WriteState server must not retain clients and block future saves.
+        for request_id, pending in list(self.save_pending.items()):
+            if time.monotonic() > pending["deadline"]:
+                pending["errors"].append("PBStream 保存服务响应超时")
+                self.finish_save(request_id)
+                for client, future in pending["clients"]:
+                    if not future.done():
+                        future.cancel()
+                    self.destroy_client(client)
+
     def tick(self):
+        self.expire_saves()
         transforms = []
         for r in self.robots:
             n = r["name"]
@@ -283,6 +304,8 @@ class Mapping(Node):
             dest = Path(destination).expanduser().resolve()
             if not hasattr(self, "data"):
                 raise RuntimeError("共享地图尚未生成")
+            if len(self.save_pending) >= 4:
+                raise RuntimeError("地图保存队列已满，请等待现有任务完成")
             if any(
                 pending["destination"] == str(dest)
                 for pending in self.save_pending.values()
@@ -309,6 +332,8 @@ class Mapping(Node):
             "remaining": 0,
             "errors": [],
             "started": False,
+            "deadline": time.monotonic() + 12.0,
+            "clients": [],
         }
         for r in self.robots:
             n = r["name"]
@@ -319,6 +344,7 @@ class Mapping(Node):
             if client.service_is_ready():
                 self.save_pending[request_id]["remaining"] += 1
                 future = client.call_async(req)
+                self.save_pending[request_id]["clients"].append((client, future))
                 future.add_done_callback(
                     lambda f, n=n, rid=request_id, c=client: self.save_done(
                         rid, n, c, f
@@ -337,9 +363,10 @@ class Mapping(Node):
 
     def save_done(self, request_id, name, client, future):
         pending = self.save_pending.get(request_id)
-        self.destroy_client(client)
         if pending is None:
             return
+        pending["clients"] = [(c, f) for c, f in pending["clients"] if c is not client]
+        self.destroy_client(client)
         try:
             response = future.result()
             if response.status.code != 0:

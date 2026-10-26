@@ -39,3 +39,4 @@ region_margin: 0.35
 robot_radius: 0.18
 max_speed: 0.2
 dashboard_port: 8765
+planner: navfn

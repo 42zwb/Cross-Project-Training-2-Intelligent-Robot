@@ -29,6 +29,8 @@ from lifecycle_msgs.srv import GetState
 from std_srvs.srv import SetBool
 from tf2_ros import Buffer, TransformListener, TransformException
 from fleet_interfaces.srv import SetRegions, SetFormation, FleetCommand
+from fleet_mapping.grid import valid_grid_message
+from .patrol import parse_patrol, validate_paths
 from .geometry import (
     Grid,
     angle,
@@ -86,6 +88,7 @@ class Coordinator(Node):
         self.poses = {}
         self.odoms = {}
         self.travel = {n: 0.0 for n in self.names}
+        self.distance = {n: 0.0 for n in self.names}
         self.trails = {n: [] for n in self.names}
         self.handles = {}
         self.goals = {}
@@ -94,13 +97,16 @@ class Coordinator(Node):
         self.slots = None
         self.assignment = None
         self.errors = {}
-        self.taskqueue = queue.Queue()
+        self.taskqueue = queue.Queue(maxsize=1)
+        self.current_task = None
+        self.patrol = None
         self.explore_done = {n: False for n in self.names}
         self.bond_instances = {}
         self.nav_ready = False
         self.last_ready_check = 0.0
         self.saved = None
         self.save_condition = threading.Condition()
+        self.saving_lock = threading.Lock()
         self.save_results = {}
         self.running = True
         self.statepub = self.create_publisher(String, "/fleet/state", self.qos)
@@ -297,23 +303,35 @@ class Coordinator(Node):
         )
 
     def odom(self, n, m):
-        old = self.odoms.get(n)
-        if old and self.mode == "EXPLORING" and abs(m.twist.twist.linear.x) > 0.01:
-            a = old[1].pose.pose.position
-            b = m.pose.pose.position
-            ds = math.hypot(a.x - b.x, a.y - b.y)
-            if ds < 0.15:
-                self.travel[n] += ds
-        self.odoms[n] = (time.monotonic(), m)
+        p, v = m.pose.pose.position, m.twist.twist
+        with self.lock:
+            if not all(math.isfinite(x) for x in [p.x, p.y, v.linear.x, v.angular.z]):
+                self.odoms.pop(n, None)
+                return
+            old = self.odoms.get(n)
+            if old:
+                a = old[1].pose.pose.position
+                ds = math.hypot(a.x - p.x, a.y - p.y)
+                if ds < 0.15 and abs(v.linear.x) > 0.01:
+                    self.distance[n] += ds
+                    if self.mode == "EXPLORING":
+                        self.travel[n] += ds
+            self.odoms[n] = (time.monotonic(), m)
 
     def map_cb(self, m):
-        self.grid = Grid(
+        if not valid_grid_message(m) or m.header.frame_id != "map" or abs(yaw(m.info.origin.orientation)) > 1e-6:
+            with self.lock:
+                self.grid = None
+            return
+        grid = Grid(
             np.asarray(m.data, dtype=np.int16).reshape(m.info.height, m.info.width),
             m.info.resolution,
             (m.info.origin.position.x, m.info.origin.position.y),
             self.cfg["robot_radius"],
             self.cfg["region_margin"],
         )
+        with self.lock:
+            self.grid = grid
 
     def publish_masks(self):
         res = self.cfg["resolution"]
@@ -375,7 +393,9 @@ class Coordinator(Node):
                         self.poses.pop(n, None)
                         continue
                     pos = (p.x, p.y, yaw(t.transform.rotation))
-                    old = self.poses.get(n)
+                    if not all(math.isfinite(v) for v in pos):
+                        self.poses.pop(n, None)
+                        continue
                     self.poses[n] = pos
                     if (
                         not self.trails[n]
@@ -432,8 +452,11 @@ class Coordinator(Node):
                     "雷达超时",
                     "雷达数据无效",
                     "里程计超时",
+                    "里程计数据无效",
                     "定位超时",
                     "定位丢失",
+                    "定位数据无效",
+                    "运动方向雷达数据无效",
                     "调度心跳中断",
                 ]
             ]
@@ -443,6 +466,7 @@ class Coordinator(Node):
                 critical.append("导航关键节点心跳中断")
             if self.active and (
                 not dependencies_fresh
+                or self.grid is None
                 or len(self.poses) != 3
                 or any(age > 0.8 for age in self.mapping.get("scan_age", {}).values())
             ):
@@ -452,6 +476,9 @@ class Coordinator(Node):
                 self.active.clear()
                 self.mode = "FAULT"
                 self.message = "安全停车：" + ",".join(critical)
+                if self.patrol and self.patrol["status"] in ["preparing", "running"]:
+                    self.patrol["status"] = "failed"
+                    self.patrol["error"] = self.message
                 self.cancel_all()
                 self.event("fault", reason=self.message)
             self.leasepub.publish(
@@ -459,6 +486,7 @@ class Coordinator(Node):
                     data=json.dumps(
                         {
                             "active": list(self.active),
+                            "generation": self.generation,
                             "estop": self.estop,
                             "region_enabled": self.region_enabled,
                             "regions": self.regions,
@@ -480,6 +508,7 @@ class Coordinator(Node):
                 }
             state = {
                 "mode": self.mode,
+                "run_dir": str(self.run.resolve()),
                 "message": self.message,
                 "ready": self.ready,
                 "estop": self.estop,
@@ -487,6 +516,7 @@ class Coordinator(Node):
                     n: {
                         "pose": self.poses.get(n),
                         "travel": self.travel[n],
+                        "distance": self.distance[n],
                         "goal": self.goals.get(n),
                         "trail": self.trails[n],
                         "safety": self.safety.get(n, {}),
@@ -495,12 +525,22 @@ class Coordinator(Node):
                 },
                 "regions": self.regions,
                 "region_enabled": self.region_enabled,
+                "regions_locked": self.started,
                 "known_fraction": self.mapping.get("known_fraction", 0.0),
                 "formation_slots": self.slots,
                 "formation_assignment": self.assignment,
                 "formation_errors": self.errors,
                 "saved": self.saved,
                 "arena": self.cfg["arena"],
+                "planner": self.cfg.get("planner", "navfn"),
+                "patrol": self.patrol,
+                "readiness": {
+                    "nav2": nav_bonds_fresh and self.nav_ready,
+                    "navigation_pose": nav_poses_fresh,
+                    "mapping_and_safety": dependencies_fresh,
+                    "localization": len(self.poses) == len(self.names),
+                    "initial_free": self.initial_free_confirmed,
+                },
                 "nav_pose_age": {
                     k: (
                         self.get_clock().now() - rclpy.time.Time.from_msg(stamp)
@@ -560,11 +600,19 @@ class Coordinator(Node):
             return True
 
     def command(self, req, res):
+        self.event("command_request", command=req.command)
         if req.command == "save":
-            return self.save_command(req, res)
+            if not self.saving_lock.acquire(blocking=False):
+                res.message = "已有保存请求正在处理，请等待保存结果"
+                return res
+            try:
+                return self.save_command(req, res)
+            finally:
+                self.saving_lock.release()
         with self.lock:
             cmd = req.command
             if cmd == "estop":
+                self.interrupt_patrol()
                 self.estop = True
                 self.generation += 1
                 self.active.clear()
@@ -574,6 +622,7 @@ class Coordinator(Node):
                 self.event("estop")
                 res.success = True
             elif cmd in ["pause", "clear-estop"]:
+                self.interrupt_patrol()
                 if cmd == "clear-estop":
                     self.estop = False
                 self.generation += 1
@@ -591,19 +640,60 @@ class Coordinator(Node):
                 if not self.ready or self.estop or self.mode in ["FAULT", "ESTOP"]:
                     res.message = "系统未就绪、处于故障停车或急停未解除"
                     return res
+                if self.current_task == "explore" and self.mode in ["EXPLORING", "SWITCHING", "RETURNING"]:
+                    res.success = True
+                    res.message = "探索任务正在运行或准备中"
+                    return res
+                self.interrupt_patrol()
                 self.generation += 1
                 self.active.clear()
                 self.cancel_all()
                 self.mode = "SWITCHING"
                 self.started = True
                 self.message = "准备探索"
-                self.taskqueue.put(("explore", self.generation, None))
+                self.enqueue_task("explore", None)
+                res.success = True
+            elif cmd == "patrol":
+                if not self.ready or self.estop or self.mode in ["FAULT", "ESTOP"]:
+                    res.message = "系统未就绪、处于故障停车或急停未解除"
+                    return res
+                try:
+                    plan = parse_patrol(req.argument, self.names, self.regions, self.grid, self.poses)
+                except ValueError as e:
+                    res.message = str(e)
+                    return res
+                self.interrupt_patrol()
+                self.generation += 1
+                self.active.clear()
+                self.cancel_all()
+                self.started = True
+                self.mode = "SWITCHING"
+                self.message = "停车并检查巡逻路线"
+                self.patrol = {
+                    "status": "preparing", "cycles": plan["cycles"],
+                    "robots": {n: {"completed": 0, "total": len(points) * plan["cycles"]}
+                               for n, points in plan["routes"].items()},
+                }
+                self.enqueue_task("patrol", plan)
                 res.success = True
             else:
                 res.message = "未知指令"
                 return res
             res.message = self.message
             return res
+
+    def interrupt_patrol(self):
+        if self.patrol and self.patrol["status"] in ["preparing", "running"]:
+            self.patrol["status"] = "cancelled"
+
+    def enqueue_task(self, kind, payload):
+        """Keep only the newest request, with its generation cancellation token."""
+        self.current_task = kind
+        try:
+            self.taskqueue.get_nowait()
+        except queue.Empty:
+            pass
+        self.taskqueue.put_nowait((kind, self.generation, payload))
 
     def save_command(self, req, res):
         with self.lock:
@@ -692,7 +782,7 @@ class Coordinator(Node):
         with self.lock:
             try:
                 if self.started or self.mode not in ["BOOTSTRAP", "IDLE"]:
-                    raise ValueError("只能在第一次开始探索前设置区域。")
+                    raise ValueError("只能在首次运动任务前设置区域。")
                 regions = np.asarray(req.bounds).reshape(3, 4).tolist()
                 validate_regions(
                     regions,
@@ -724,11 +814,13 @@ class Coordinator(Node):
                             "队形目标包含未知、障碍或安全余量不足的区域，请先探索或调整中心/间距。"
                         )
                 self.generation += 1
+                self.interrupt_patrol()
                 self.active.clear()
                 self.cancel_all()
                 self.mode = "SWITCHING"
                 self.message = "停车并准备队形"
-                self.taskqueue.put(("formation", self.generation, slots))
+                self.started = True
+                self.enqueue_task("formation", slots)
                 self.event("formation_request", shape=req.shape, slots=slots)
                 res.success = True
                 res.message = "队形请求已接受，正在规划分步到位顺序"
@@ -825,8 +917,24 @@ class Coordinator(Node):
         req.pose.pose.position.y = float(target[1])
         req.pose.pose.orientation.z = math.sin(target[2] / 2)
         req.pose.pose.orientation.w = math.cos(target[2] / 2)
-        h = self.wait(self.actions[n].send_goal_async(req), 8.0, token)
+        abandoned = threading.Event()
+
+        def cancel_late(future):
+            if abandoned.is_set() or not self.valid(token):
+                try:
+                    handle = future.result()
+                    if handle and handle.accepted:
+                        handle.cancel_goal_async()
+                except Exception:
+                    pass
+
+        future = self.actions[n].send_goal_async(req)
+        future.add_done_callback(cancel_late)
+        h = self.wait(future, 8.0, token)
         if h is None or not h.accepted:
+            abandoned.set()
+            if future.done():
+                cancel_late(future)
             with self.lock:
                 self.active.discard(n)
             return None
@@ -914,6 +1022,8 @@ class Coordinator(Node):
                     self.do_formation(payload, token)
                 elif kind == "explore":
                     self.start_explore(token)
+                elif kind == "patrol":
+                    self.do_patrol(payload, token)
             except Exception as e:
                 with self.lock:
                     if token is not None and token != self.generation:
@@ -923,7 +1033,77 @@ class Coordinator(Node):
                         self.cancel_all()
                         self.mode = "FAULT"
                         self.message = str(e)
+                        if self.patrol and self.patrol["status"] in ["preparing", "running"]:
+                            self.patrol["status"] = "failed"
+                            self.patrol["error"] = str(e)
                         self.event("operation_error", error=str(e))
+
+    def do_patrol(self, plan, token):
+        with self.lock:
+            grid, poses, regions = self.grid, dict(self.poses), list(self.regions)
+        validate_paths(plan, self.names, regions, grid, poses)
+        if not self.valid(token):
+            return
+        self.filters(True, token)
+        with self.lock:
+            if not self.set_task_state(token, "PATROLLING", "三车按所属分区航点巡逻"):
+                return
+            self.patrol["status"] = "running"
+        self.event("patrol_start", plan=plan)
+        pending, next_at = {}, {n: 0.0 for n in plan["routes"]}
+        while self.valid(token):
+            for name, points in plan["routes"].items():
+                if not self.valid(token):
+                    return
+                if name in pending:
+                    future, started, target = pending[name]
+                    if not future.done():
+                        if time.monotonic() - started > plan["goal_timeout"]:
+                            raise RuntimeError(name + " 巡逻航点导航超时，已停止全部机器人")
+                        continue
+                    result = future.result()
+                    with self.lock:
+                        if not self.valid(token):
+                            return
+                        self.active.discard(name)
+                        self.handles.pop(name, None)
+                        self.goals.pop(name, None)
+                        if result.status != 4:
+                            raise RuntimeError(f"{name} 巡逻导航失败，状态码 {result.status}")
+                        self.patrol["robots"][name]["completed"] += 1
+                        completed = self.patrol["robots"][name]["completed"]
+                    self.event("patrol_waypoint", robot=name, completed=completed, target=target)
+                    pending.pop(name)
+                    next_at[name] = time.monotonic() + plan["dwell"]
+                with self.lock:
+                    progress = dict(self.patrol["robots"][name])
+                    current_grid = self.grid
+                    pose = self.poses.get(name)
+                    region = self.regions[self.names.index(name)]
+                if progress["completed"] >= progress["total"] or time.monotonic() < next_at[name]:
+                    continue
+                target = points[progress["completed"] % len(points)]
+                if (current_grid is None or pose is None
+                        or current_grid.astar(pose, target, current_grid.allowed(region)) is None):
+                    raise RuntimeError(name + " 下一巡逻航点不再可达，已停止全部机器人")
+                future = self.send_goal(name, target, token)
+                if future is None:
+                    if self.valid(token):
+                        raise RuntimeError(name + " 巡逻目标未被接受")
+                    return
+                pending[name] = (future, time.monotonic(), target)
+            with self.lock:
+                if not self.valid(token):
+                    return
+                done = all(p["completed"] == p["total"] for p in self.patrol["robots"].values())
+                if done:
+                    self.active.clear()
+                    self.patrol["status"] = "completed"
+                    self.mode = "PATROL_DONE"
+                    self.message = "巡逻完成，所有机器人已停车"
+                    self.event("patrol_complete", progress=self.patrol)
+                    return
+            time.sleep(0.05)
 
     def start_explore(self, token):
         # A robot in formation can be outside its region. Return before enabling masks.

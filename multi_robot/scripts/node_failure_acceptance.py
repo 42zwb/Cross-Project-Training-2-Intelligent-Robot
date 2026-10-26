@@ -1,27 +1,24 @@
 #!/usr/bin/env python3
 """Suspend one actual Nav2 BT process and verify fleet-wide physical stop."""
-import json, math, os, signal, time, urllib.request
+import argparse, json, math, os, signal, time, urllib.request
 from pathlib import Path
+from runtime_context import RuntimeClient
 
 root = Path(__file__).resolve().parents[1]
-run = Path((root / "runs/latest.txt").read_text())
+p = argparse.ArgumentParser()
+p.add_argument("--run-dir")
+a = p.parse_args()
+run = Path(a.run_dir or (root / "runs/latest.txt").read_text()).resolve()
+api = RuntimeClient(run)
 group = int((run / "launch.pid").read_text())
 
 
 def state():
-    return json.load(
-        urllib.request.urlopen("http://127.0.0.1:8765/api/state", timeout=3)
-    )
+    return api.state(timeout=3)
 
 
 def command(cmd):
-    request = urllib.request.Request(
-        "http://127.0.0.1:8765/api/command",
-        json.dumps({"command": cmd}).encode(),
-        {"Content-Type": "application/json"},
-        method="POST",
-    )
-    return json.load(urllib.request.urlopen(request, timeout=10))
+    return api.request("command", {"command":cmd}, timeout=10)
 
 
 def truth():

@@ -7,6 +7,21 @@ import yaml
 from PIL import Image
 
 
+def valid_grid_message(message):
+    """Reject malformed, oversized or nonplanar grids before allocating arrays."""
+    info = message.info
+    p, q = info.origin.position, info.origin.orientation
+    return (
+        0 < info.width * info.height <= 4_000_000
+        and len(message.data) == info.width * info.height
+        and math.isfinite(info.resolution) and info.resolution > 0
+        and all(math.isfinite(v) for v in [p.x, p.y, p.z, q.x, q.y, q.z, q.w])
+        and abs(q.x) < 1e-6 and abs(q.y) < 1e-6
+        and abs(q.z * q.z + q.w * q.w - 1.0) < 0.01
+        and all(-1 <= v <= 100 for v in message.data)
+    )
+
+
 def fuse(layers, shape=(240, 240), resolution=0.05, origin=(-6.0, -6.0)):
     result = np.full(shape, -1, dtype=np.int8)
     for data, res, ox, oy, oyaw, transform in layers:

@@ -2,29 +2,26 @@
 """Real fault injection. Run after the normal demo, while fleet is IDLE.
 Only stops/resumes PIDs belonging to this invocation's recorded process group.
 """
-import json, math, os, signal, time, urllib.request
+import argparse, json, math, os, signal, time, urllib.request
 from pathlib import Path
+from runtime_context import RuntimeClient
 
 root = Path(__file__).resolve().parents[1]
-run = Path((root / "runs/latest.txt").read_text())
+p = argparse.ArgumentParser()
+p.add_argument("--run-dir")
+a = p.parse_args()
+run = Path(a.run_dir or (root / "runs/latest.txt").read_text()).resolve()
+api = RuntimeClient(run)
 group = int((run / "launch.pid").read_text())
 report = {}
 
 
 def state():
-    return json.load(
-        urllib.request.urlopen("http://127.0.0.1:8765/api/state", timeout=4)
-    )
+    return api.state(timeout=4)
 
 
 def send(kind, data):
-    req = urllib.request.Request(
-        "http://127.0.0.1:8765/api/" + kind,
-        json.dumps(data).encode(),
-        {"Content-Type": "application/json"},
-        method="POST",
-    )
-    return json.load(urllib.request.urlopen(req, timeout=15))
+    return api.request(kind, data, timeout=15)
 
 
 def command(cmd):

@@ -1,0 +1,8 @@
+# Shared map coordinates; start with one cycle in observed free space.
+cycles: 1
+dwell: 0.5
+goal_timeout: 120
+routes:
+  robot1: [[-4.8, -4.0, 0.0], [-4.0, -4.0, 0.0]]
+  robot2: [[-0.8, -4.0, 0.0], [0.0, -4.0, 0.0]]
+  robot3: [[4.8, -4.0, 0.0], [4.0, -4.0, 0.0]]

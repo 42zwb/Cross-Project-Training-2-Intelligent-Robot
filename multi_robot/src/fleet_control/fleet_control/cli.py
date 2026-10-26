@@ -1,6 +1,7 @@
 import argparse, json, sys
 from pathlib import Path
 import rclpy
+import yaml
 from rclpy.qos import QoSProfile, DurabilityPolicy
 from std_msgs.msg import String
 from fleet_interfaces.srv import FleetCommand, SetFormation, SetRegions
@@ -13,6 +14,8 @@ def main():
         sub.add_parser(cmd)
     s = sub.add_parser("save")
     s.add_argument("--output", default="")
+    s = sub.add_parser("patrol", help="执行 YAML/JSON 航点任务")
+    s.add_argument("--file", required=True)
     s = sub.add_parser("formation")
     s.add_argument("shape", choices=["triangle", "row", "column"])
     s.add_argument("--x", type=float, default=0.0)
@@ -67,6 +70,11 @@ def main():
                 if a.cmd == "save" and a.output
                 else ""
             )
+            if a.cmd == "patrol":
+                path = Path(a.file).expanduser()
+                if path.stat().st_size > 16384:
+                    raise ValueError("巡逻文件不能超过 16384 字节")
+                req.argument = json.dumps(yaml.safe_load(path.read_text()), allow_nan=False)
         c = n.create_client(typ, name)
         if not c.wait_for_service(timeout_sec=5.0):
             raise RuntimeError("调度服务不可用，请先启动 ./run.sh 并 source ./env.sh")
@@ -78,7 +86,7 @@ def main():
         print(("成功：" if r.success else "拒绝：") + r.message)
         if not r.success:
             sys.exit(1)
-    except (RuntimeError, KeyboardInterrupt) as e:
+    except (RuntimeError, ValueError, TypeError, OSError, yaml.YAMLError, KeyboardInterrupt) as e:
         print(str(e), file=sys.stderr)
         sys.exit(1)
     finally:

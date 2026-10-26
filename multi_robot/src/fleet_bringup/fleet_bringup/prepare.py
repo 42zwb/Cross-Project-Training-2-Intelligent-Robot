@@ -42,7 +42,7 @@ def validate_config(cfg):
     if (
         not isinstance(arena, list)
         or len(arena) != 4
-        or not all(math.isfinite(float(v)) for v in arena)
+        or not all(isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) for v in arena)
         or any(
             not math.isclose(float(v), expected, abs_tol=1e-9)
             for v, expected in zip(arena, [-6.0, -6.0, 6.0, 6.0])
@@ -50,6 +50,9 @@ def validate_config(cfg):
     ):
         raise ValueError("当前场景固定为 arena [-6, -6, 6, 6]。")
     cfg["arena"] = [float(v) for v in arena]
+    if cfg.get("planner", "navfn") not in ["navfn", "smac2d"]:
+        raise ValueError("planner 仅支持 navfn 或 smac2d。")
+    cfg.setdefault("planner", "navfn")
 
     for key, low, high in [
         ("resolution", 0.025, 0.1),
@@ -115,8 +118,8 @@ def validate_config(cfg):
             or y0 < -6.0
             or x1 > 6.0
             or y1 > 6.0
-            or not x0 + margin <= start[0] <= x1 - margin
-            or not y0 + margin <= start[1] <= y1 - margin
+            or not x0 + margin + radius + 0.03 <= start[0] <= x1 - margin - radius - 0.03
+            or not y0 + margin + radius + 0.03 <= start[1] <= y1 - margin - radius - 0.03
         ):
             raise ValueError(f"robot{i+1} 区域越界、过窄或未安全包含起点。")
         if (
@@ -126,6 +129,11 @@ def validate_config(cfg):
             raise ValueError(f"robot{i+1} 起点超出场地安全边界。")
         starts.append(start)
         regions.append(region)
+        for _, bx, by, dx, dy in boxes():
+            distance = math.hypot(max(abs(start[0] - bx) - dx / 2, 0),
+                                  max(abs(start[1] - by) - dy / 2, 0))
+            if distance < radius + 0.03:
+                raise ValueError(f"robot{i+1} 起点与静态障碍或外墙距离不足。")
 
     area = 0.0
     for i, (x0, y0, x1, y1) in enumerate(regions):
@@ -300,6 +308,20 @@ def nav_config(name, cfg):
     d["planner_server"]["ros__parameters"]["GridBased"].update(
         tolerance=0.10, allow_unknown=False, use_astar=True
     )
+    # Keep the BT's stable GridBased ID while choosing the implementation.
+    if cfg.get("planner", "navfn") == "smac2d":
+        share("nav2_smac_planner")
+        d["planner_server"]["ros__parameters"]["GridBased"] = {
+            "plugin": "nav2_smac_planner/SmacPlanner2D",
+            "tolerance": 0.10,
+            "downsample_costmap": False,
+            "allow_unknown": False,
+            "max_iterations": 1000000,
+            "max_on_approach_iterations": 1000,
+            "max_planning_time": 2.0,
+            "cost_travel_multiplier": 2.0,
+            "use_final_approach_orientation": False,
+        }
     d["behavior_server"]["ros__parameters"].update(
         global_frame="map",
         robot_base_frame=base,

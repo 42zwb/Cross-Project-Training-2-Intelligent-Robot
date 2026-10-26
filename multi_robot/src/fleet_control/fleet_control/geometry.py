@@ -20,6 +20,10 @@ def formation_pass(poses, slots, assignment, robot_radius):
     """Check formation error and body separation using the shared acceptance policy."""
     if len(poses) != 3 or len(slots) != 3 or len(assignment) != 3:
         return False
+    if sorted(assignment) != [0, 1, 2] or any(
+        len(p) != 3 or not all(math.isfinite(v) for v in p) for p in list(poses) + list(slots)
+    ):
+        return False
     for robot_index, pose in enumerate(poses):
         target = slots[assignment[robot_index]]
         if (
@@ -87,9 +91,10 @@ def validate_regions(regions, starts, arena, margin=0.35, robot_radius=0.18):
             or y1 > arena[3]
         ):
             raise ValueError("区域越界或过窄。")
+        start_margin = margin + robot_radius + 0.03
         if (
-            not x0 + margin <= starts[i][0] <= x1 - margin
-            or not y0 + margin <= starts[i][1] <= y1 - margin
+            not x0 + start_margin <= starts[i][0] <= x1 - start_margin
+            or not y0 + start_margin <= starts[i][1] <= y1 - start_margin
         ):
             raise ValueError(f"robot{i+1} 起点必须在区域安全边界内。")
         area += (x1 - x0) * (y1 - y0)
@@ -122,8 +127,12 @@ class Grid:
         self.region_clearance = region_margin + robot_radius + 0.03
         self.inter_robot_clearance = 2.0 * robot_radius + 0.14
         self.h, self.w = self.data.shape
-        self.clearance = ndimage.distance_transform_edt(self.data < 65) * res
-        self.free_clearance = ndimage.distance_transform_edt(self.data == 0) * res
+        self.clearance = ndimage.distance_transform_edt(
+            np.pad(self.data < 65, 1, constant_values=False)
+        )[1:-1, 1:-1] * res
+        self.free_clearance = ndimage.distance_transform_edt(
+            np.pad(self.data == 0, 1, constant_values=False)
+        )[1:-1, 1:-1] * res
 
     def cell(self, p):
         return (

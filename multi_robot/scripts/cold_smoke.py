@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
 """Readiness must remain true for 30 seconds, not merely one startup sample."""
-import json, time, urllib.request
+import argparse, json, time, urllib.request
 from pathlib import Path
+from runtime_context import RuntimeClient
 
 root = Path(__file__).resolve().parents[1]
-run = Path((root / "runs/latest.txt").read_text())
+p = argparse.ArgumentParser()
+p.add_argument("--run-dir")
+a = p.parse_args()
+run = Path(a.run_dir or (root / "runs/latest.txt").read_text()).resolve()
+api = RuntimeClient(run)
 end = time.monotonic() + 150
 stable = None
 samples = []
 while time.monotonic() < end:
     try:
-        s = json.load(
-            urllib.request.urlopen("http://127.0.0.1:8765/api/state", timeout=3)
-        )
+        s = api.state(timeout=3)
     except Exception:
         time.sleep(0.5)
         continue

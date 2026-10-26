@@ -12,7 +12,9 @@ from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 from nav_msgs.msg import Odometry
 from std_msgs.msg import String
+from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 from tf2_ros import Buffer, TransformListener, TransformException
+from .health import scan_health, valid_odom
 
 
 class Safety(Node):
@@ -34,6 +36,8 @@ class Safety(Node):
         self.qos = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL)
         self.create_subscription(String, "/fleet/drive_lease", self.lease_cb, 1)
         self.status = self.create_publisher(String, "/fleet/safety_state", 1)
+        self.diagnostics = self.create_publisher(DiagnosticArray, "/diagnostics", 10)
+        self.last_diagnostics = 0.0
         for r in self.cfg["robots"]:
             n = r["name"]
             self.pubs[n] = self.create_publisher(
@@ -92,8 +96,15 @@ class Safety(Node):
                 or not isinstance(state.get("estop"), bool)
                 or not isinstance(state.get("region_enabled"), bool)
                 or not valid_regions
+                or any(not isinstance(n, str) or n not in self.pubs for n in state.get("active", []))
+                or len(state.get("active", [])) != len(set(state.get("active", [])))
+                or isinstance(state.get("generation", 0), bool)
+                or not isinstance(state.get("generation", 0), int)
+                or state.get("generation", 0) < 0
             ):
                 raise ValueError("invalid drive lease")
+            if state.get("generation", 0) != self.state.get("generation", 0):
+                self.commands.clear()
             self.state = state
             self.lease = time.monotonic()
         except (ValueError, TypeError, OverflowError):
@@ -108,37 +119,37 @@ class Safety(Node):
             reason = ""
             out = Twist()
             active = n in self.state.get("active", [])
+            scan_age = now - self.scans[n][0] if n in self.scans else None
+            odom_age = now - self.odoms[n][0] if n in self.odoms else None
+            scan_valid, nearest = scan_health(self.scans[n][1]) if n in self.scans else (False, None)
+            odom_valid = valid_odom(self.odoms[n][1]) if n in self.odoms else False
+            localization_reason, localization_age = "", None
+            try:
+                t = self.buffer.lookup_transform("map", n + "/base_link", rclpy.time.Time())
+                localization_age = (self.get_clock().now() - rclpy.time.Time.from_msg(t.header.stamp)).nanoseconds * 1e-9
+                p, q = t.transform.translation, t.transform.rotation
+                if not all(math.isfinite(v) for v in [p.x, p.y, q.x, q.y, q.z, q.w]):
+                    localization_reason = "定位数据无效"
+                elif not -0.5 <= localization_age < 1.0:
+                    localization_reason = "定位超时"
+            except TransformException:
+                localization_reason = "定位丢失"
             if now - self.lease > 0.8:
                 reason = "调度心跳中断"
             elif self.state.get("estop", True):
                 reason = "急停锁定"
             elif not active:
                 reason = "待命"
-            elif n not in self.scans or now - self.scans[n][0] > 0.8:
+            elif scan_age is None or scan_age > 0.8:
                 reason = "雷达超时"
-            elif (
-                sum(
-                    math.isfinite(v) and v >= self.scans[n][1].range_min
-                    for v in self.scans[n][1].ranges
-                )
-                < 20
-            ):
+            elif not scan_valid:
                 reason = "雷达数据无效"
-            elif n not in self.odoms or now - self.odoms[n][0] > 0.8:
+            elif odom_age is None or odom_age > 0.8:
                 reason = "里程计超时"
+            elif not odom_valid:
+                reason = "里程计数据无效"
             else:
-                try:
-                    t = self.buffer.lookup_transform(
-                        "map", n + "/base_link", rclpy.time.Time()
-                    )
-                    age = (
-                        self.get_clock().now()
-                        - rclpy.time.Time.from_msg(t.header.stamp)
-                    ).nanoseconds * 1e-9
-                    if age > 1.0 or age < -0.5:
-                        reason = "定位超时"
-                except TransformException:
-                    reason = "定位丢失"
+                reason = localization_reason
             if not reason:
                 if n not in self.commands or now - self.commands[n][0] > 0.5:
                     reason = "等待新速度"
@@ -156,11 +167,10 @@ class Safety(Node):
                         scan = self.scans[n][1]
                         # Sensor is close to the body centre; never rely on wheel odometry alone.
                         direction = 0.0 if out.linear.x >= 0 else math.pi
-                        ranges = [
+                        directional = [
                             v
                             for j, v in enumerate(scan.ranges)
-                            if math.isfinite(v)
-                            and abs(
+                            if abs(
                                 math.atan2(
                                     math.sin(
                                         scan.angle_min
@@ -176,6 +186,11 @@ class Safety(Node):
                             )
                             < 0.45
                         ]
+                        ranges = [v for v in directional if math.isfinite(v) and scan.range_min <= v <= scan.range_max]
+                        observed = any((math.isinf(v) and v > 0) or (math.isfinite(v) and scan.range_min <= v <= scan.range_max) for v in directional)
+                        if not observed and abs(out.linear.x) > 0.001:
+                            out = Twist()
+                            reason = "运动方向雷达数据无效"
                         if (
                             ranges
                             and min(ranges) < self.robot_radius + 0.06
@@ -209,8 +224,32 @@ class Safety(Node):
                 "moving_allowed": active and not bool(reason),
                 "v": out.linear.x,
                 "w": out.angular.z,
+                "scan_age": scan_age,
+                "odom_age": odom_age,
+                "localization_age": localization_age,
+                "localization_ok": not bool(localization_reason),
+                "scan_valid": scan_valid,
+                "odom_valid": odom_valid,
+                "nearest_obstacle": nearest,
             }
         self.status.publish(String(data=json.dumps(report)))
+        if now - self.last_diagnostics >= 1.0:
+            array = DiagnosticArray()
+            array.header.stamp = self.get_clock().now().to_msg()
+            for name, state in report.items():
+                status = DiagnosticStatus()
+                status.name = name + "/fleet_health"
+                status.hardware_id = name
+                stale = any(state[k] is None or state[k] > 0.8 for k in ["scan_age", "odom_age"])
+                invalid = not state["scan_valid"] or not state["odom_valid"] or not state["localization_ok"]
+                status.level = DiagnosticStatus.STALE if stale else DiagnosticStatus.ERROR if invalid else DiagnosticStatus.OK
+                status.message = "传感器超时" if stale else "传感器或定位无效" if invalid else state["reason"] or "正常"
+                if status.level == DiagnosticStatus.OK and state["reason"] not in ["", "待命", "等待新速度"]:
+                    status.level = DiagnosticStatus.WARN
+                status.values = [KeyValue(key=k, value=str(v)) for k, v in state.items()]
+                array.status.append(status)
+            self.diagnostics.publish(array)
+            self.last_diagnostics = now
 
 
 def main():

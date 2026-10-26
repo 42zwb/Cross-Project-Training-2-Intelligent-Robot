@@ -3,7 +3,7 @@
 import io, json, threading, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, unquote
 import numpy as np
 from PIL import Image
 import yaml
@@ -14,15 +14,19 @@ from nav_msgs.msg import OccupancyGrid
 from std_msgs.msg import String
 from ament_index_python.packages import get_package_share_directory
 from fleet_interfaces.srv import FleetCommand, SetFormation, SetRegions
+from fleet_mapping.grid import valid_grid_message
 
 
 class Dashboard(Node):
     def __init__(self):
         super().__init__("dashboard")
         self.declare_parameter("config", "")
+        self.declare_parameter("run_dir", "/tmp/fleet")
+        self.run_dir = str(Path(self.get_parameter("run_dir").value).resolve())
         cfg = yaml.safe_load(Path(self.get_parameter("config").value).read_text())
         self.port = cfg["dashboard_port"]
         self.state = {"mode": "BOOTSTRAP", "message": "正在连接 ROS"}
+        self.state_received = 0.0
         self.png = b""
         self.mapmeta = {}
         self.version = 0
@@ -44,16 +48,12 @@ class Dashboard(Node):
             return
         if isinstance(state, dict):
             self.state = state
+            self.state_received = time.monotonic()
         else:
             self.state = {"mode": "FAULT", "message": "收到无效的机群状态"}
 
     def map_cb(self, m):
-        if (
-            m.info.width <= 0
-            or m.info.height <= 0
-            or m.info.resolution <= 0
-            or len(m.data) != m.info.width * m.info.height
-        ):
+        if not valid_grid_message(m):
             return
         a = np.asarray(m.data, dtype=np.int16).reshape(m.info.height, m.info.width)
         rgb = np.zeros((*a.shape, 3), dtype=np.uint8)
@@ -98,6 +98,8 @@ class Dashboard(Node):
         if not f.done():
             raise RuntimeError("服务超时")
         r = f.result()
+        if r is None:
+            raise RuntimeError("ROS 服务未返回有效响应")
         return {"success": r.success, "message": r.message}
 
 
@@ -115,6 +117,7 @@ def main():
             self.send_header("Content-Length", str(len(data)))
             self.send_header("Cache-Control", "no-store")
             self.send_header("X-Content-Type-Options", "nosniff")
+            self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'")
             self.end_headers()
             try:
                 self.wfile.write(data)
@@ -124,10 +127,14 @@ def main():
         def do_GET(self):
             route = urlsplit(self.path).path
             if route == "/api/state":
+                age = time.monotonic() - n.state_received
+                state = n.state if age < 1.5 else n.state | {
+                    "mode": "FAULT", "ready": False, "message": "调度状态超时，请检查启动终端和日志"
+                }
                 self.send(
                     200,
                     json.dumps(
-                        n.state | {"map": n.mapmeta, "map_version": n.version},
+                        state | {"map": n.mapmeta, "map_version": n.version, "state_age": age},
                         ensure_ascii=False,
                     ).encode(),
                     "application/json; charset=utf-8",
@@ -138,12 +145,19 @@ def main():
                 self.send(
                     200, (n.web / "index.html").read_bytes(), "text/html; charset=utf-8"
                 )
+            elif route in ["/app.js", "/style.css"]:
+                self.send(200, (n.web / route[1:]).read_bytes(),
+                          "text/javascript; charset=utf-8" if route.endswith(".js") else "text/css; charset=utf-8")
             else:
                 self.send(404, b"Not found", "text/plain")
 
         def do_POST(self):
             try:
+                self.connection.settimeout(15)
                 route = urlsplit(self.path).path
+                expected_run = self.headers.get("X-Fleet-Run", "")
+                if expected_run and unquote(expected_run) != n.run_dir:
+                    raise ValueError("运行实例已变化，请刷新页面后重试")
                 origin = self.headers.get("Origin", "")
                 if origin and origin not in [
                     f"http://127.0.0.1:{n.port}",
@@ -158,7 +172,9 @@ def main():
                     raise ValueError("请求长度必须在 1 到 16384 字节之间")
                 if self.headers.get_content_type() != "application/json":
                     raise ValueError("请求内容类型必须是 application/json")
-                data = json.loads(self.rfile.read(length))
+                def reject_constant(value):
+                    raise ValueError("JSON 不接受 NaN 或 Infinity")
+                data = json.loads(self.rfile.read(length), parse_constant=reject_constant)
                 if not isinstance(data, dict):
                     raise ValueError("请求 JSON 必须是对象")
                 kind = route.removeprefix("/api/")
@@ -174,7 +190,7 @@ def main():
                     json.dumps(r, ensure_ascii=False).encode(),
                     "application/json; charset=utf-8",
                 )
-            except (ValueError, KeyError, RuntimeError, TypeError) as e:
+            except (ValueError, KeyError, RuntimeError, TypeError, OverflowError, TimeoutError) as e:
                 self.send(
                     400,
                     json.dumps(

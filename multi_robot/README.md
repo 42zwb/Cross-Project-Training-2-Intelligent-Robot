@@ -2,11 +2,13 @@
 
 课程大作业的独立 ROS 2 Humble 工程。场地 12 m × 12 m，三台 TurtleBot4 Lite，使用各自激光雷达和里程计建图。人工分区后自主选择前沿探索，实时融合为 `/map`；可以中断探索，集合为三角形、横排或纵队，再返回各自区域继续探索。
 
+现已结合单机器人课程的航点导航、状态监测与 Smac2D 规划内容，增加三车分区巡逻、标准 ROS 诊断及网页诊断面板，并修复新版浏览器中“开始”按钮的函数名冲突。最近一次核查见 [优化与回归报告](docs/优化与回归报告-20261026.md)。
+
 采用已知起点标定、独立 Cartographer SLAM、占据栅格融合和集中任务调度。**没有将场地真值地图输入 SLAM 或控制，也没有实现多机器人联合位姿图优化。**
 
 ## 最快开始
 
-只需一个启动终端：
+本机既有源码工作空间为 `/home/bwz/turtlebot_fleet_ws`；GitHub 克隆后进入仓库的 `multi_robot/`。下列代码以克隆目录为例，只需一个启动终端：
 
 ```bash
 cd multi_robot
@@ -51,7 +53,7 @@ ros2 run fleet_control fleetctl clear-estop
 ros2 run fleet_control fleetctl regions -- -6 -6 -2 6 -2 -6 2 6 2 -6 6 6
 ```
 
-三块区域须覆盖整个场地、不重叠、包含各自起点并留出车体余量。第一次开始探索后分区锁定，要重划分请重启。自定义配置可复制 `src/fleet_bringup/config/fleet.yaml` 后运行 `./run.sh --config /完整路径/fleet.yaml`。
+三块区域须覆盖整个场地、不重叠、包含各自起点并留出车体余量。首次探索、巡逻或队形任务后分区锁定，要重划分请重启。自定义配置可复制 `src/fleet_bringup/config/fleet.yaml` 后运行 `./run.sh --config /完整路径/fleet.yaml`。起点不能与场景障碍或外墙相交。
 
 ## 启动模式
 
@@ -63,7 +65,7 @@ ros2 run fleet_control fleetctl regions -- -6 -6 -2 6 -2 -6 2 6 2 -6 6 6
 
 Gazebo 仅用于查看物理运动；操作任务请使用网页或 `fleetctl`。本工程没有把 Gazebo 自带 Teleop 插件接入三车控制链。正常验收过程中不要移动 / 增删障碍物，保存的地图也不包含 Gazebo 场景编辑结果。
 
-工程默认隔离 ROS 域 91、Gazebo 分区 `tb4_course_fleet`。旧教程仿真可保持独立运行，但会占用额外资源。不能在同一域重复启动本工程；脚本会检查锁。环境只在当前 shell 生效，不修改 `~/.bashrc`。
+工程默认隔离 ROS 域 91、Gazebo 分区 `tb4_course_fleet`。旧教程仿真可保持独立运行，但会占用额外资源。脚本同时检查 ROS 域锁、Gazebo 分区锁和网页端口；多开实例须分别设置不同的 `FLEET_DOMAIN_ID`、`FLEET_IGN_PARTITION` 和 `dashboard_port`。环境只在当前 shell 生效，不修改 `~/.bashrc`。
 
 ## 文件与模块
 
@@ -78,7 +80,7 @@ Gazebo 仅用于查看物理运动；操作任务请使用网页或 `fleetctl`�
 | `runs/<时间>` | 本次启动资源、配置、日志、轨迹及保存结果 |
 | `docs` | 算法说明、验收结果和问题排查 |
 
-运行时生成的 `runs/`、`results/`、日志和地图均由 `.gitignore` 排除；启动后可在本机运行目录查看。启用 `--record-truth` 后会生成仅供离线验收器读取的 `truth.jsonl`。
+最近运行目录记录在 `runs/latest.txt`。启动日志在 `launch.log`，任务事件在 `events.jsonl`，状态采样在 `telemetry.jsonl`，资源记录在 `resources.jsonl`。启用 `--record-truth` 后有 `truth.jsonl`，只有独立验收器读取它。这些运行产物由 `.gitignore` 排除，不随源码上传。
 
 ## 保存结果与检查
 
@@ -128,9 +130,7 @@ python3 scripts/demo.py
 
 完整验收包括分区、三车自主探索、覆盖率与里程检查、保存、三种队形、恢复探索。输出 `runs/<本次>/acceptance.json`。覆盖率由独立评估器与场地真值对比；网页的“已观测栅格比例”不是该覆盖率。
 
-运行状态与已通过 / 未通过的实测项目以 [验收记录](docs/验收记录.md) 为准。
-
-本轮核查、构建和隔离仿真结果见 [本轮代码核查与仿真报告](docs/代码核查与仿真报告-20261021.md)。
+运行状态与已通过 / 未通过的实测项目以 [验收记录](docs/验收记录.md) 为准。历史复验见 [2026-10-21 核查报告](docs/代码核查与仿真报告-20261021.md)。
 
 不想分开启动和执行验收时，可用真正的一键演示：
 
@@ -144,3 +144,73 @@ cd multi_robot
 该命令启动自己的后台，完成演示、地图重载检查并保存结果，结束后清理后台。请先关闭本工程原有启动实例；它不会接管或结束其他会话。需要看 Gazebo 窗口时去掉 `--headless`。
 
 本机系统 tf2 0.25.23 存在已复现的导航线程死锁，本项目使用本地兼容库修复，详见 [排查与修复](docs/tf2死锁排查与修复.md)。它不覆盖系统 ROS 库。
+
+## 新增：分区航点巡逻
+
+等待“三车就绪”后，可直接执行网页默认巡逻示例，也可先探索，再在已观测空闲区配置路线。每个航点是全局 `map` 坐标 `[x, y, yaw]`；可指定一台或多台车。网页提供循环次数、每点停留、单点导航超时与每车完成进度。
+
+命令行读取 [巡逻示例 YAML](src/fleet_control/config/patrol_example.yaml)：
+
+```bash
+source ./env.sh
+ros2 run fleet_control fleetctl patrol --file src/fleet_control/config/patrol_example.yaml
+```
+
+```yaml
+cycles: 2
+dwell: 0.5
+goal_timeout: 120
+routes:
+  robot1: [[-4.8, -4.0, 0.0], [-4.0, -4.0, 0.0]]
+  robot2: [[-0.8, -4.0, 0.0], [0.0, -4.0, 0.0]]
+  robot3: [[4.8, -4.0, 0.0], [4.0, -4.0, 0.0]]
+```
+
+每车 1–20 个航点、循环 1–20 次、停留 0–30 s、单点超时 5–240 s。机器人和所有航点必须位于所属分区的安全空闲区；系统检查每段路径及循环接回第一点的路径，再交给 Nav2 导航。未知区、障碍、越界和不连通路线不能执行。队形切换后若车辆在分区外，先恢复探索使其返回，再提交巡逻。
+
+“暂停停车”和急停都会取消巡逻；重新提交从第一点开始。任一车巡逻导航失败或超时，全车停车并显示原因。解除急停或故障后仍须重新发任务。重复开始探索不会重置已有探索目标。
+
+## 新增：规划器选择、诊断和实例校验
+
+```bash
+./run.sh --planner smac2d
+# 默认仍使用 Navfn A*：
+./run.sh --planner navfn
+```
+
+也可在配置中设置 `planner: navfn` 或 `planner: smac2d`，命令行优先。两种实现均使用 BT 中的 `GridBased` 标识，探索、巡逻和队形都使用所选实现。Smac2D 需要 ROS 包 `nav2_smac_planner`；本次没有接入 D*、RRT* 或机械臂控制。
+
+网页“探索里程”只统计探索期间的里程计平移，“总行驶”还包括巡逻、集合和返回。诊断面板显示原始雷达、里程计、定位的延迟与最近有效回波距离。标准话题为 `/diagnostics`，本项目状态名是 `robot1/fleet_health` 至 `robot3/fleet_health`；Nav2 也会在该话题发布自己的诊断。
+
+启动前检查配置和网页端口。网页和验收脚本携带运行实例标识，避免旧页面向另一轮仿真发任务，并支持中文运行路径。验收脚本从本次配置读取 `dashboard_port`。`demo.py`、`browser_acceptance.py`、`planner_acceptance.py`、`safety_acceptance.py` 等支持 `--run-dir /完整路径`，可显式指定运行目录。
+
+新增 `fleet_control/patrol.py` 检查巡逻参数与路径，`health.py` 检查传感数据；网页 HTML、脚本、样式分开安装，按钮统一使用事件监听器，操作反馈显示在任务状态区。
+
+## 新增功能的验收
+
+对已经启动的实例检查所选规划器、三台车的真实规划请求和标准诊断：
+
+```bash
+source ./env.sh
+python3 scripts/planner_acceptance.py
+```
+
+真实浏览器按钮与两圈巡逻验收需要可选测试依赖 Playwright，不影响正常运行。它会操作仿真，应使用独立测试实例：
+
+```bash
+python3 -m pip install --target /tmp/fleet-browser-deps -r requirements-browser.txt
+PYTHONPATH=/tmp/fleet-browser-deps python3 -m playwright install chromium --only-shell
+PYTHONPATH=/tmp/fleet-browser-deps python3 scripts/browser_acceptance.py
+# 已通过 --record-truth 采集真值的实例，还能验证巡逻超时停车：
+source ./env.sh
+python3 scripts/patrol_failure_acceptance.py
+```
+
+结果写入运行目录中的 JSON 文件；浏览器验收另保存 `dashboard-patrol.png`。单元测试不需要 Playwright。修改源码后先执行 `./build.sh`；新环境应按 `package.xml` 安装 ROS 依赖。新增项目的测试结果及边界见本次核查报告。
+
+Ctrl+C 退出时，监督脚本先停车并关闭本次进程组的 Gazebo 数据源，保留桥接节点直到数据源结束并等待最后的回调排空，再由 ROS launch 关闭其余节点。`shutdown_preflight.json` 记录各阶段，`cleanup.json` 记录残留及异常子进程；异常退出会返回失败。重复冷启动与运动退出检查可运行：
+
+```bash
+source ./env.sh
+python3 scripts/repeat_cold_starts.py --count 3 --planner smac2d --node-fault --move-before-stop
+```
