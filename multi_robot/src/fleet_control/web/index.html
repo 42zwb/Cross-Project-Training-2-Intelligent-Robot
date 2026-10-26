@@ -5,7 +5,7 @@
 <body>
 <header><div><h1>TurtleBot 协同实验室</h1><small>三机器人 · 协同建图 · 航点巡逻 · 队形切换</small></div><strong id="mode">连接中…</strong></header>
 <main><div class="scene"><canvas id="map" width="960" height="960" aria-label="共享地图与机器人轨迹"></canvas>
-<div class="legend"><span class="robot1">● robot1</span><span class="robot2">● robot2</span><span class="robot3">● robot3</span><small>浅色：空闲 · 深色：障碍 · 灰蓝：未知</small></div>
+<div class="legend"><span class="robot1">● robot1</span><span class="robot2">● robot2</span><span class="robot3">● robot3</span><small>浅色：空闲 · 深色：障碍 · 灰蓝：未知 · 实线：已走轨迹 · 虚线：Nav2 当前规划</small></div>
 <section><h2>传感与定位诊断</h2><p id="readiness" class="note">等待状态…</p><div class="table-wrap"><table><thead><tr><th>机器人</th><th>雷达延迟</th><th>里程计延迟</th><th>定位延迟</th><th>最近回波</th></tr></thead><tbody id="health"></tbody></table></div></section></div>
 <aside>
 <section><h2>任务状态</h2><div id="message"></div><p id="scene" class="note"></p><p id="scope" class="note"></p><p id="known"></p><p id="planner" class="note"></p><div id="robots"></div><p id="response" role="status" aria-live="polite">等待连接</p></section>

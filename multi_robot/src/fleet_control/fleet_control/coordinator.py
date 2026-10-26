@@ -19,7 +19,7 @@ from rclpy.qos import (
     qos_profile_sensor_data,
 )
 from std_msgs.msg import String
-from nav_msgs.msg import OccupancyGrid, Odometry
+from nav_msgs.msg import OccupancyGrid, Odometry, Path as NavPath
 from geometry_msgs.msg import PolygonStamped
 from bond.msg import Status as BondStatus
 from nav2_msgs.msg import CostmapFilterInfo
@@ -98,6 +98,9 @@ class Coordinator(Node):
         self.trails = {n: [] for n in self.names}
         self.handles = {}
         self.goals = {}
+        self.nav_plans = {}
+        self.exploration_info = {}
+        self.frontier_empty_since = None
         self.blacklist = {n: [] for n in self.names}
         self.visits = {n: [] for n in self.names}
         self.slots = None
@@ -145,6 +148,8 @@ class Coordinator(Node):
                 lambda m, n=n: self.odom(n, m),
                 qos_profile_sensor_data,
             )
+            self.create_subscription(NavPath, f"/{n}/plan",
+                                     lambda m, n=n: self.plan_cb(n, m), 1)
             for scope in ["local_costmap", "global_costmap"]:
                 key = n + "/" + scope
                 self.create_subscription(
@@ -338,6 +343,19 @@ class Coordinator(Node):
         )
         with self.lock:
             self.grid = grid
+
+    def plan_cb(self, name, message):
+        if message.header.frame_id != "map" or not 0 < len(message.poses) <= 20000:
+            return
+        points = [(p.pose.position.x, p.pose.position.y) for p in message.poses]
+        if not all(math.isfinite(v) for p in points for v in p):
+            return
+        with self.lock:
+            goal = self.goals.get(name)
+            if goal is None or math.dist(points[-1], goal[:2]) > 0.5:
+                return
+            stride = max(1, int(math.ceil(len(points) / 500)))
+            self.nav_plans[name] = points[::stride] + [points[-1]]
 
     def publish_masks(self):
         res = self.cfg["resolution"]
@@ -537,6 +555,8 @@ class Coordinator(Node):
                         "travel": self.travel[n],
                         "distance": self.distance[n],
                         "goal": self.goals.get(n),
+                        "planned_path": self.nav_plans.get(n, []) if n in self.goals else [],
+                        "exploration_target": self.exploration_info.get(n),
                         "trail": self.trails[n],
                         "safety": self.safety.get(n, {}),
                     }
@@ -548,6 +568,9 @@ class Coordinator(Node):
                 "exploration_unrestricted": self.exploration_unrestricted,
                 "region_release_reason": self.region_release_reason,
                 "known_fraction": self.mapping.get("known_fraction", 0.0),
+                "observed_fraction": self.mapping.get("observed_fraction", self.mapping.get("known_fraction", 0.0)),
+                "inferred_obstacle_fraction": self.mapping.get("inferred_obstacle_fraction", 0.0),
+                "unknown_fraction": self.mapping.get("unknown_fraction", 1.0),
                 "formation_slots": self.slots,
                 "formation_assignment": self.assignment,
                 "formation_errors": self.errors,
@@ -598,6 +621,7 @@ class Coordinator(Node):
             handles = list(self.handles.values())
             self.handles.clear()
             self.goals.clear()
+            self.nav_plans = {}
         for h in handles:
             if h:
                 try:
@@ -969,6 +993,7 @@ class Coordinator(Node):
                 canceled = False
                 self.handles[n] = h
                 self.goals[n] = list(target)
+                self.nav_plans.pop(n, None)
         if canceled:
             h.cancel_goal_async()
             return None
@@ -1164,6 +1189,8 @@ class Coordinator(Node):
             self.region_stall_since = {}
             self.boundary_blocked_since = {}
             self.last_boundary_check = 0.0
+            self.frontier_empty_since = None
+            self.exploration_info = {}
         self.event("explore_start")
 
     def release_exploration_regions(self, token, robot, target):
@@ -1196,6 +1223,11 @@ class Coordinator(Node):
         # Probe even while ordinary regional goals remain, so a disconnected
         # pocket can be reached without waiting for every other goal to finish.
         now = time.monotonic()
+        # Navigation failures can be transient (traffic, local costmap, SLAM).
+        # Do not permanently remove the surrounding 0.55 m from exploration.
+        for name in self.names:
+            self.blacklist[name] = [p for p in self.blacklist[name]
+                                    if len(p) < 4 or p[3] > now]
         if not self.exploration_unrestricted and now - self.last_boundary_check >= 6.0:
             self.last_boundary_check = now
             for i, name in enumerate(self.names):
@@ -1233,7 +1265,7 @@ class Coordinator(Node):
                     self.goals.pop(n, None)
                     self.exploring.pop(n, None)
                 if status != 4:
-                    self.blacklist[n].append(target)
+                    self.blacklist[n].append((*target[:3], time.monotonic() + 45.0))
                 else:
                     self.visits[n].append(target)
                 self.event(
@@ -1271,7 +1303,12 @@ class Coordinator(Node):
                 continue
             self.region_stall_since.pop(n, None)
             self.explore_done[n] = False
+            self.frontier_empty_since = None
             p = result[1]
+            if not hasattr(self, "exploration_info"):
+                self.exploration_info = {}
+            self.exploration_info[n] = result[3] if len(result) > 3 else {}
+            self.event("frontier_selected", robot=n, target=list(p), **self.exploration_info[n])
             heading = math.atan2(p[1] - self.poses[n][1], p[0] - self.poses[n][0])
             target = (p[0], p[1], heading)
             f = self.send_goal(n, target, token)
@@ -1280,8 +1317,21 @@ class Coordinator(Node):
                 if self.exploration_unrestricted:
                     break
             else:
-                self.blacklist[n].append(target)
+                self.blacklist[n].append((*target[:3], time.monotonic() + 45.0))
         if all(self.explore_done.values()) and not self.exploring:
+            # Cooldowns and parked robots must not turn "temporarily blocked"
+            # into a false exploration-complete result.
+            for i, name in enumerate(self.names):
+                if not self.blacklist[name] and not self.exploration_unrestricted:
+                    continue
+                candidate = self.grid.frontiers(
+                    self.poses[name], None if self.exploration_unrestricted else self.regions[i],
+                    (), (), self.visits[name])
+                if candidate is not None:
+                    with self.lock:
+                        if self.valid(token):
+                            self.message = "仍有待补盲区域，等待失败目标冷却或通道腾空后重试"
+                    return
             with self.lock:
                 travel = dict(self.travel)
             if any(distance < 3.2 for distance in travel.values()):
@@ -1300,6 +1350,14 @@ class Coordinator(Node):
                 with self.lock:
                     if self.valid(token):
                         self.message = "正在检查分区是否阻挡后续探索"
+                return
+            since = getattr(self, "frontier_empty_since", None)
+            if since is None:
+                self.frontier_empty_since = time.monotonic()
+            if since is None or time.monotonic() - since < 10.0:
+                with self.lock:
+                    if self.valid(token):
+                        self.message = "正在复查剩余盲区，等待地图观测稳定"
                 return
             with self.lock:
                 if not self.valid(token):

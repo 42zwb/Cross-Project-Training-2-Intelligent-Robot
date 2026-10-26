@@ -31,6 +31,7 @@ try:
             raise RuntimeError(state["message"])
         if time.monotonic() >= next_print:
             sample = {k: state[k] for k in ["mode", "known_fraction", "region_enabled", "exploration_unrestricted", "region_release_reason"]}
+            sample.update({k: state.get(k) for k in ["observed_fraction", "inferred_obstacle_fraction", "unknown_fraction"]})
             sample["wall_time"] = time.time()
             sample["travel"] = {n: r["travel"] for n, r in state["robots"].items()}
             samples.append(sample)
@@ -48,6 +49,8 @@ finally:
     (run / "preview-samples.json").write_text(json.dumps(samples, ensure_ascii=False, indent=2))
 report = evaluate(run, dest / "shared_map.yaml")
 summary = {k: report.get(k) for k in ["coverage", "region_coverage", "actual_explore_distance", "minimum_static_clearance", "minimum_interrobot_clearance", "collision_pass", "region_pass", "authorized_cross_region_samples", "exploration_region_releases"]}
+if (dest / "mapping_evidence.json").exists():
+    summary["mapping_evidence"] = json.loads((dest / "mapping_evidence.json").read_text())
 (run / "preview-summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2))
 print(json.dumps(summary, ensure_ascii=False), flush=True)
 if not summary["collision_pass"] or not summary["region_pass"]:
