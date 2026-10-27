@@ -35,6 +35,7 @@ def main():
     )
     stable = None
     proc = None
+    node_destroyed = False
     try:
         end = time.monotonic() + 120
         while rclpy.ok() and time.monotonic() < end:
@@ -79,8 +80,13 @@ def main():
                 f"assets:={Path(a.assets)}",
             ]
         )
+        # Bootstrap is complete. Release the TF and 200 Hz simulation-clock
+        # subscriptions instead of processing them throughout the whole run.
+        listener.unregister()
+        n.destroy_node()
+        node_destroyed = True
         while rclpy.ok() and proc.poll() is None:
-            rclpy.spin_once(n, timeout_sec=0.2)
+            time.sleep(0.2)
     except KeyboardInterrupt:
         pass
     except Exception:
@@ -93,5 +99,6 @@ def main():
                 proc.wait(timeout=12)
             except subprocess.TimeoutExpired:
                 proc.terminate()
-        n.destroy_node()
+        if not node_destroyed:
+            n.destroy_node()
         rclpy.try_shutdown()

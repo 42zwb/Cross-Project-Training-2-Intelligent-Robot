@@ -1,8 +1,8 @@
 """Conservative completion of observed closed, compact solid obstacles.
 
 This is a solid-obstacle prior for the course scene, not a measurement of the
-interior. Never reads scene geometry, fills open contours, or overwrites free
-observations. Every update is derived anew from the raw SLAM fusion.
+interior. Never reads scene geometry or overwrites free observations. Confirmed
+obstacles survive missing evidence; only persistent free measurements revoke them.
 """
 
 import math
@@ -76,37 +76,62 @@ class ObstacleCompletion:
             self.support = np.zeros(data.shape, np.uint8)
             self.since = np.full(data.shape, np.inf)
             self.confirmed = np.zeros(data.shape, bool)
-            self.last_supported = np.full(data.shape, -np.inf)
+            self.retained = np.zeros(data.shape, bool)
+            self.direct_support = np.zeros(data.shape, np.uint8)
+            self.direct_since = np.full(data.shape, np.inf)
+            self.free_support = np.zeros(data.shape, np.uint8)
+            self.free_since = np.full(data.shape, np.inf)
+            self.retractions = 0
+            self.candidate = None
             self.last_evidence = None
-        candidate = enclosed_obstacles(data, resolution, boundary)
-        self.last_supported[candidate] = now
+        new = evidence != self.last_evidence
+        if new or self.candidate is None:
+            self.candidate = enclosed_obstacles(data, resolution, boundary)
+        candidate = self.candidate
         self.support[~candidate] = 0
         self.since[~candidate] = np.inf
         first = candidate & (self.support == 0)
         self.since[first] = now
-        if evidence != self.last_evidence:
+        if new:
             self.support[candidate] = np.minimum(self.support[candidate].astype(int) + 1, 255)
-            self.last_evidence = evidence
+        # Retain repeatedly measured occupied edges as well as inferred interiors.
+        # A measured occupied -> unknown transition is not evidence of free space.
+        for selected, counts, since in [(data >= 65, self.direct_support, self.direct_since),
+                                         (data == 0, self.free_support, self.free_since)]:
+            counts[~selected] = 0
+            since[~selected] = np.inf
+            since[selected & (counts == 0)] = now
+            if new:
+                counts[selected] = np.minimum(counts[selected].astype(int) + 1, 255)
+        stable_free = (data == 0) & (self.free_support >= 3) & (now-self.free_since >= 2.0)
+        self.retained |= (data >= 65) & (self.direct_support >= 3) & (now-self.direct_since >= 2.0)
+        self.retained[stable_free] = False
+        self.last_evidence = evidence
         fresh = candidate & (self.support >= 3) & (now - self.since >= 2.0)
-        # Briefly missing contour pixels are not positive evidence of an open
-        # interior. Hold a confirmed inference for <= 5 s, but immediately
-        # retract the whole component when free observations contradict its core.
+        # No time-to-live: unknown observations cannot disprove an obstacle.
+        # Free cells are respected immediately; a stable free patch in the core
+        # retracts the whole inference, protecting against isolated SLAM speckles.
         confirmed = fresh | self.confirmed
         labels, _ = ndimage.label(confirmed)
         edge_width = max(1, int(math.ceil(0.15 / resolution)))
         for label, bounds in enumerate(ndimage.find_objects(labels), 1):
             component = labels[bounds] == label
             core = ndimage.binary_erosion(component, iterations=edge_width)
-            if np.any(core & (data[bounds] == 0)):
+            contradiction, _ = ndimage.label(core & stable_free[bounds])
+            sizes = np.bincount(contradiction.ravel())[1:]
+            minimum = max(4, int(math.ceil(0.02/resolution**2)), int(math.ceil(core.sum()*.02)))
+            if sizes.size and sizes.max() >= minimum:
                 confirmed[bounds] &= ~component
-        inferred = confirmed & (now - self.last_supported <= 5.0) & (data < 0)
-        self.confirmed = inferred
+                self.retractions += 1
+        self.confirmed = confirmed
+        self.retained_direct = self.retained & ~confirmed & (data < 0)
+        inferred = (confirmed | self.retained) & (data < 0)
         result = np.array(data, copy=True)
         result[inferred] = 100
         return result, inferred
 
 
-def map_metrics(observed, inferred):
+def map_metrics(observed, inferred, retained=None):
     total = observed.size
     return {
         "known_fraction": float(np.mean((observed >= 0) | inferred)),
@@ -116,7 +141,8 @@ def map_metrics(observed, inferred):
         "observed_cells": int(np.sum(observed >= 0)),
         "inferred_obstacle_cells": int(inferred.sum()),
         "total_cells": int(total),
-        "completion_method": "closed-compact-solid-v4",
+        "retained_obstacle_cells": int(np.sum(retained)) if retained is not None else 0,
+        "completion_method": "persistent-obstacle-evidence-v5",
         "completion_policy": {"direct_occupied_threshold": 65,
                               "contour_probability_threshold": 55,
                               "minimum_strong_contour_fraction": 0.5,
@@ -124,5 +150,6 @@ def map_metrics(observed, inferred):
                               "minimum_solidity": 0.55,
                               "maximum_contour_gap_m": 0.20,
                               "new_updates_required": 3, "support_seconds": 2.0,
-                              "hold_seconds": 5.0},
+                              "hold_seconds": None, "free_updates_required": 3,
+                              "free_support_seconds": 2.0, "minimum_free_patch_m2": 0.02},
     }

@@ -1,0 +1,606 @@
+{
+  "date": "2026-10-27",
+  "before_commit": "8aa2dced38d74e6db6558032b0d8516799d2cd80",
+  "tests": {
+    "python_passed": 140,
+    "canonical_python_passed": 140,
+    "build_packages": 5,
+    "bridge_nodes_retained": "0/9",
+    "tf2_lock_regression": "passed"
+  },
+  "cpu_comparison": {
+    "before-fixes24-20261027": {
+      "window_seconds": [
+        30,
+        170
+      ],
+      "samples": 69,
+      "median_cpu_percent": 510.8070152129236,
+      "mean_cpu_percent": 513.199704187643,
+      "median_rss_mb": 1854.296875,
+      "roles_mean_cpu_percent": {
+        "ros2": 0.9060290889955444,
+        "parameter_bridge": 23.65456311088532,
+        "safety": 47.61344852819662,
+        "arena.sdf -r -s -v 2": 103.38931893513741,
+        "lifecycle_manager": 12.201738766738963,
+        "mapping": 46.771294449643,
+        "robot_state_publisher": 10.26075277876277,
+        "behavior_server": 15.276201382418384,
+        "dashboard": 16.63254850207162,
+        "cartographer_node": 39.54987183478322,
+        "nav_ready": 28.1263504037693,
+        "cartographer_occupancy_grid_node": 8.56943253730547,
+        "coordinator": 91.71313991859822,
+        "controller_server": 22.483238286508474,
+        "bt_navigator": 24.545779952242743,
+        "planner_server": 21.505995711585992
+      }
+    },
+    "after-fixes24-20261027": {
+      "window_seconds": [
+        30,
+        170
+      ],
+      "samples": 69,
+      "median_cpu_percent": 456.30505977804654,
+      "mean_cpu_percent": 440.90673981837995,
+      "median_rss_mb": 1886.6640625,
+      "roles_mean_cpu_percent": {
+        "parameter_bridge": 21.674710277477484,
+        "ros2": 0.9222216453656096,
+        "safety": 42.28100185368601,
+        "arena.sdf -r -s -v 2": 95.67376229101986,
+        "lifecycle_manager": 11.01214619587167,
+        "mapping": 39.12410320707911,
+        "robot_state_publisher": 8.575574788054091,
+        "behavior_server": 13.79980063006738,
+        "dashboard": 13.105380967775995,
+        "cartographer_node": 37.65933252640167,
+        "nav_ready": 0.04304368180792634,
+        "cartographer_occupancy_grid_node": 7.531988708868681,
+        "coordinator": 89.03883059178487,
+        "controller_server": 19.86695567065301,
+        "bt_navigator": 21.74670243763486,
+        "planner_server": 18.851184344831733
+      }
+    },
+    "mean_cpu_reduction": 0.14086712010814073
+  },
+  "fixed_snapshot_planner_profile": {
+    "before": {
+      "seconds": 1.8218835220000074,
+      "profile": "         5359728 function calls (5347521 primitive calls) in 1.822 seconds\n\n   Ordered by: cumulative time\n   List reduced from 125 to 12 due to restriction <12>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        3    0.019    0.006    1.822    0.607 baseline-geometry.py:242(frontiers)\n       48    1.085    0.023    1.527    0.032 baseline-geometry.py:174(astar)\n     3048    0.133    0.000    0.253    0.000 baseline-geometry.py:221(visible_unknown)\n  1924251    0.178    0.000    0.178    0.000 baseline-geometry.py:150(inside)\n  1885509    0.117    0.000    0.117    0.000 {method 'get' of 'dict' objects}\n21382/9175    0.004    0.000    0.085    0.000 {built-in method numpy.core._multiarray_umath.implement_array_function}\n   335334    0.078    0.000    0.078    0.000 {built-in method _heapq.heappop}\n     6096    0.002    0.000    0.064    0.000 <__array_function__ internals>:2(clip)\n     6096    0.002    0.000    0.061    0.000 /usr/lib/python3/dist-packages/numpy/core/fromnumeric.py:2046(clip)\n     6102    0.002    0.000    0.059    0.000 /usr/lib/python3/dist-packages/numpy/core/fromnumeric.py:51(_wrapfunc)\n     6096    0.001    0.000    0.056    0.000 {method 'clip' of 'numpy.ndarray' objects}\n     6096    0.006    0.000    0.055    0.000 /usr/lib/python3/dist-packages/numpy/core/_methods.py:125(_clip)\n\n\n"
+    },
+    "after": {
+      "seconds": 0.1875422600001002,
+      "profile": "         121831 function calls (117657 primitive calls) in 0.187 seconds\n\n   Ordered by: cumulative time\n   List reduced from 188 to 12 due to restriction <12>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        3    0.011    0.004    0.187    0.062 /home/bwz/turtlebot_fleet_ws/build/fleet_control/fleet_control/geometry.py:302(frontiers)\n     3049    0.049    0.000    0.094    0.000 /home/bwz/turtlebot_fleet_ws/build/fleet_control/fleet_control/geometry.py:226(visible_unknown)\n        3    0.002    0.001    0.062    0.021 /home/bwz/turtlebot_fleet_ws/build/fleet_control/fleet_control/geometry.py:252(route_field)\n7404/3236    0.011    0.000    0.041    0.000 {built-in method numpy.core._multiarray_umath.implement_array_function}\n        3    0.032    0.011    0.033    0.011 {scipy.sparse.csgraph._shortest_path.dijkstra}\n     2078    0.001    0.000    0.024    0.000 <__array_function__ internals>:2(clip)\n     2078    0.001    0.000    0.022    0.000 /usr/lib/python3/dist-packages/numpy/core/fromnumeric.py:2046(clip)\n     2084    0.001    0.000    0.022    0.000 /usr/lib/python3/dist-packages/numpy/core/fromnumeric.py:51(_wrapfunc)\n     2078    0.000    0.000    0.021    0.000 {method 'clip' of 'numpy.ndarray' objects}\n     2078    0.002    0.000    0.020    0.000 /usr/lib/python3/dist-packages/numpy/core/_methods.py:125(_clip)\n     12/6    0.000    0.000    0.018    0.003 /usr/lib/python3/dist-packages/scipy/sparse/_compressed.py:26(__init__)\n        6    0.000    0.000    0.012    0.002 /usr/lib/python3/dist-packages/scipy/sparse/_base.py:348(asformat)\n\n\n"
+    }
+  },
+  "baseline": {
+    "run": "runs/before-fixes24-20261027",
+    "seconds": 180,
+    "summary": {
+      "coverage": 0.9925324866231552,
+      "region_coverage": [
+        0.9976151907847373,
+        0.9905853458862055,
+        0.989473191728268
+      ],
+      "actual_explore_distance": {
+        "robot1": 12.268816941829533,
+        "robot2": 9.716893729601264,
+        "robot3": 10.122545396188896
+      },
+      "minimum_static_clearance": 0.29046818512797135,
+      "minimum_interrobot_clearance": 4.022931487594853,
+      "collision_pass": true,
+      "region_pass": true,
+      "authorized_cross_region_samples": 132,
+      "exploration_region_releases": [
+        {
+          "wall_time": 1793069167.626217,
+          "sim_time": 42.0,
+          "event": "exploration_regions_released",
+          "robot": "robot1",
+          "reason": "robot1 的区域限制阻断了实时地图中的可达探索路径",
+          "observed_target": [
+            -5.074999963864684,
+            -0.2749998923391104
+          ]
+        }
+      ],
+      "mapping_evidence": {
+        "known_fraction": 0.8724666666666666,
+        "observed_fraction": 0.8588,
+        "inferred_obstacle_fraction": 0.013666666666666667,
+        "unknown_fraction": 0.12753333333333333,
+        "observed_cells": 77292,
+        "inferred_obstacle_cells": 1230,
+        "total_cells": 90000,
+        "completion_method": "closed-compact-solid-v4",
+        "completion_policy": {
+          "direct_occupied_threshold": 65,
+          "contour_probability_threshold": 55,
+          "minimum_strong_contour_fraction": 0.5,
+          "minimum_concave_strong_contour_fraction": 0.65,
+          "minimum_solidity": 0.55,
+          "maximum_contour_gap_m": 0.2,
+          "new_updates_required": 3,
+          "support_seconds": 2.0,
+          "hold_seconds": 5.0
+        }
+      }
+    },
+    "cleanup": {
+      "residual_before_final_kill": [],
+      "launch_exit": 0,
+      "abnormal_process_exits": [],
+      "auxiliary_error": null
+    }
+  },
+  "after": {
+    "run": "runs/after-fixes24-20261027",
+    "seconds": 480,
+    "summary": {
+      "coverage": 1.0,
+      "region_coverage": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "actual_explore_distance": {
+        "robot1": 29.827061683659295,
+        "robot2": 22.284796281891335,
+        "robot3": 7.109836343888518
+      },
+      "minimum_static_clearance": 0.11363930915245807,
+      "minimum_interrobot_clearance": 2.680023982154185,
+      "collision_pass": true,
+      "region_pass": true,
+      "authorized_cross_region_samples": 4827,
+      "exploration_region_releases": [
+        {
+          "wall_time": 1793069893.888121,
+          "sim_time": 41.155,
+          "event": "exploration_regions_released",
+          "robot": "robot1",
+          "reason": "robot1 的区域限制阻断了实时地图中的可达探索路径",
+          "observed_target": [
+            -4.474999954923987,
+            -0.8749999012798071
+          ]
+        }
+      ],
+      "mapping_evidence": {
+        "known_fraction": 0.9553666666666667,
+        "observed_fraction": 0.8765666666666667,
+        "inferred_obstacle_fraction": 0.0788,
+        "unknown_fraction": 0.04463333333333333,
+        "observed_cells": 78891,
+        "inferred_obstacle_cells": 7092,
+        "total_cells": 90000,
+        "retained_obstacle_cells": 1199,
+        "completion_method": "persistent-obstacle-evidence-v5",
+        "completion_policy": {
+          "direct_occupied_threshold": 65,
+          "contour_probability_threshold": 55,
+          "minimum_strong_contour_fraction": 0.5,
+          "minimum_concave_strong_contour_fraction": 0.65,
+          "minimum_solidity": 0.55,
+          "maximum_contour_gap_m": 0.2,
+          "new_updates_required": 3,
+          "support_seconds": 2.0,
+          "hold_seconds": null,
+          "free_updates_required": 3,
+          "free_support_seconds": 2.0,
+          "minimum_free_patch_m2": 0.02
+        },
+        "obstacle_retractions": 0
+      }
+    },
+    "dispatch": {
+      "assignments": 17,
+      "all_shortest_safe": true,
+      "records": [
+        {
+          "wall_time": 1793069896.1231666,
+          "sim_time": 43.39,
+          "event": "frontier_selected",
+          "robot": "robot1",
+          "target": [
+            -4.474999954923987,
+            -0.8749999012798071
+          ],
+          "visible_unknown_m2": 10.627500316724184,
+          "route_length": 6.752691294081046,
+          "viewpoints": 398,
+          "route_costs_m": {
+            "robot1": 6.752691294081046,
+            "robot2": null,
+            "robot3": 12.59177867761621
+          },
+          "assignment_policy": "shortest-safe-route-v1"
+        },
+        {
+          "wall_time": 1793069923.6133504,
+          "sim_time": 70.88000000000001,
+          "event": "frontier_selected",
+          "robot": "robot1",
+          "target": [
+            -0.8749999012798071,
+            4.525000179186463
+          ],
+          "visible_unknown_m2": 9.672500288262965,
+          "route_length": 6.961879606401869,
+          "viewpoints": 761,
+          "route_costs_m": {
+            "robot1": 6.961879606401869,
+            "robot2": 8.523401998585342,
+            "robot3": 12.361017489720114
+          },
+          "assignment_policy": "shortest-safe-route-v1"
+        },
+        {
+          "wall_time": 1793069962.8797271,
+          "sim_time": 110.14,
+          "event": "frontier_selected",
+          "robot": "robot1",
+          "target": [
+            -2.6749999281018972,
+            5.12500018812716
+          ],
+          "visible_unknown_m2": 2.855000085085631,
+          "route_length": 2.0192388456315147,
+          "viewpoints": 925,
+          "route_costs_m": {
+            "robot1": 2.0192388456315147,
+            "robot2": 9.454772862362319,
+            "robot3": 13.271677675069823
+          },
+          "assignment_policy": "shortest-safe-route-v1"
+        },
+        {
+          "wall_time": 1793069982.303279,
+          "sim_time": 129.565,
+          "event": "frontier_selected",
+          "robot": "robot3",
+          "target": [
+            3.6250001657754183,
+            -6.2749999817460775
+          ],
+          "visible_unknown_m2": 3.7675001122802505,
+          "route_length": 4.002691253102865,
+          "viewpoints": 842,
+          "route_costs_m": {
+            "robot1": 14.353048541081971,
+            "robot2": 6.257716539874771,
+            "robot3": 4.002691253102865
+          },
+          "assignment_policy": "shortest-safe-route-v1"
+        },
+        {
+          "wall_time": 1793070017.5783534,
+          "sim_time": 164.84,
+          "event": "frontier_selected",
+          "robot": "robot1",
+          "target": [
+            0.9250001255422831,
+            3.9250001702457666
+          ],
+          "visible_unknown_m2": 2.7300000813603407,
+          "route_length": 4.026345656726284,
+          "viewpoints": 924,
+          "route_costs_m": {
+            "robot1": 4.026345656726284,
+            "robot2": 7.7091884240795245,
+            "robot3": 11.799747644135753
+          },
+          "assignment_policy": "shortest-safe-route-v1"
+        },
+        {
+          "wall_time": 1793070049.3147445,
+          "sim_time": 196.58,
+          "event": "frontier_selected",
+          "robot": "robot1",
+          "target": [
+            4.225000174716115,
+            5.725000197067857
+          ],
+          "visible_unknown_m2": 2.8775000857561834,
+          "route_length": 4.074873794873267,
+          "viewpoints": 904,
+          "route_costs_m": {
+            "robot1": 4.074873794873267,
+            "robot2": 10.684062202561499,
+            "robot3": 13.324873932709004
+          },
+          "assignment_policy": "shortest-safe-route-v1"
+        },
+        {
+          "wall_time": 1793070084.705213,
+          "sim_time": 231.97000000000003,
+          "event": "frontier_selected",
+          "robot": "robot1",
+          "target": [
+            5.12500018812716,
+            5.12500018812716
+          ],
+          "visible_unknown_m2": 2.1300000634789473,
+          "route_length": 1.3571068014090146,
+          "viewpoints": 838,
+          "route_costs_m": {
+            "robot1": 1.3571068014090146,
+            "robot2": 11.143860184057683,
+            "robot3": 12.980508846187966
+          },
+          "assignment_policy": "shortest-safe-route-v1"
+        },
+        {
+          "wall_time": 1793070101.8433743,
+          "sim_time": 249.10500000000002,
+          "event": "frontier_selected",
+          "robot": "robot1",
+          "target": [
+            6.025000201538205,
+            4.225000174716115
+          ],
+          "visible_unknown_m2": 1.097500032708049,
+          "route_length": 1.5778174828165146,
+          "viewpoints": 778,
+          "route_costs_m": {
+            "robot1": 1.5778174828165146,
+            "robot2": 9.636753380413499,
+            "robot3": 11.452691364116514
+          },
+          "assignment_policy": "shortest-safe-route-v1"
+        },
+        {
+          "wall_time": 1793070123.1331275,
+          "sim_time": 270.39500000000004,
+          "event": "frontier_selected",
+          "robot": "robot2",
+          "target": [
+            0.9250001255422831,
+            -5.674999972805381
+          ],
+          "visible_unknown_m2": 1.1075000330060722,
+          "route_length": 2.836396145333488,
+          "viewpoints": 782,
+          "route_costs_m": {
+            "robot1": 12.253910706937567,
+            "robot2": 2.836396145333488,
+            "robot3": 3.265685473611743
+          },
+          "assignment_policy": "shortest-safe-route-v1"
+        },
+        {
+          "wall_time": 1793070150.4509606,
+          "sim_time": 297.71500000000003,
+          "event": "frontier_selected",
+          "robot": "robot1",
+          "target": [
+            5.12500018812716,
+            0.025000112131237984
+          ],
+          "visible_unknown_m2": 1.537500045821071,
+          "route_length": 4.760660242719183,
+          "viewpoints": 691,
+          "route_costs_m": {
+            "robot1": 4.760660242719183,
+            "robot2": 7.5982757189528,
+            "robot3": 7.542640799513382
+          },
+          "assignment_policy": "shortest-safe-route-v1"
+        },
+        {
+          "wall_time": 1793070187.476967,
+          "sim_time": 334.74,
+          "event": "frontier_selected",
+          "robot": "robot3",
+          "target": [
+            4.225000174716115,
+            -5.3749999683350325
+          ],
+          "visible_unknown_m2": 0.7225000215321781,
+          "route_length": 1.107106797683724,
+          "viewpoints": 567,
+          "route_costs_m": {
+            "robot1": 6.364823322657325,
+            "robot2": 6.219848573666456,
+            "robot3": 1.107106797683724
+          },
+          "assignment_policy": "shortest-safe-route-v1"
+        },
+        {
+          "wall_time": 1793070208.3027155,
+          "sim_time": 355.565,
+          "event": "frontier_selected",
+          "robot": "robot2",
+          "target": [
+            -2.6749999281018972,
+            -1.7749999146908522
+          ],
+          "visible_unknown_m2": 0.7725000230222943,
+          "route_length": 5.601219414346641,
+          "viewpoints": 716,
+          "route_costs_m": {
+            "robot1": 8.57487386192848,
+            "robot2": 5.601219414346641,
+            "robot3": 8.939087429728778
+          },
+          "assignment_policy": "shortest-safe-route-v1"
+        },
+        {
+          "wall_time": 1793070245.6678839,
+          "sim_time": 392.925,
+          "event": "frontier_selected",
+          "robot": "robot2",
+          "target": [
+            -5.074999963864684,
+            2.1250001434236765
+          ],
+          "visible_unknown_m2": 1.3400000399351124,
+          "route_length": 5.349137882573207,
+          "viewpoints": 588,
+          "route_costs_m": {
+            "robot1": 11.956854427663362,
+            "robot2": 5.349137882573207,
+            "robot3": 13.389444629791054
+          },
+          "assignment_policy": "shortest-safe-route-v1"
+        },
+        {
+          "wall_time": 1793070288.8882675,
+          "sim_time": 436.15000000000003,
+          "event": "frontier_selected",
+          "robot": "robot2",
+          "target": [
+            -5.074999963864684,
+            3.9250001702457666
+          ],
+          "visible_unknown_m2": 0.040000001192092904,
+          "route_length": 1.8707107059944161,
+          "viewpoints": 451,
+          "route_costs_m": {
+            "robot1": 12.276093247962898,
+            "robot2": 1.8707107059944161,
+            "robot3": 13.779394129262913
+          },
+          "assignment_policy": "shortest-safe-route-v1"
+        },
+        {
+          "wall_time": 1793070305.8681953,
+          "sim_time": 453.13000000000005,
+          "event": "frontier_selected",
+          "robot": "robot2",
+          "target": [
+            -6.874999990686774,
+            3.0250001568347216
+          ],
+          "visible_unknown_m2": 0.025000000745058065,
+          "route_length": 1.9813708794232026,
+          "viewpoints": 383,
+          "route_costs_m": {
+            "robot1": 13.686143775313127,
+            "robot2": 1.9813708794232026,
+            "robot3": 15.198023300503666
+          },
+          "assignment_policy": "shortest-safe-route-v1"
+        },
+        {
+          "wall_time": 1793070325.1295972,
+          "sim_time": 472.39000000000004,
+          "event": "frontier_selected",
+          "robot": "robot2",
+          "target": [
+            -6.874999990686774,
+            5.12500018812716
+          ],
+          "visible_unknown_m2": 0.06250000186264516,
+          "route_length": 2.1414213881469744,
+          "viewpoints": 412,
+          "route_costs_m": {
+            "robot1": 14.555992269258361,
+            "robot2": 2.1414213881469744,
+            "robot3": 16.067871794448898
+          },
+          "assignment_policy": "shortest-safe-route-v1"
+        },
+        {
+          "wall_time": 1793070350.0671844,
+          "sim_time": 497.32500000000005,
+          "event": "frontier_selected",
+          "robot": "robot2",
+          "target": [
+            -5.674999972805381,
+            6.625000210478902
+          ],
+          "visible_unknown_m2": 0.08750000260770323,
+          "route_length": 2.0263456269239617,
+          "viewpoints": 323,
+          "route_costs_m": {
+            "robot1": 14.650967017504184,
+            "robot2": 2.0263456269239617,
+            "robot3": 16.757211632941047
+          },
+          "assignment_policy": "shortest-safe-route-v1"
+        }
+      ]
+    },
+    "map_stability": {
+      "map_updates": 609,
+      "occupied_to_unknown_cells": 425,
+      "mature_occupied_to_unknown_cells": 0
+    },
+    "memory_truth_check": {
+      "memory_cells": 7092,
+      "outside_true_obstacles": 82,
+      "outside_more_than_15cm": 0,
+      "max_outside_distance_m": 0.07761368883103832,
+      "observed_cells_preserved": true
+    },
+    "map_roundtrip": {
+      "passed": true,
+      "cells": 90000,
+      "unknown": 4017,
+      "free": 74944,
+      "occupied": 11039
+    },
+    "browser": {
+      "browser": "156.0.8078.4",
+      "errors": [],
+      "scope": "已解除分区限制，按安全路径就近派车 · robot1 的区域限制阻断了实时地图中的可达探索路径",
+      "known": "地图已知比例：95.5%（非真值覆盖率）\n直接观测 87.6% + 障碍推断 / 证据保留 7.9%"
+    },
+    "node_failure": {
+      "passed": true,
+      "robot": "robot1",
+      "node": "bt_navigator",
+      "fault_latency_seconds": 2.2765105420000964,
+      "reason": "安全停车：导航关键节点心跳中断",
+      "stopped_displacement": {
+        "robot1": 0.0,
+        "robot2": 0.0,
+        "robot3": 0.0
+      }
+    },
+    "hardware_gui": {
+      "renderer_lines": [
+        "11:06:32: OpenGL 3+ Rendering Subsystem created.",
+        "11:06:32: GL_RENDERER = Mesa Intel(R) Graphics (RPL-S)",
+        "11:06:32: ***   OpenGL 3+ Renderer Started   ***",
+        "11:06:32: RenderSystem Name: OpenGL 3+ Rendering Subsystem"
+      ],
+      "log_mtime": 1793070393.185606,
+      "gui_pids": [
+        [
+          12851,
+          "ign gazebo -g -v 2 --gui-config install/fleet_bringup/share/fleet_bringup/config/gui.config"
+        ]
+      ]
+    },
+    "source_validation": {
+      "files": 117,
+      "changed_during_run": [],
+      "canonical_differences": []
+    },
+    "cleanup": {
+      "residual_before_final_kill": [],
+      "launch_exit": 0,
+      "abnormal_process_exits": [],
+      "auxiliary_error": null
+    },
+    "shutdown_preflight": {
+      "pause_command": {
+        "success": true,
+        "message": "已停车，等待新指令"
+      },
+      "simulator_pids": [
+        9220
+      ],
+      "simulator_stopped": true,
+      "bridge_drain_seconds": 0.3
+    }
+  }
+}

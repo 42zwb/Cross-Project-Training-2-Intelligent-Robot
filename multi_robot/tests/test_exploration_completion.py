@@ -97,7 +97,11 @@ def test_completion_needs_multiple_new_updates_and_time_then_retracts():
     assert mask[40, 40] and result[40, 40] == 100
     data[40, 40] = 0
     result, mask = completion.update(data, 0.05, evidence=4, now=4.5)
-    assert not mask.any() and result[40, 40] == 0
+    assert mask[45, 45] and result[40, 40] == 0  # one free speckle is not object-wide evidence
+    data[40:46, 40:46] = 0
+    for evidence, moment in [(5, 5), (6, 6), (7, 7)]:
+        result, mask = completion.update(data, .05, evidence=evidence, now=moment)
+    assert not mask.any()
 
 
 def test_inference_raises_known_fraction_without_claiming_direct_observation():
@@ -110,7 +114,7 @@ def test_inference_raises_known_fraction_without_claiming_direct_observation():
     assert metrics["known_fraction"] + metrics["unknown_fraction"] == pytest.approx(1)
 
 
-def test_confirmed_inference_survives_brief_missing_contour_then_expires():
+def test_confirmed_inference_survives_missing_contour_without_time_expiry():
     data = closed_box()
     completion = ObstacleCompletion()
     for evidence, moment in enumerate([0, 1, 2]):
@@ -120,7 +124,9 @@ def test_confirmed_inference_survives_brief_missing_contour_then_expires():
     result, mask = completion.update(data, 0.05, evidence=3, now=3)
     assert mask[40, 40]
     result, mask = completion.update(data, 0.05, evidence=4, now=8)
-    assert not mask.any()
+    assert mask[40, 40]
+    result, mask = completion.update(data, .05, evidence=5, now=3600)
+    assert mask[40, 40]
 
 
 def test_unknown_behind_a_wall_provides_no_visible_information_gain():
@@ -175,7 +181,7 @@ def test_cooldown_is_not_mistaken_for_exploration_complete(monkeypatch):
     def frontiers(*args, **kwargs):
         return None if args[3] else (1, (2, 2), (1, []))
     fake = SimpleNamespace(names=["robot1"], valid=lambda token: True,
-        grid=SimpleNamespace(frontiers=frontiers), poses={"robot1": (1, 1, 0)},
+        grid=SimpleNamespace(frontiers=frontiers, assign_frontier=lambda *a:None), poses={"robot1": (1, 1, 0)},
         regions=[None], exploration_unrestricted=True, cross_region_next=0,
         exploring={}, goals={}, handles={}, lock=threading.RLock(), active=set(),
         blacklist={"robot1": [target]}, visits={"robot1": []}, travel={"robot1": 5},

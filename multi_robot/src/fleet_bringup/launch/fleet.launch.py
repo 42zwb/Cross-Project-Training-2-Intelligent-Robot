@@ -48,7 +48,7 @@ def setup(context):
                             str(Path(share("fleet_bringup")) / "config/gui.config"),
                         ],
                         additional_env={
-                            "LIBGL_ALWAYS_SOFTWARE": "1",
+                            "LIBGL_ALWAYS_SOFTWARE": os.environ.get("FLEET_SOFTWARE_RENDERING", "0"),
                             "LP_NUM_THREADS": "2",
                         },
                         output="log",
@@ -70,6 +70,7 @@ def setup(context):
                             "use_sim_time": True,
                             "frame_prefix": n + "/",
                             "robot_description": (out / f"{n}.urdf").read_text(),
+                            "publish_frequency": 10.0,
                         }
                     ],
                     output="log",
