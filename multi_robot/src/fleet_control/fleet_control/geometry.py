@@ -6,6 +6,8 @@ import math
 import time
 import numpy as np
 from scipy import ndimage
+from scipy.sparse import csr_matrix
+from scipy.sparse.csgraph import dijkstra
 
 
 def angle(a):
@@ -128,6 +130,11 @@ class Grid:
         self.region_clearance = region_margin + robot_radius + 0.03
         self.inter_robot_clearance = 2.0 * robot_radius + 0.14
         self.h, self.w = self.data.shape
+        self.yy, self.xx = np.indices(self.data.shape)
+        self.world_x = self.origin[0] + (self.xx + .5) * res
+        self.world_y = self.origin[1] + (self.yy + .5) * res
+        self._gain_cache = {}
+        self._route_cache = {}
         self.clearance = ndimage.distance_transform_edt(
             np.pad(self.data < 65, 1, constant_values=False)
         )[1:-1, 1:-1] * res
@@ -154,9 +161,7 @@ class Grid:
         if radius is None:
             radius = self.clearance_radius
         ok = (self.data == 0) & (self.free_clearance >= radius)
-        yy, xx = np.indices(ok.shape)
-        x = self.origin[0] + (xx + 0.5) * self.res
-        y = self.origin[1] + (yy + 0.5) * self.res
+        x, y = self.world_x, self.world_y
         if region is not None:
             ok &= (
                 (x >= region[0] + self.region_clearance)
@@ -224,6 +229,9 @@ class Grid:
         Ray marching is used only to rank viewpoints; navigation still requires
         an entirely observed safe path. Unknown cells never become traversable.
         """
+        key = (tuple(cell), sensor_range)
+        if key in self._gain_cache:
+            return self._gain_cache[key]
         if getattr(self, "_view_range", None) != sensor_range:
             self._view_range = sensor_range
             angles = np.linspace(-math.pi, math.pi, 180, endpoint=False)
@@ -237,27 +245,70 @@ class Grid:
         blocked = ~inside | (values >= 65)
         visible = ~np.maximum.accumulate(blocked, axis=1)
         ids = np.unique((yy * self.w + xx)[visible & (values < 0)])
-        return len(ids) * self.res**2
+        gain = len(ids) * self.res**2
+        self._gain_cache[key] = gain
+        return gain
+
+    def route_field(self, start, region=None, others=()):
+        """One compiled shortest-path search per robot, shared by all viewpoints."""
+        root = self.cell(start)
+        key = (root, tuple(region) if region is not None else None,
+               tuple(tuple(p[:2]) for p in others))
+        if key in self._route_cache:
+            return self._route_cache[key]
+        ok = self.allowed(region, others=others,
+                          other_clearance=max(.8, self.inter_robot_clearance))
+        if not self.inside(root) or (not ok[root] and
+                (self.data[root] != 0 or self.clearance[root] < .19)):
+            return None
+        ok[root] = True
+        ids = np.arange(self.h*self.w).reshape(self.h,self.w)
+        sources, targets, weights = [], [], []
+        for dy,dx in [(0,1),(1,-1),(1,0),(1,1)]:
+            y0,y1 = max(0,-dy),min(self.h,self.h-dy)
+            x0,x1 = max(0,-dx),min(self.w,self.w-dx)
+            allowed = ok[y0:y1,x0:x1] & ok[y0+dy:y1+dy,x0+dx:x1+dx]
+            if dy and dx:
+                allowed &= ok[y0:y1,x0+dx:x1+dx] & ok[y0+dy:y1+dy,x0:x1]
+            a = ids[y0:y1,x0:x1][allowed]
+            b = ids[y0+dy:y1+dy,x0+dx:x1+dx][allowed]
+            sources.extend([a,b]);targets.extend([b,a])
+            weights.extend([np.full(len(a),math.hypot(dy,dx)*self.res)]*2)
+        graph = csr_matrix((np.concatenate(weights),
+                            (np.concatenate(sources),np.concatenate(targets))),
+                           shape=(self.h*self.w,)*2)
+        distances, parents = dijkstra(graph, directed=True, indices=root[0]*self.w+root[1],
+                                      return_predecessors=True)
+        field = (distances.reshape(self.data.shape),parents,ok,root)
+        if len(self._route_cache) >= 6:
+            self._route_cache.pop(next(iter(self._route_cache)))
+        self._route_cache[key] = field
+        return field
+
+    def field_route(self, field, goal):
+        cell = self.cell(goal)
+        if field is None or not self.inside(cell) or not math.isfinite(field[0][cell]):
+            return None
+        distances, parents, _, root = field
+        index, source = cell[0]*self.w+cell[1], root[0]*self.w+root[1]
+        path = [cell]
+        while index != source:
+            index = int(parents[index])
+            if index < 0 or len(path) > self.h*self.w:
+                return None
+            path.append(divmod(index,self.w))
+        return float(distances[cell]), [self.point(c) for c in path[::-1]]
 
     def frontiers(
         self, start, region, reserved=(), blacklist=(), visits=(), min_travel=False,
         target_mask=None, others=(),
     ):
-        ok = self.allowed(region, others=others,
-                          other_clearance=max(0.8, self.inter_robot_clearance))
-        start_cell = self.cell(start)
-        if not self.inside(start_cell):
+        field = self.route_field(start,region,others)
+        if field is None:
             return None
         # Filter connectivity BEFORE ranking. A large unreachable pocket must
         # not occupy every slot in the old top-12 candidate shortlist.
-        labels, _ = ndimage.label(ok)
-        roots = {int(labels[start_cell])} - {0}
-        if not roots and self.data[start_cell] == 0 and self.clearance[start_cell] >= 0.19:
-            for dy, dx in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
-                cell = (start_cell[0] + dy, start_cell[1] + dx)
-                if self.inside(cell) and labels[cell]:
-                    roots.add(int(labels[cell]))
-        ok &= np.isin(labels, list(roots))
+        ok = field[2] & np.isfinite(field[0])
         unknown = self.data < 0
         if not unknown.any():
             return None
@@ -283,7 +334,7 @@ class Grid:
         candidates = []
         for cy, cx in coords:
             p = self.point((cy, cx))
-            dist = math.dist(start[:2], p)
+            dist = float(field[0][cy,cx])
             if (
                 dist < 0.35
                 or any(
@@ -298,7 +349,7 @@ class Grid:
                 continue
             novelty = min([math.dist(p, q[:2]) for q in visits[-16:]] or [3.0])
             score = (3.0 * math.log1p(gain) + min(novelty, 2.0) * 0.5
-                     - 1.5 * math.exp(-(novelty / 0.5)**2) - dist * 0.10)
+                     - 1.5 * math.exp(-(novelty / 0.5)**2) - dist * 0.35)
             candidates.append((score, p, gain))
         # If frontiers are exhausted before a robot has participated, choose a new
         # sensor viewpoint in its *observed* connected free area, never a fixed patrol.
@@ -333,11 +384,42 @@ class Grid:
                 break
         best = None
         for score, p, gain in selected:
-            route = self.astar(start, p, ok)
-            if route and (best is None or score - route[0] * 0.08 > best[0]):
-                best = (score - route[0] * 0.08, p, route,
+            route = self.field_route(field, p)
+            if route and (best is None or score > best[0]):
+                best = (score, p, route,
                         {"visible_unknown_m2": gain, "route_length": route[0],
                          "viewpoints": len(candidates)})
+        return best
+
+    def assign_frontier(self, poses, blacklists, visits):
+        """Shared targets; their owner always has the shortest feasible route."""
+        fields, proposals = {}, []
+        history = [p for name in poses for p in visits[name]]
+        for name, pose in poses.items():
+            others = [p for other,p in poses.items() if other != name]
+            fields[name] = self.route_field(pose,None,others)
+            proposal = self.frontiers(pose,None,blacklist=blacklists[name],visits=history,others=others)
+            if proposal is not None:
+                proposals.append(proposal)
+        best = None
+        for proposal in proposals:
+            point, gain = proposal[1], proposal[3]["visible_unknown_m2"]
+            costs = {}
+            for name, pose in poses.items():
+                route = self.field_route(fields[name],point)
+                forbidden = any(math.dist(point,q[:2]) < .55 for q in blacklists[name]
+                                if len(q)<4 or q[3]>time.monotonic())
+                costs[name] = route[0] if route and not forbidden and math.dist(pose[:2],point)>=.35 else None
+            feasible = [(cost,name) for name,cost in costs.items() if cost is not None]
+            if not feasible:
+                continue
+            cost, owner = min(feasible)
+            novelty = min([math.dist(point,p[:2]) for p in history[-16:]] or [3.])
+            score = 3*math.log1p(gain)+min(novelty,2)*.5-1.5*math.exp(-(novelty/.5)**2)-.35*cost
+            if best is None or score > best["result"][0]:
+                info = dict(proposal[3],route_length=cost,route_costs_m=costs,
+                            assignment_policy="shortest-safe-route-v1")
+                best = dict(robot=owner,result=(score,point,self.field_route(fields[owner],point),info))
         return best
 
     def region_escape(self, start, region, reserved=(), blacklist=(), visits=()):

@@ -56,6 +56,11 @@ class Dashboard(Node):
         if not valid_grid_message(m):
             return
         a = np.asarray(m.data, dtype=np.int16).reshape(m.info.height, m.info.width)
+        metadata = (m.info.height, m.info.width, m.info.resolution,
+                    m.info.origin.position.x, m.info.origin.position.y)
+        if metadata == getattr(self, "image_metadata", None) and np.array_equal(a, self.image_grid):
+            return
+        self.image_metadata, self.image_grid = metadata, a.copy()
         rgb = np.zeros((*a.shape, 3), dtype=np.uint8)
         rgb[:] = [68, 81, 96]
         rgb[a == 0] = [238, 242, 246]

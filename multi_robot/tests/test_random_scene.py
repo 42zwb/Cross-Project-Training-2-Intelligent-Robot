@@ -133,13 +133,13 @@ def test_region_release_does_not_disable_filter_if_motion_cannot_stop():
     assert not changes
 
 
-def test_cross_region_goals_are_serialized_and_rotate_between_robots():
+def test_cross_region_goals_are_serialized_without_forced_rotation():
     names=["robot1","robot2","robot3"]
     sent, blocked_poses, futures=[],[],[]
-    def frontiers(*args,**kwargs):
-        blocked_poses.append(kwargs["others"])
-        return (1,(0,2),(1,[]))
-    fake=SimpleNamespace(names=names, valid=lambda token:True, grid=SimpleNamespace(frontiers=frontiers),
+    def assign(*args):
+        blocked_poses.append(args[0])
+        return dict(robot="robot2",result=(1,(0,2),(1,[]),{}))
+    fake=SimpleNamespace(names=names, valid=lambda token:True, grid=SimpleNamespace(assign_frontier=assign),
         lock=threading.RLock(), exploration_unrestricted=True, cross_region_next=0,
         poses=dict(zip(names,STARTS)), regions=[None]*3, exploring={},goals={},handles={},active=set(),
         blacklist={n:[] for n in names},visits={n:[] for n in names},travel={n:4 for n in names},
@@ -149,12 +149,12 @@ def test_cross_region_goals_are_serialized_and_rotate_between_robots():
     fake.send_goal=send
     Coordinator.explore_tick(fake,1)
     Coordinator.explore_tick(fake,1)
-    assert sent==["robot1"] and len(fake.exploring)==1
-    assert blocked_poses[0]==STARTS[1:]
+    assert sent==["robot2"] and len(fake.exploring)==1
+    assert blocked_poses[0]==dict(zip(names,STARTS))
     futures[0].set_result(SimpleNamespace(status=4))
     Coordinator.explore_tick(fake,1)
     Coordinator.explore_tick(fake,1)
-    assert sent==["robot1","robot2"] and len(fake.exploring)==1
+    assert sent==["robot2","robot2"] and len(fake.exploring)==1
 
 
 def test_cross_region_route_stays_clear_of_parked_robots():

@@ -82,11 +82,11 @@
   function render() {
     $('mode').textContent=labels[state.mode] || state.mode || '正在启动';
     $('message').textContent=state.message || '';
-    $('known').textContent='地图已知比例：'+((state.known_fraction||0)*100).toFixed(1)+'%（非真值覆盖率）\n直接观测 '+((state.observed_fraction||0)*100).toFixed(1)+'% + 封闭障碍推断 '+((state.inferred_obstacle_fraction||0)*100).toFixed(1)+'%';
+    $('known').textContent='地图已知比例：'+((state.known_fraction||0)*100).toFixed(1)+'%（非真值覆盖率）\n直接观测 '+((state.observed_fraction||0)*100).toFixed(1)+'% + 障碍推断 / 证据保留 '+((state.inferred_obstacle_fraction||0)*100).toFixed(1)+'%\n其中外墙补全 '+((state.boundary_obstacle_fraction||0)*100).toFixed(1)+'%';
     $('planner').textContent='全局规划器：'+(state.planner === 'smac2d' ? 'Smac2D' : 'Navfn A*');
     const generatorName=state.scene?.generator==='mixed-shapes-v2'?'混合形状':state.scene?.generator==='rectangles-v1'?'旧版矩形':'';
     $('scene').textContent='场地 15 × 15 m · 种子 '+(state.scene?.seed || '等待启动')+(generatorName?' · '+generatorName:'');
-    $('scope').textContent=state.exploration_unrestricted ? '已解除分区限制，轮流跨区通行 · '+state.region_release_reason : '探索分工：三个矩形区域；必要时自动跨区补盲';
+    $('scope').textContent=state.exploration_unrestricted ? '已解除分区限制，按安全路径就近派车 · '+state.region_release_reason : '探索分工：三个矩形区域；必要时自动跨区补盲';
     $('robots').textContent=Object.entries(state.robots||{}).map(([n,r])=>n+' 探索 '+metric(r.travel,' m')+' / 总行驶 '+metric(r.distance,' m')+' · '+(r.safety?.reason||'运行中')+(r.goal && r.exploration_target ? '\n  目标可见未知 '+metric(r.exploration_target.visible_unknown_m2,' m²')+' · 路线 '+metric(r.exploration_target.route_length,' m') : '')).join('\n');
     $('errors').textContent=Object.entries(state.formation_errors||{}).map(([n,e])=>n+': '+metric(e.position,' m')+' / '+metric(e.yaw*180/Math.PI,'°')).join(' | ');
     const names={nav2:'Nav2',navigation_pose:'导航位姿',mapping_and_safety:'建图与安全',localization:'定位',initial_free:'起点空闲观测'};
