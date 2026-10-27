@@ -82,7 +82,7 @@
   function render() {
     $('mode').textContent=labels[state.mode] || state.mode || '正在启动';
     $('message').textContent=state.message || '';
-    $('known').textContent='地图已知比例：'+((state.known_fraction||0)*100).toFixed(1)+'%（非真值覆盖率）\n直接观测 '+((state.observed_fraction||0)*100).toFixed(1)+'% + 障碍推断 / 证据保留 '+((state.inferred_obstacle_fraction||0)*100).toFixed(1)+'%';
+    $('known').textContent='地图已知比例：'+((state.known_fraction||0)*100).toFixed(1)+'%（非真值覆盖率）\n直接观测 '+((state.observed_fraction||0)*100).toFixed(1)+'% + 障碍推断 / 证据保留 '+((state.inferred_obstacle_fraction||0)*100).toFixed(1)+'%\n其中外墙补全 '+((state.boundary_obstacle_fraction||0)*100).toFixed(1)+'%';
     $('planner').textContent='全局规划器：'+(state.planner === 'smac2d' ? 'Smac2D' : 'Navfn A*');
     const generatorName=state.scene?.generator==='mixed-shapes-v2'?'混合形状':state.scene?.generator==='rectangles-v1'?'旧版矩形':'';
     $('scene').textContent='场地 15 × 15 m · 种子 '+(state.scene?.seed || '等待启动')+(generatorName?' · '+generatorName:'');

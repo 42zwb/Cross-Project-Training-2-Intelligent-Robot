@@ -581,6 +581,7 @@ class Coordinator(Node):
                 "observed_fraction": self.mapping.get("observed_fraction", self.mapping.get("known_fraction", 0.0)),
                 "inferred_obstacle_fraction": self.mapping.get("inferred_obstacle_fraction", 0.0),
                 "unknown_fraction": self.mapping.get("unknown_fraction", 1.0),
+                "boundary_obstacle_fraction": self.mapping.get("boundary_obstacle_fraction", 0.0),
                 "formation_slots": self.slots,
                 "formation_assignment": self.assignment,
                 "formation_errors": self.errors,

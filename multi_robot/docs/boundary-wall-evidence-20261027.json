@@ -1,0 +1,163 @@
+{
+  "date": "2026-10-27",
+  "base_commit": "c70279d5eb37ea828d6155004642bc4e5469f971",
+  "tests": {
+    "python_passed": 158,
+    "canonical_python_passed": 158,
+    "packages_built": 5,
+    "bridge_retained_nodes": "0/9",
+    "tf2_lock_regression": "passed"
+  },
+  "run": "runs/boundary-walls24-stable-20261027",
+  "seed": 24,
+  "requested_seconds": 480,
+  "summary": {
+    "coverage": 1.0,
+    "region_coverage": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "actual_explore_distance": {
+      "robot1": 26.775660239510994,
+      "robot2": 10.456649863021692,
+      "robot3": 25.08946597268457
+    },
+    "minimum_static_clearance": 0.13483747203755198,
+    "minimum_interrobot_clearance": 3.0532679303469625,
+    "collision_pass": true,
+    "region_pass": true,
+    "authorized_cross_region_samples": 6117,
+    "exploration_region_releases": [
+      {
+        "wall_time": 1793074626.1894581,
+        "sim_time": 41.42,
+        "event": "exploration_regions_released",
+        "robot": "robot1",
+        "reason": "robot1 的区域限制阻断了实时地图中的可达探索路径",
+        "observed_target": [
+          -4.474999954923987,
+          -0.8749999012798071
+        ]
+      }
+    ],
+    "mapping_evidence": {
+      "known_fraction": 0.9854111111111111,
+      "observed_fraction": 0.8791333333333333,
+      "inferred_obstacle_fraction": 0.10627777777777778,
+      "unknown_fraction": 0.014588888888888889,
+      "observed_cells": 79122,
+      "inferred_obstacle_cells": 9565,
+      "total_cells": 90000,
+      "retained_obstacle_cells": 377,
+      "boundary_obstacle_cells": 3200,
+      "boundary_obstacle_fraction": 0.035555555555555556,
+      "completion_method": "persistent-obstacle-and-boundary-v6",
+      "completion_policy": {
+        "direct_occupied_threshold": 65,
+        "contour_probability_threshold": 55,
+        "minimum_strong_contour_fraction": 0.5,
+        "minimum_concave_strong_contour_fraction": 0.65,
+        "minimum_solidity": 0.55,
+        "maximum_contour_gap_m": 0.2,
+        "new_updates_required": 3,
+        "support_seconds": 2.0,
+        "hold_seconds": null,
+        "free_updates_required": 3,
+        "free_support_seconds": 2.0,
+        "minimum_free_patch_m2": 0.02,
+        "boundary_max_depth_m": 0.5,
+        "boundary_min_wall_run_m": 0.75,
+        "boundary_max_gap_m": 0.15,
+        "boundary_max_corner_extension_m": 0.3,
+        "boundary_min_strong_fraction": 0.6
+      },
+      "obstacle_retractions": 2,
+      "boundary_retractions": 3870
+    }
+  },
+  "boundary_validation": {
+    "boundary_cells": 3200,
+    "boundary_fraction": 0.035555555555555556,
+    "boundary_cells_saved_as_occupied": true,
+    "boundary_was_unknown": true,
+    "observed_cells_preserved": true,
+    "boundary_outside_true_walls": 13,
+    "boundary_more_than_15cm_from_wall": 0,
+    "boundary_max_outside_distance_m": 0.025000000000000355,
+    "unknown_cells": 1313,
+    "unknown_wall_cells": 3,
+    "unknown_other_obstacle_cells": 1271,
+    "unknown_free_cells": 39,
+    "unknown_outermost_cells": 0,
+    "unknown_within_30cm_edge": 6,
+    "map_cells": 90000
+  },
+  "map_stability": {
+    "windows": 2,
+    "map_updates": 653,
+    "mature_lost_cells": 1565,
+    "compact_retraction_events": 2,
+    "mature_loss_events": [
+      {
+        "wall_time": 1793074997.8143296,
+        "lost_cells": 419,
+        "mature_lost_cells": 419
+      },
+      {
+        "wall_time": 1793075000.2840965,
+        "lost_cells": 1146,
+        "mature_lost_cells": 1146
+      }
+    ],
+    "all_mature_losses_coincide_with_compact_retractions": true,
+    "unexplained_mature_loss_cells": 0
+  },
+  "map_roundtrip": {
+    "passed": true,
+    "cells": 90000,
+    "unknown": 1313,
+    "free": 74894,
+    "occupied": 13793
+  },
+  "browser": {
+    "browser": "156.0.8078.4",
+    "errors": [],
+    "known": "地图已知比例：98.6%（非真值覆盖率）\n直接观测 88.0% + 障碍推断 / 证据保留 10.6%\n其中外墙补全 3.5%"
+  },
+  "source_validation": {
+    "files": 117,
+    "changed_during_run": [],
+    "canonical_differences": []
+  },
+  "cleanup": {
+    "residual_before_final_kill": [],
+    "launch_exit": 0,
+    "abnormal_process_exits": [],
+    "auxiliary_error": null
+  },
+  "shutdown_preflight": {
+    "pause_command": {
+      "success": true,
+      "message": "已停车，等待新指令"
+    },
+    "simulator_pids": [
+      29478
+    ],
+    "simulator_stopped": true,
+    "bridge_drain_seconds": 0.3
+  },
+  "offline_spatial_replay": {
+    "source_run": "runs/after-fixes24-20261027",
+    "spatial_only_not_temporal_acceptance": true,
+    "new_wall_cells": 2603,
+    "inferred_outside_obstacles": 0,
+    "max_outside_distance_m": 0.0,
+    "before_known_fraction": 0.9553666666666667,
+    "after_known_fraction": 0.9842888888888889
+  },
+  "development_runs_not_final_acceptance": [
+    "runs/boundary-walls24-20261027",
+    "runs/boundary-walls24-final-20261027"
+  ]
+}

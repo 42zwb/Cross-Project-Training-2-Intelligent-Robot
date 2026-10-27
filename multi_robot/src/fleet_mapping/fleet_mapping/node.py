@@ -278,8 +278,10 @@ class Mapping(Node):
             self.fusion_key = fusion_key
         self.data, self.inferred = self.completion.update(
             self.observed, self.cfg["resolution"], self.map_revision, boundary=self.contour)
-        self.map_metrics = map_metrics(self.observed, self.inferred, self.completion.retained_direct)
+        self.map_metrics = map_metrics(self.observed, self.inferred, self.completion.retained_direct,
+                                       self.completion.boundary_inferred)
         self.map_metrics["obstacle_retractions"] = self.completion.retractions
+        self.map_metrics["boundary_retractions"] = self.completion.boundary_retractions
         m = OccupancyGrid()
         m.header.stamp = self.get_clock().now().to_msg()
         m.header.frame_id = "map"
@@ -340,6 +342,8 @@ class Mapping(Node):
             save_map(dest / "observed_map", self.observed, self.cfg["resolution"], self.cfg["arena"][:2])
             save_map(dest / "contour_evidence_map", self.contour, self.cfg["resolution"], self.cfg["arena"][:2])
             save_map(dest / "inferred_obstacles", self.inferred.astype(np.int16) * 100,
+                     self.cfg["resolution"], self.cfg["arena"][:2])
+            save_map(dest / "boundary_obstacles", self.completion.boundary_inferred.astype(np.int16) * 100,
                      self.cfg["resolution"], self.cfg["arena"][:2])
             (dest / "mapping_evidence.json").write_text(json.dumps(self.map_metrics, indent=2))
             (dest / "alignment.yaml").write_text(
