@@ -175,3 +175,42 @@ def test_late_or_old_identity_votes_and_frozen_data_cannot_restore_motion(guard,
     assert any(v > .05 for _, v in outputs)
     spin(1.0, late=fault == 'late', old_boot=fault == 'old_boot', freeze=fault == 'frozen_sensor')
     assert outputs[-1][1] == 0.
+
+
+def test_new_estop_fences_old_clear_and_needs_fresh_authorization(guard):
+    safety, _node, spin, outputs = guard
+    spin(1.)
+    assert any(v > .05 for _, v in outputs)
+
+    def command(kind, ident, revision):
+        safety.mission(MissionCommand(session_id='guard-test', issuer_id='test',
+            command_id=ident, revision=revision, kind=kind,
+            participant_boot_ids=['b1', 'b2', 'b3'], expires_at=time.monotonic()+1.))
+
+    def clear(ident, revision, age=0.):
+        command('clear-estop', ident, revision)
+        safety.mission_votes[ident] = {'robot1': 'b1', 'robot2': 'b2'}
+        received = LocalAuthorization(session_id='guard-test', robot_id='robot1', boot_id='b1',
+            sequence=safety.auth_sequence+1, mission_id=ident, enabled=False, estop=False)
+        safety.authorize(received)
+        if age:
+            safety.authorization = (time.monotonic()-age, received)
+        safety.tick()
+
+    command('estop', 'stop-1', 10)
+    clear('clear-1', 11)
+    assert not safety.estop
+
+    command('estop', 'stop-2', 12)
+    safety.tick()
+    assert safety.estop and json.loads(safety.journal.path.read_text())['estop']
+    assert safety.clear_command is None
+
+    clear('clear-2', 13, age=.7)
+    assert safety.estop
+    clear('clear-2', 13)
+    assert not safety.estop and not json.loads(safety.journal.path.read_text())['estop']
+
+    # A retransmission of a consumed release cannot arm it again.
+    command('clear-estop', 'clear-2', 13)
+    assert safety.clear_command is None

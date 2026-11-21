@@ -181,10 +181,14 @@ class LocalSafety(Node):
         if message.kind in ('pause', 'estop') and message.revision >= self.stop_revision:
             self.stop_revision = message.revision
             self.command_data = None
+            pending_clear = self.pending_commands.get(self.clear_command)
+            if pending_clear is None or pending_clear[0] <= self.stop_revision:
+                self.clear_command = None
             if message.kind == 'estop':
                 self.estop = True
             self.journal.update(estop=self.estop, stop_revision=self.stop_revision)
-        if message.kind == 'clear-estop' and message.revision > self.stop_revision:
+        if (message.kind == 'clear-estop' and message.revision > self.stop_revision
+                and order > self.command_order):
             self.clear_command = message.command_id
 
     def authorize(self, message):
@@ -199,6 +203,7 @@ class LocalSafety(Node):
         if message.estop:
             if not self.estop:
                 self.estop = True
+                self.clear_command = None
                 self.journal.update(estop=True)
 
     def tick(self):
@@ -235,21 +240,26 @@ class LocalSafety(Node):
             localization_ok = all(math.isfinite(v) for v in pose) and stamp_fresh(t.header.stamp, ros_now)
         except TransformException:
             pass
-        auth = self.authorization[1] if self.authorization else None
-        if auth and auth.mission_id in self.pending_commands:
+        received, auth = self.authorization if self.authorization else (0., None)
+        auth_fresh = auth is not None and now-received <= .5
+        if auth_fresh and auth.mission_id in self.pending_commands:
             order = self.pending_commands[auth.mission_id]
             votes = self.mission_votes.get(auth.mission_id, {})
             if order > self.command_order and sum(boots.get(n) == boot for n, boot in votes.items()) >= 2:
                 self.command_order, self.command_id = order, auth.mission_id
                 self.journal.update(command_order=list(order))
-        if self.estop and auth and not auth.estop and auth.mission_id == self.clear_command:
+        if (self.estop and auth_fresh and not auth.estop
+                and auth.mission_id == self.clear_command == self.command_id):
+            clear_order = self.pending_commands.get(self.clear_command)
             votes = self.mission_votes.get(self.clear_command, {})
-            if sum(boots.get(n) == boot for n, boot in votes.items()) >= 2:
-                self.estop = False
+            if (clear_order is not None and clear_order[0] > self.stop_revision
+                    and sum(boots.get(n) == boot for n, boot in votes.items()) >= 2):
                 self.journal.update(estop=False)
+                self.estop = False
+                self.clear_command = None
         if self.estop:
             reason = '急停锁定'
-        elif auth is None or now-self.authorization[0] > .5:
+        elif not auth_fresh:
             reason = '本车授权心跳中断'
         elif not auth.enabled:
             reason = '待命'
