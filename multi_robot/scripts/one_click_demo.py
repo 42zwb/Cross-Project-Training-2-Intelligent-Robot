@@ -71,7 +71,9 @@ def main():
         if not a.with_faults:
             report = json.loads(output.read_text())
             if not report['collision_pass']:
-                raise RuntimeError('独立仿真记录检测到碰撞，见 '+str(output))
+                message = ('独立仿真记录检测到碰撞' if report['collision_detected']
+                           else '独立仿真真值不足以通过碰撞验收')
+                raise RuntimeError(message+'，见 '+str(output))
             if not math.isfinite(report['peak_project_rss_mb']) or report['system_oom_kills_since_start']:
                 raise RuntimeError('资源记录缺失或检测到内存不足退出，见 '+str(output))
 

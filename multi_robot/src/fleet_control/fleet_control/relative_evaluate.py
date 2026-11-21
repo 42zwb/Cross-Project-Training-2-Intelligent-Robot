@@ -4,6 +4,7 @@ The denominator is the complete physical arena. The gauge is established once
 from the first initialized anchor sample, never an optimized map/trajectory fit.
 """
 import argparse
+from itertools import combinations
 import json
 import math
 from pathlib import Path
@@ -13,9 +14,11 @@ import yaml
 from fleet_mapping.grid import fuse, load_map
 from fleet_mapping.registration import angle, compose, inverse, transform_points
 from fleet_mapping.shapes import shape_distance
-from .evaluate import clearance
 from .geometry import formation_pass
 from .peer_protocol import MEMBERS, digest
+
+COLLISION_CLEARANCE_LIMIT = -.001
+COLLISION_SAMPLE_GAP_LIMIT = .25
 
 
 def full_arena_coverage(data, resolution, origin, world_from_team, arena, obstacles,
@@ -375,6 +378,71 @@ def initial_exploration_window(run, telemetry, clock, frame_epoch):
     return start, min(boundary, completion['time']) if completion else boundary, completion
 
 
+def collision_metrics(truth, obstacles, robot_radius):
+    """Measure all recorded Gazebo poses and audit full-team simulation-time coverage."""
+    def finite_number(value):
+        return type(value) in (int, float) and math.isfinite(value)
+
+    positions, complete_times = [], []
+    minimum_pair = math.inf
+    paired_samples = 0
+    for sample in truth:
+        centers = []
+        for name in MEMBERS:
+            pose = sample['robots'].get(name)
+            if isinstance(pose, (list, tuple)) and len(pose) >= 2:
+                x, y = pose[:2]
+                if finite_number(x) and finite_number(y):
+                    centers.append((x, y))
+        positions.extend(centers)
+        if len(centers) >= 2:
+            paired_samples += 1
+            for a, b in combinations(centers, 2):
+                minimum_pair = min(minimum_pair, math.dist(a, b)-2*robot_radius)
+        if len(centers) == len(MEMBERS):
+            complete_times.append(sample.get('sim_time'))
+
+    minimum_static = None
+    if positions and obstacles:
+        # Vectorized obstacle distances keep large recorded runs cheap.
+        x, y = np.asarray(positions, dtype=float).T
+        measured = min(float(np.min(shape_distance(x, y, obstacle)))-robot_radius
+                       for obstacle in obstacles)
+        minimum_static = measured if math.isfinite(measured) else None
+    minimum_pair = minimum_pair if math.isfinite(minimum_pair) else None
+
+    # Incomplete leading/trailing rows are expected while models are spawned
+    # or removed. Inside the first and last complete rows, missing poses
+    # lengthen the interval between full samples. Gazebo time advances only
+    # with the physics, including when the wall clock stalls or Gazebo pauses.
+    times = [t for t in complete_times if finite_number(t)]
+    gaps = [b-a for a, b in zip(times, times[1:])]
+    distinct_times = len(set(times))
+    maximum_gap = max((gap for gap in gaps if gap > 0), default=None)
+    issues = []
+    if distinct_times < 2:
+        issues.append('insufficient_complete_samples')
+    if len(times) != len(complete_times) or any(gap < 0 for gap in gaps):
+        issues.append('invalid_sim_time')
+    if maximum_gap is not None and maximum_gap > COLLISION_SAMPLE_GAP_LIMIT:
+        issues.append('complete_sample_gap')
+    if minimum_pair is None:
+        issues.append('missing_interrobot_clearance')
+    if obstacles and minimum_static is None:
+        issues.append('missing_static_clearance')
+
+    detected = any(value is not None and value < COLLISION_CLEARANCE_LIMIT
+                   for value in (minimum_static, minimum_pair))
+    return dict(minimum_static_clearance=minimum_static, minimum_interrobot_clearance=minimum_pair,
+        collision_detected=detected, collision_evidence_pass=not issues,
+        collision_pass=not detected and not issues,
+        collision_evidence=dict(clock='sim_time', truth_samples=len(truth), paired_samples=paired_samples,
+            complete_samples=len(complete_times), distinct_complete_times=distinct_times,
+            first_complete_sim_time=times[0] if times else None, last_complete_sim_time=times[-1] if times else None,
+            max_sample_gap_s=maximum_gap, gap_limit_s=COLLISION_SAMPLE_GAP_LIMIT,
+            static_obstacles=len(obstacles), issues=issues))
+
+
 def evaluate(run, map_path=None, output=None):
     run = Path(run)
     architecture = json.loads((run/'architecture.json').read_text())
@@ -403,11 +471,11 @@ def evaluate(run, map_path=None, output=None):
         last.get('region_seeds', {}), last.get('regions'), cfg['robot_radius'])
     report.update(architecture='decentralized', initialization='unknown', fixed_gauge=gauge,
                   world_from_team=world_from_team, map=str(map_path), association_clock=clock)
+    report.update(collision_metrics(truth, obstacles, cfg['robot_radius']))
     times = np.asarray([s[clock] for s in telemetry])
     true_times = np.asarray([s[clock] for s in truth])
     actual_travel = dict.fromkeys(MEMBERS, 0.)
     recovery_travel = dict.fromkeys(MEMBERS, 0.)
-    minimum_static, minimum_pair = math.inf, math.inf
     initial_motion_violations, bootstrap_limit_violations, bootstrap_parallel_violations = 0, 0, 0
     exploration_samples, concurrency, parallel_translating = 0, dict.fromkeys(range(4), 0), 0
     first_explore_time, initial_end, completion = initial_exploration_window(
@@ -425,19 +493,10 @@ def evaluate(run, map_path=None, output=None):
                 real = actual['robots'][name]
                 registration_errors[name] = dict(position=math.dist(prediction[:2], real[:2]),
                                                   yaw=abs(angle(prediction[2]-real[2])))
-    # Nearest time association and obstacle distances are vectorized so the
-    # nine-scene offline matrix does not spend minutes in scalar shape calls.
+    # Trajectory metrics use the nearest observation in the association clock.
     right = np.clip(np.searchsorted(times, true_times), 0, len(times)-1)
     left = np.maximum(right-1, 0)
     nearest = np.where(np.abs(times[left]-true_times) <= np.abs(times[right]-true_times), left, right)
-    associated = np.abs(times[nearest]-true_times) <= 1.
-    for name in MEMBERS:
-        positions = np.asarray([t['robots'][name][:2] for k, t in enumerate(truth)
-                                if associated[k] and name in t['robots']])
-        if len(positions):
-            for obstacle in obstacles:
-                minimum_static = min(minimum_static, float(np.min(shape_distance(
-                    positions[:, 0], positions[:, 1], obstacle)))-cfg['robot_radius'])
     for k, actual in enumerate(truth):
         si = int(nearest[k])
         sample = telemetry[si]
@@ -447,9 +506,6 @@ def evaluate(run, map_path=None, output=None):
         initial = (k > 0 and first_explore_time is not None
                    and first_explore_time <= truth[k-1][clock] <= actual[clock] <= initial_end)
         for name, pose in actual['robots'].items():
-            for other, peer in actual['robots'].items():
-                if other != name:
-                    minimum_pair = min(minimum_pair, math.dist(pose[:2], peer[:2])-2*cfg['robot_radius'])
             if k and name in truth[k-1]['robots']:
                 dt = actual[clock]-truth[k-1][clock]
                 ds = math.dist(pose[:2], truth[k-1]['robots'][name][:2])
@@ -500,8 +556,6 @@ def evaluate(run, map_path=None, output=None):
         actual_explore_distance=actual_travel, actual_distance_pass=min(actual_travel.values()) >= 3,
         recovery_explore_distance=recovery_travel,
         initial_exploration_window=dict(clock=clock, start=first_explore_time, end=initial_end),
-        minimum_static_clearance=minimum_static, minimum_interrobot_clearance=minimum_pair,
-        collision_pass=minimum_static >= -.001 and minimum_pair >= -.001,
         initial_motion_violations=initial_motion_violations, bootstrap_limit_violations=bootstrap_limit_violations,
         bootstrap_parallel_violations=bootstrap_parallel_violations,
         concurrency_truth_samples=concurrency, regional_exploration_truth_samples=exploration_samples,

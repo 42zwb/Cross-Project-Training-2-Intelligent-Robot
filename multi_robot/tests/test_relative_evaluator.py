@@ -2,7 +2,10 @@ import math
 import numpy as np
 import pytest
 import json
-from fleet_control.relative_evaluate import full_arena_coverage, fixed_gauge, identified_formation, formation_completions
+from fleet_control.relative_evaluate import (
+    collision_metrics, evaluate, fixed_gauge, formation_completions, full_arena_coverage,
+    identified_formation, rows,
+)
 from fleet_control.geometry import formation
 
 
@@ -118,6 +121,10 @@ def test_accepted_identity_absent_from_telemetry_is_still_required(tmp_path, sou
     assert result['missing'] == [dict(robot='robot1', boot_id='lost', map_epoch=4)]
 
 
+def write_rows(path, items):
+    path.write_text(''.join(json.dumps(item)+'\n' for item in items))
+
+
 @pytest.fixture
 def evaluator_run(tmp_path, monkeypatch):
     import fleet_control.relative_evaluate as ev
@@ -129,7 +136,8 @@ def evaluator_run(tmp_path, monkeypatch):
     (run/'architecture.json').write_text(json.dumps(dict(architecture='decentralized')))
     (run/'assets/fleet.yaml').write_text(yaml.safe_dump(dict(arena=[-5, -5, 5, 5], robot_radius=.18,
         robots=[dict(start=[i*2., 0.]) for i in range(3)])))
-    (run/'assets/ground_truth.yaml').write_text('obstacles: []\n')
+    (run/'assets/ground_truth.yaml').write_text(
+        yaml.safe_dump(dict(obstacles=[['test-block', 0., 3., 1., 1.]])))
     (run/'results/final/frame.json').write_text(json.dumps(dict(frame_epoch='f')))
     (run/'resources.jsonl').write_text(json.dumps(dict(rss_mb=100.))+'\n')
     monkeypatch.setattr(ev, 'load_map', lambda path: (np.zeros((100, 100), np.int8),
@@ -142,18 +150,22 @@ def evaluator_run(tmp_path, monkeypatch):
         (run/name/'events.jsonl').write_text(''.join(json.dumps(e)+'\n' for e in events))
 
     def execute(*, rotate=False, recovery=False, output=None):
-        telemetry, truth = [], []
-        for t in range(12 if recovery else 7):
-            poses = {n: [i*2.+(0. if rotate else t*.03)+(3. if t >= 8 else 0.), 0., t*.1 if rotate else 0.]
-                     for i, n in enumerate(names)}
+        def poses(t):
+            return {n: [i*2.+(0. if rotate else t*.03)+(3. if t >= 8 else 0.), 0., t*.1 if rotate else 0.]
+                    for i, n in enumerate(names)}
+
+        telemetry = []
+        end = 11 if recovery else 6
+        for t in range(end+1):
             mode = 'EXPLORING' if 1 <= t <= 5 or t >= 8 else 'EXPLORED' if t == 6 else 'IDLE'
             telemetry.append(dict(steady_time=float(t), sim_time=float(t), coordinate_frame='f', mode=mode,
                 team_ready=t >= 1, region_enabled=True, region_seeds={n: [i*2., 0.] for i, n in enumerate(names)},
                 mapping=dict(anchor_id='robot1', anchor_boot='robot1', aligned=list(names)),
-                robots={n: dict(boot_id=n, map_epoch=1, ready=True, aligned=True, pose=p) for n, p in poses.items()}))
-            truth.append(dict(steady_time=float(t), sim_time=float(t), robots=poses))
-        for name, stream in [('peer-observations.jsonl', telemetry), ('truth.jsonl', truth)]:
-            (run/name).write_text(''.join(json.dumps(s)+'\n' for s in stream))
+                robots={n: dict(boot_id=n, map_epoch=1, ready=True, aligned=True, pose=p)
+                        for n, p in poses(t).items()}))
+        truth_times = [i/8 for i in range(end*8+1)]
+        write_rows(run/'peer-observations.jsonl', telemetry)
+        write_rows(run/'truth.jsonl', [dict(steady_time=t, sim_time=t, robots=poses(t)) for t in truth_times])
         return ev.evaluate(run, output=output)
     return run, execute
 
@@ -182,6 +194,75 @@ def test_explicit_output_preserves_prior_acceptance_file(evaluator_run):
     output = run/'new-evaluation.json'
     execute(output=output)
     assert output.is_file() and (run/'acceptance.json').read_text() == 'historical evidence'
+
+
+@pytest.mark.parametrize('contact', ['static', 'interrobot'])
+def test_partial_truth_contact_survives_telemetry_gap(evaluator_run, contact):
+    run, execute = evaluator_run
+    assert execute()['collision_pass']
+    truth = rows(run/'truth.jsonl')
+    sample = next(row for row in truth if row['sim_time'] == 3.)
+    if contact == 'static':
+        sample['robots'] = dict(robot2=[0., 3., 0.])
+        expected_clearance = -.18
+    else:
+        pose = sample['robots']['robot2']
+        sample['robots'] = dict(robot2=pose, robot3=pose)
+        expected_clearance = -.36
+    write_rows(run/'truth.jsonl', truth)
+    control = evaluate(run)
+
+    log = run/'peer-observations.jsonl'
+    write_rows(log, [row for row in rows(log) if abs(row['steady_time']-3.) > 1.])
+    masked = evaluate(run)
+    for report in (control, masked):
+        assert report[f'minimum_{contact}_clearance'] == pytest.approx(expected_clearance)
+        assert report['collision_detected'] and report['collision_evidence_pass']
+        assert not report['collision_pass'] and not report['functional_pass']
+        assert report['collision_evidence']['max_sample_gap_s'] == .25
+
+
+def test_no_paired_truth_is_an_evidence_failure_with_null_clearance(evaluator_run):
+    run, execute = evaluator_run
+    execute()
+    path = run/'truth.jsonl'
+    write_rows(path, [dict(row, robots={'robot1': row['robots']['robot1']}) for row in rows(path)])
+    report = evaluate(run)
+    assert report['minimum_static_clearance'] > 0.
+    assert report['minimum_interrobot_clearance'] is None
+    assert json.loads((run/'acceptance.json').read_text())['minimum_interrobot_clearance'] is None
+    assert not report['collision_detected'] and not report['collision_evidence_pass']
+    assert not report['collision_pass'] and not report['functional_pass']
+    assert report['collision_evidence']['paired_samples'] == 0
+    assert 'missing_interrobot_clearance' in report['collision_evidence']['issues']
+
+
+@pytest.mark.parametrize(('complete_times', 'max_gap', 'issues'), [
+    ([1., 1.125, 1.25], .125, []),
+    ([1., 1.], None, ['insufficient_complete_samples']),
+    ([1., 1.375], .375, ['complete_sample_gap']),
+    ([1.125, 1., 1.125], .125, ['invalid_sim_time']),
+])
+def test_collision_coverage_uses_complete_distinct_gazebo_times(complete_times, max_gap, issues):
+    full_team = {f'robot{i}': [float(i), 0., 0.] for i in (1, 2, 3)}
+    partial_team = {n: full_team[n] for n in ('robot1', 'robot2')}
+    records = [dict(sim_time=t, robots=full_team) for t in complete_times]
+    # Partial startup/teardown does not extend full-team coverage. Wall
+    # delays, and a partial row inside the window, cannot fill a Gazebo gap.
+    records.insert(1, dict(sim_time=1.125, robots=partial_team))
+    records.insert(0, dict(sim_time=0., robots=partial_team))
+    records.append(dict(sim_time=5., robots=partial_team))
+    for i, record in enumerate(records):
+        record['steady_time'] = i*.6
+    report = collision_metrics(records, [], .18)
+    evidence = report['collision_evidence']
+    assert evidence['max_sample_gap_s'] == max_gap and evidence['issues'] == issues
+    assert evidence['complete_samples'] == len(complete_times)
+    assert evidence['paired_samples'] == len(records)
+    assert report['minimum_interrobot_clearance'] == pytest.approx(.64)
+    assert report['minimum_static_clearance'] is None
+    assert not report['collision_detected']
+    assert report['collision_evidence_pass'] == report['collision_pass'] == (not issues)
 
 
 def test_a_later_mission_cannot_complete_the_initial_exploration(tmp_path):
