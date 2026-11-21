@@ -503,6 +503,9 @@ def evaluate(run, map_path=None, output=None):
         if abs(sample[clock]-actual[clock]) > 1.:
             continue
         moving, translating = 0, 0
+        # Associate the control mode by receipt time, but measure speed in
+        # Gazebo's physics clock so delayed delivery cannot alter velocity.
+        physics_dt = actual['sim_time']-truth[k-1]['sim_time'] if k else 0.
         initial = (k > 0 and first_explore_time is not None
                    and first_explore_time <= truth[k-1][clock] <= actual[clock] <= initial_end)
         for name, pose in actual['robots'].items():
@@ -519,7 +522,8 @@ def evaluate(run, map_path=None, output=None):
                         actual_travel[name] += ds
                     elif initial_end is not None and truth[k-1][clock] >= initial_end:
                         recovery_travel[name] += ds
-                if sample.get('mode') == 'ALIGNING' and dt > 0 and ds/dt > .095:
+                if sample.get('mode') == 'ALIGNING' and (
+                        not math.isfinite(physics_dt) or physics_dt < 0. or ds > .095*physics_dt):
                     bootstrap_limit_violations += 1
         if initial and sample.get('mode') == 'EXPLORING' and sample.get('team_ready') and sample.get('region_enabled'):
             exploration_samples += 1
@@ -557,6 +561,7 @@ def evaluate(run, map_path=None, output=None):
         recovery_explore_distance=recovery_travel,
         initial_exploration_window=dict(clock=clock, start=first_explore_time, end=initial_end),
         initial_motion_violations=initial_motion_violations, bootstrap_limit_violations=bootstrap_limit_violations,
+        bootstrap_speed_clock='sim_time',
         bootstrap_parallel_violations=bootstrap_parallel_violations,
         concurrency_truth_samples=concurrency, regional_exploration_truth_samples=exploration_samples,
         parallel_translating_truth_samples=parallel_translating,

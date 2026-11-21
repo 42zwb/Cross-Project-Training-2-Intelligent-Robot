@@ -178,6 +178,32 @@ def test_three_spinning_robots_do_not_pass_parallel_translation(evaluator_run):
     assert not result['parallel_exploration_observed']
 
 
+@pytest.mark.parametrize(('physical_speed', 'arrival_scale', 'violation'), [
+    (.080, .80, False),  # Compressed receipt intervals must not flag safe physical motion.
+    (.100, 1.25, True),  # Slow receipt intervals must not hide a real violation.
+])
+def test_bootstrap_speed_uses_gazebo_clock(evaluator_run, physical_speed, arrival_scale, violation):
+    run, execute = evaluator_run
+    execute()
+    path = run/'peer-observations.jsonl'
+    telemetry = rows(path)
+    for row in telemetry:
+        row['steady_time'] *= arrival_scale
+        if row['sim_time'] == 1.:
+            row.update(mode='ALIGNING', team_ready=False)
+    write_rows(path, telemetry)
+    path = run/'truth.jsonl'
+    truth = rows(path)
+    for row in truth:
+        row['steady_time'] *= arrival_scale
+        row['robots']['robot3'][0] = 4. + row['sim_time']*physical_speed
+    write_rows(path, truth)
+    report = evaluate(run)
+    assert bool(report['bootstrap_limit_violations']) == violation
+    assert report['association_clock'] == 'steady_time'
+    assert report['bootstrap_speed_clock'] == 'sim_time'
+
+
 def test_recovery_does_not_inflate_initial_exploration_metrics(evaluator_run):
     _, execute = evaluator_run
     before, after = execute(), execute(recovery=True)
