@@ -15,7 +15,7 @@ def agent_with_action(*replies):
                                send_goal_async=lambda _: next(replies)),
         lock=threading.RLock(), frame='map', get_clock=Clock,
         work={'target': (1., 2., 0.), 'kind': 'explore'},
-        goal_sending=False, goal_handle=None, goal_generation=0,
+        goal_sending=False, goal_handle=None, goal_generation=0, cancel_dispatch_failed=False,
         mission_id='mission', bid=None, request_id='', resource='', release_pending=None,
         visits=[], blacklist=[], plan_points=[],
         record=lambda event, **fields: events.append((event, fields)),
@@ -60,5 +60,9 @@ def test_failed_result_releases_work_even_if_cancel_transport_is_closed():
 
     assert agent.work is None and agent.goal_handle is None
     assert agent.release_pending == ('lease', 'team_motion', 'mission')
+    assert agent.cancel_dispatch_failed and not agent.nav_ready and agent.mode == 'FAULT'
+    agent.work = {'target': (2., 3., 0.), 'kind': 'explore'}
+    PeerAgent.send_goal(agent)
+    assert not agent.goal_sending
     assert ('goal_action_error', {'stage': 'result', 'error': 'result transport closed'}) in events
     assert ('goal_action_error', {'stage': 'cancel', 'error': 'cancel transport closed'}) in events

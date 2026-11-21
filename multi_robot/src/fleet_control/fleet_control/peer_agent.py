@@ -73,6 +73,7 @@ class PeerAgent(Node):
         self.mode, self.message, self.estop = 'BOOTSTRAP', '等待本车 SLAM、传感器和导航', False
         self.team_initialized = False
         self.work, self.goal_handle, self.goal_sending, self.goal_generation = None, None, False, 0
+        self.cancel_dispatch_failed = False
         self.request_id, self.request_sequence, self.resource, self.release_pending = '', 0, '', None
         self.stopped_since = None
         self.seeds, self.regions, self.unrestricted = {}, None, False
@@ -576,6 +577,11 @@ class PeerAgent(Node):
         try:
             handle.cancel_goal_async()
         except Exception as error:
+            # An unconfirmed old goal may still be publishing anonymous Twist
+            # commands. Do not issue another motion authorization in this boot.
+            self.cancel_dispatch_failed = True
+            self.nav_ready = False
+            self.mode, self.message = 'FAULT', 'Nav2 取消请求未发出，保持停车'
             self.record('goal_action_error', stage='cancel', error=str(error))
 
     def cancel(self):
@@ -615,7 +621,8 @@ class PeerAgent(Node):
         self.cancel()
 
     def send_goal(self):
-        if self.goal_sending or self.goal_handle or not self.work or not self.action.server_is_ready():
+        if (self.cancel_dispatch_failed or self.goal_sending or self.goal_handle
+                or not self.work or not self.action.server_is_ready()):
             return
         generation, mission = self.goal_generation, self.mission_id
         work = self.work
@@ -666,6 +673,9 @@ class PeerAgent(Node):
                     except Exception as error:
                         self.record('goal_action_error', stage='result', error=str(error))
                         result = None
+                    if result is not None and result.status in (4, 5, 6):
+                        # The action server reports a terminal GoalStatus.
+                        self.goal_handle = None
                     self.finish_work(result is not None and result.status == 4)
 
         self.record('goal_sent', kind=work['kind'], target=target)
@@ -931,7 +941,8 @@ class PeerAgent(Node):
                                     self.nav_states[n] = False
                         future.add_done_callback(received)
                 self.last_nav_check = now
-            self.nav_ready = len(self.nav_states) == 4 and all(self.nav_states.values())
+            self.nav_ready = (not self.cancel_dispatch_failed and len(self.nav_states) == 4
+                              and all(self.nav_states.values()))
             self.verify_alignment(now)
             if self.mode == 'BOOTSTRAP' and self.local_ready and self.nav_ready:
                 self.mode = 'IDLE'
