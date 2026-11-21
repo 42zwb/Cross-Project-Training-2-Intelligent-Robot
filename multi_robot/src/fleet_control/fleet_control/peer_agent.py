@@ -572,16 +572,23 @@ class PeerAgent(Node):
             self.patrol_dwell_until = 0.
             self.message = '执行航点巡逻'
 
+    def _cancel_goal_handle(self, handle):
+        try:
+            handle.cancel_goal_async()
+        except Exception as error:
+            self.record('goal_action_error', stage='cancel', error=str(error))
+
     def cancel(self):
         self.goal_generation += 1
-        if self.goal_handle:
-            self.goal_handle.cancel_goal_async()
+        handle = self.goal_handle
         self.goal_handle, self.goal_sending, self.work = None, False, None
         self.bid = None
         if self.request_id:
             self.release_pending = (self.request_id, self.resource, self.mission_id)
         self.request_id, self.resource = '', ''
         self.plan_points = []
+        if handle:
+            self._cancel_goal_handle(handle)
 
     def stopped(self, now):
         valid = (self.odom_data and now-self.odom_data[0] < .8 and valid_odom(self.odom_data[1])
@@ -611,7 +618,8 @@ class PeerAgent(Node):
         if self.goal_sending or self.goal_handle or not self.work or not self.action.server_is_ready():
             return
         generation, mission = self.goal_generation, self.mission_id
-        target = self.work['target']
+        work = self.work
+        target = work['target']
         goal = NavigateToPose.Goal()
         goal.pose = PoseStamped()
         goal.pose.header.frame_id, goal.pose.header.stamp = self.frame, self.get_clock().now().to_msg()
@@ -619,32 +627,49 @@ class PeerAgent(Node):
         goal.pose.pose.orientation.z, goal.pose.pose.orientation.w = math.sin(target[2]/2), math.cos(target[2]/2)
         self.goal_sending = True
         self.goal_pending_since = time.monotonic()
-        future = self.action.send_goal_async(goal)
+        try:
+            future = self.action.send_goal_async(goal)
+        except Exception as error:
+            self.record('goal_action_error', stage='send', error=str(error))
+            self.finish_work(False)
+            return
 
         def accepted(f):
             with self.lock:
-                self.goal_sending = False
                 try:
                     handle = f.result()
                 except Exception:
                     handle = None
-                if generation != self.goal_generation or mission != self.mission_id or not self.work:
+                if generation != self.goal_generation or mission != self.mission_id or self.work is not work:
                     if handle and handle.accepted:
-                        handle.cancel_goal_async()
+                        self._cancel_goal_handle(handle)
                     return
+                self.goal_sending = False
                 if not handle or not handle.accepted:
                     self.finish_work(False)
                     return
                 self.goal_handle = handle
-                self.work['navigation_started'] = time.monotonic()
-                handle.get_result_async().add_done_callback(completed)
+                work['navigation_started'] = time.monotonic()
+                try:
+                    result_future = handle.get_result_async()
+                except Exception as error:
+                    self.record('goal_action_error', stage='result_request', error=str(error))
+                    self.finish_work(False)
+                else:
+                    result_future.add_done_callback(completed)
 
         def completed(f):
             with self.lock:
-                if generation == self.goal_generation and mission == self.mission_id and self.work:
-                    self.finish_work(f.result() is not None and f.result().status == 4)
+                if generation == self.goal_generation and mission == self.mission_id and self.work is work:
+                    try:
+                        result = f.result()
+                    except Exception as error:
+                        self.record('goal_action_error', stage='result', error=str(error))
+                        result = None
+                    self.finish_work(result is not None and result.status == 4)
+
+        self.record('goal_sent', kind=work['kind'], target=target)
         future.add_done_callback(accepted)
-        self.record('goal_sent', kind=self.work['kind'], target=target)
 
     def candidate(self):
         with self.lock:
