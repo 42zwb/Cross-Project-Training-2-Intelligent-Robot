@@ -154,3 +154,84 @@ def test_supervisor_creates_latest_parent_for_external_run(tmp_path):
     assert result.returncode != 0
     assert (project/'runs/latest.txt').read_text() == str(run)
     assert (run/'cleanup.json').exists()
+
+
+def test_supervisor_starts_peer_recording_only_after_metadata_is_published(tmp_path):
+    import json
+    import shutil
+    import time
+
+    project = tmp_path/'project'
+    scripts = project/'scripts'
+    scripts.mkdir(parents=True)
+    for filename in ('supervise.py', 'shutdown_context.py', 'runtime_context.py'):
+        shutil.copy2(ROOT/'scripts'/filename, scripts/filename)
+    for filename in ('env.sh', 'build.sh', 'run.sh', 'demo.sh'):
+        shutil.copy2(ROOT/filename, project/filename)
+
+    (scripts/'resources.py').write_text('import time\ntime.sleep(60)\n')
+    (scripts/'peer_recorder.py').write_text('''import json
+from pathlib import Path
+import sys
+run = Path(sys.argv[1])
+with (run/'recorder-calls').open('a') as calls:
+    calls.write('started\\n')
+assert json.loads((run/'architecture.json').read_text())['session_id'] == 'delayed'
+raise SystemExit(7)
+''')
+    (project/'tools').mkdir()
+    (project/'tools/truth_probe.cpp').touch()
+    probe = project/'build/tools/truth_probe'
+    probe.parent.mkdir(parents=True)
+    probe.write_text('''#!/usr/bin/python3
+from pathlib import Path
+import sys
+import time
+Path(sys.argv[1]).touch()
+time.sleep(60)
+''')
+    probe.chmod(0o755)
+    ros = tmp_path/'ros2'
+    ros.write_text('''#!/usr/bin/python3
+from pathlib import Path
+import sys
+import time
+assets = next(arg.split(':=', 1)[1] for arg in sys.argv if arg.startswith('assets:='))
+run = Path(assets).parent
+while not (run/'publish-metadata').exists():
+    time.sleep(.02)
+metadata = run/'architecture.json'
+temporary = metadata.with_suffix('.json.tmp')
+temporary.write_text('{"architecture":"decentralized","session_id":"delayed"}')
+temporary.replace(metadata)
+time.sleep(60)
+''')
+    ros.chmod(0o755)
+
+    env = dict(os.environ, PATH=str(tmp_path)+os.pathsep+os.environ['PATH'],
+               ROS_DOMAIN_ID='228', IGN_PARTITION='fleet-supervisor-delayed-metadata-test-228')
+    run = tmp_path/'external'
+    with subprocess.Popen([sys.executable, str(scripts/'supervise.py'), '--base-only',
+                           '--record-truth', '--run-dir', str(run),
+                           '--config', str(ROOT/'src/fleet_bringup/config/fleet.yaml')],
+                          env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True) as supervisor:
+        try:
+            deadline = time.monotonic()+15
+            while not (run/'truth.jsonl').exists() and supervisor.poll() is None and time.monotonic()<deadline:
+                time.sleep(.02)
+            assert (run/'truth.jsonl').is_file()
+            assert supervisor.poll() is None
+            assert not (run/'architecture.json').exists()
+            assert not (run/'recorder-calls').exists()
+            (run/'publish-metadata').touch()
+            output, _ = supervisor.communicate(timeout=20)
+            assert supervisor.returncode != 0, output
+        finally:
+            if supervisor.poll() is None:
+                supervisor.terminate()
+                supervisor.communicate(timeout=15)
+
+    assert (run/'recorder-calls').read_text().splitlines() == ['started']
+    cleanup = json.loads((run/'cleanup.json').read_text())
+    assert cleanup['auxiliary_error'] == {'process': 'peer_recorder', 'returncode': 7}
+    assert cleanup['residual_before_final_kill'] == []
