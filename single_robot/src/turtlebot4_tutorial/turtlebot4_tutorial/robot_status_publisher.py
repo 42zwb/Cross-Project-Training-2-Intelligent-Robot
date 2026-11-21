@@ -6,6 +6,7 @@ import rclpy
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 from nav_msgs.msg import Odometry
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import BatteryState, LaserScan
 
 
@@ -16,13 +17,14 @@ class RobotStatusPublisher(Node):
         self.publisher = self.create_publisher(
             DiagnosticArray, 'tutorial/robot_status', 10)
         self.create_subscription(Odometry, 'odom', self.on_odom, 10)
-        self.create_subscription(LaserScan, 'scan', self.on_scan, 10)
+        self.create_subscription(LaserScan, 'scan', self.on_scan, qos_profile_sensor_data)
         self.create_subscription(BatteryState, 'battery_state', self.on_battery, 10)
         self.last_odom = None
         self.last_scan = None
         self.last_battery = None
         self.odom = None
         self.scan_min = None
+        self.scan_quality = '无数据'
         self.battery_percent = None
         self.create_timer(1.0, self.publish_status)
 
@@ -32,8 +34,15 @@ class RobotStatusPublisher(Node):
 
     def on_scan(self, message):
         self.last_scan = time.monotonic()
-        finite = [value for value in message.ranges if math.isfinite(value)]
+        limits_valid = (math.isfinite(message.range_min) and math.isfinite(message.range_max)
+                        and 0 <= message.range_min < message.range_max)
+        finite = [value for value in message.ranges if limits_valid and math.isfinite(value)
+                  and message.range_min <= value <= message.range_max]
         self.scan_min = min(finite) if finite else None
+        no_returns = sum(1 for value in message.ranges if value == math.inf)
+        valid_count = len(finite) + no_returns if limits_valid else 0
+        self.scan_quality = ('正常' if message.ranges and valid_count == len(message.ranges)
+                             else '无有效数据' if not valid_count else '部分无效')
 
     def on_battery(self, message):
         self.last_battery = time.monotonic()
@@ -66,8 +75,13 @@ class RobotStatusPublisher(Node):
         if self.last_scan is None or now - self.last_scan > timeout:
             level = max(level, DiagnosticStatus.STALE)
             problems.append('scan 超时')
-        elif self.scan_min is not None:
-            values.append(KeyValue(key='nearest_obstacle_m', value=f'{self.scan_min:.3f}'))
+        else:
+            values.append(KeyValue(key='scan_quality', value=self.scan_quality))
+            if self.scan_quality != '正常':
+                level = max(level, DiagnosticStatus.WARN)
+                problems.append('scan ' + self.scan_quality)
+            if self.scan_min is not None:
+                values.append(KeyValue(key='nearest_obstacle_m', value=f'{self.scan_min:.3f}'))
         if (self.last_battery is not None and now - self.last_battery <= timeout
                 and self.battery_percent is not None
                 and math.isfinite(self.battery_percent)):

@@ -27,7 +27,7 @@ from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
 
-from launch_ros.actions import Node, PushRosNamespace
+from launch_ros.actions import Node, PushRosNamespace, SetRemap
 from turtlebot4_tutorial.launch_support import make_rviz
 
 
@@ -48,6 +48,8 @@ ARGUMENTS = [
     DeclareLaunchArgument('sensors_plugin', default_value='true',
                           choices=['true', 'false'],
                           description='Enable only on the first robot in a Gazebo world'),
+    DeclareLaunchArgument('cmd_vel_topic', default_value='cmd_vel',
+                          description='ROS topic used by the simulated base'),
     DeclareLaunchArgument('spawn_dock', default_value='true',
                           choices=['true', 'false'],
                           description='Spawn the charging dock at the robot start pose'),
@@ -128,6 +130,8 @@ def generate_launch_description():
 
     spawn_robot_group_action = GroupAction([
         PushRosNamespace(namespace),
+        # Keep the upstream bridge on the configured base input topic.
+        SetRemap([namespace, '/cmd_vel'], LaunchConfiguration('cmd_vel_topic')),
 
         # Robot description with a Gazebo Fortress GPU LiDAR self-hit workaround.
         Node(

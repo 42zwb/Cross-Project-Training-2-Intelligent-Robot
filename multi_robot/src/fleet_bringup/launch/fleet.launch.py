@@ -11,17 +11,24 @@ from launch.actions import (
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from fleet_bringup.prepare import prepare
+from fleet_bringup.simulation_preflight import launch_preflight
 from ament_index_python.packages import get_package_share_directory as share
+from ament_index_python.packages import get_package_prefix
 
 
 def setup(context):
+    if LaunchConfiguration('architecture').perform(context) == 'decentralized':
+        from fleet_bringup.peer_launch import setup as peer_setup
+        return peer_setup(context)
     out = Path(LaunchConfiguration("assets").perform(context))
     cfg = prepare(out, LaunchConfiguration("config").perform(context))
+    launch_preflight(context, project='fleet', report_path=out.parent / 'startup_preflight.json')
     full = LaunchConfiguration("mode").perform(context) == "full"
     actions = [
         SetEnvironmentVariable("IGN_GAZEBO_RESOURCE_PATH", str(out) + os.pathsep + os.environ.get("IGN_GAZEBO_RESOURCE_PATH", "")),
         ExecuteProcess(
-            cmd=["ign", "gazebo", str(out / "arena.sdf"), "-r", "-s", "-v", "2"],
+            cmd=[str(Path(get_package_prefix('fleet_bridge')) / 'lib/fleet_bridge/fleet_sim_server'),
+                 str(out / "arena.sdf")],
             output="log",
         ),
         Node(
@@ -198,8 +205,13 @@ def setup(context):
 def generate_launch_description():
     return LaunchDescription(
         [
-            DeclareLaunchArgument("gui", default_value="true"),
+            DeclareLaunchArgument("gui", default_value="false"),
             DeclareLaunchArgument("mode", default_value="full"),
+            DeclareLaunchArgument('architecture', default_value='decentralized',
+                                  choices=['centralized', 'decentralized']),
+            DeclareLaunchArgument('no_dashboard', default_value='false'),
+            DeclareLaunchArgument('acceptance_scene', default_value='none',
+                                  choices=['none', 'separated-rooms', 'symmetric-square']),
             DeclareLaunchArgument("assets", default_value="/tmp/fleet_assets"),
             DeclareLaunchArgument(
                 "config",

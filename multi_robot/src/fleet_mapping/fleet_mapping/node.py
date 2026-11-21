@@ -59,6 +59,7 @@ class Mapping(Node):
         self.static_sent = 0
         self.align = {}
         self.maps = {}
+        self.map_received = {}
         self.map_revision = 0
         self.completion = ObstacleCompletion()
         self.last_mask_drop = {}
@@ -112,8 +113,10 @@ class Mapping(Node):
     def local_map(self, name, message):
         if valid_grid_message(message):
             self.maps[name] = message
+            self.map_received[name] = time.monotonic()
             self.map_revision += 1
         else:
+            self.map_received.pop(name, None)
             if self.maps.pop(name, None) is not None:
                 self.map_revision += 1
 
@@ -217,6 +220,11 @@ class Mapping(Node):
                     if not future.done():
                         future.cancel()
                     self.destroy_client(client)
+                for temporary in pending.get("tempfiles", {}).values():
+                    try:
+                        temporary.unlink(missing_ok=True)
+                    except OSError:
+                        pass
 
     def tick(self):
         self.expire_saves()
@@ -301,6 +309,9 @@ class Mapping(Node):
                     {
                         "aligned": list(self.align),
                         "local_maps": list(self.maps),
+                        "local_map_age": {
+                            n: time.monotonic() - t for n, t in self.map_received.items()
+                        },
                         **self.map_metrics,
                         "scan_age": {
                             n: time.monotonic() - t for n, t in self.received.items()
@@ -325,6 +336,14 @@ class Mapping(Node):
             dest = Path(destination).expanduser().resolve()
             if not hasattr(self, "data"):
                 raise RuntimeError("共享地图尚未生成")
+            if (request_id in self.save_pending
+                    and self.save_pending[request_id]["destination"] == str(dest)):
+                # A retry of the same request shares the original result. A
+                # rejection with the same ID and destination could otherwise
+                # be mistaken for the original operation's result.
+                return
+            if request_id in self.save_pending:
+                raise RuntimeError("该请求 ID 已有地图保存任务正在执行")
             if len(self.save_pending) >= 4:
                 raise RuntimeError("地图保存队列已满，请等待现有任务完成")
             if any(
@@ -362,37 +381,49 @@ class Mapping(Node):
             "started": False,
             "deadline": time.monotonic() + 12.0,
             "clients": [],
+            "tempfiles": {},
         }
         for r in self.robots:
             n = r["name"]
-            client = self.create_client(WriteState, f"/{n}/write_state")
-            req = WriteState.Request()
-            req.filename = str(dest / f"{n}.pbstream")
-            req.include_unfinished_submaps = True
-            if client.service_is_ready():
-                self.save_pending[request_id]["remaining"] += 1
+            client = None
+            try:
+                client = self.create_client(WriteState, f"/{n}/write_state")
+                if not client.service_is_ready():
+                    raise RuntimeError("WriteState 服务不可用")
+                req = WriteState.Request()
+                temporary = dest / f".{n}.{uuid.uuid4().hex}.tmp.pbstream"
+                req.filename = str(temporary)
+                req.include_unfinished_submaps = True
                 future = client.call_async(req)
+                self.save_pending[request_id]["remaining"] += 1
                 self.save_pending[request_id]["clients"].append((client, future))
+                self.save_pending[request_id]["tempfiles"][client] = temporary
                 future.add_done_callback(
-                    lambda f, n=n, rid=request_id, c=client: self.save_done(
-                        rid, n, c, f
+                    lambda f, n=n, rid=request_id, c=client, tmp=temporary: self.save_done(
+                        rid, n, c, f, tmp
                     )
                 )
-            else:
-                self.get_logger().error(f"{n} WriteState 服务不可用，PBStream 未保存")
-                self.save_pending[request_id]["errors"].append(
-                    f"{n} WriteState 服务不可用"
-                )
-                self.destroy_client(client)
+            except Exception as error:
+                self.get_logger().error(f"{n} PBStream 请求失败：{error}")
+                self.save_pending[request_id]["errors"].append(f"{n} PBStream 请求失败：{error}")
+                if client is not None:
+                    self.destroy_client(client)
         pending = self.save_pending[request_id]
         pending["started"] = True
         if pending["remaining"] == 0:
             self.finish_save(request_id)
 
-    def save_done(self, request_id, name, client, future):
+    def save_done(self, request_id, name, client, future, temporary=None):
         pending = self.save_pending.get(request_id)
-        if pending is None:
+        if pending is None or not any(c is client and f is future for c, f in pending["clients"]):
+            # An expired request can finish after its ID has been reused.
+            if temporary is not None:
+                try:
+                    temporary.unlink(missing_ok=True)
+                except OSError:
+                    pass
             return
+        temporary = pending["tempfiles"].pop(client)
         pending["clients"] = [(c, f) for c, f in pending["clients"] if c is not client]
         self.destroy_client(client)
         try:
@@ -401,8 +432,18 @@ class Mapping(Node):
                 pending["errors"].append(
                     f"{name} PBStream 保存失败：{response.status.message}"
                 )
+            elif not temporary.is_file() or temporary.stat().st_size == 0:
+                pending["errors"].append(f"{name} PBStream 文件不存在或为空")
+            else:
+                # Never mistake an old output for a new successful service call.
+                temporary.replace(Path(pending["destination"]) / f"{name}.pbstream")
         except Exception as e:
             pending["errors"].append(f"{name} PBStream 保存异常：{e}")
+        finally:
+            try:
+                temporary.unlink(missing_ok=True)
+            except OSError:
+                pass
         pending["remaining"] -= 1
         if pending["started"] and pending["remaining"] == 0:
             self.finish_save(request_id)

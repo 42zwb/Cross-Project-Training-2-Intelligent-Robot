@@ -1,3 +1,4 @@
+import math
 import time
 import unittest
 
@@ -34,6 +35,19 @@ def make_scan(front_distance):
     return scan
 
 
+def make_full_scan(obstacle_angle=None, obstacle_distance=2.0):
+    scan = LaserScan()
+    scan.angle_min = -math.pi
+    scan.angle_increment = 2.0 * math.pi / 720.0
+    scan.range_min = 0.1
+    scan.range_max = 12.0
+    scan.ranges = [2.0] * 720
+    if obstacle_angle is not None:
+        index = int(round((obstacle_angle - scan.angle_min) / scan.angle_increment))
+        scan.ranges[index % len(scan.ranges)] = obstacle_distance
+    return scan
+
+
 def forward_command():
     command = Twist()
     command.linear.x = 0.3
@@ -57,7 +71,7 @@ class ControlNodeTests(unittest.TestCase):
         try:
             node.on_command(forward_command())
             self.assertEqual(recorder.messages[-1].linear.x, 0.0)
-            self.assertAlmostEqual(recorder.messages[-1].angular.z, 0.2)
+            self.assertEqual(recorder.messages[-1].angular.z, 0.0)
         finally:
             node.destroy_node()
 
@@ -66,11 +80,11 @@ class ControlNodeTests(unittest.TestCase):
         recorder = RecordingPublisher()
         node.publisher = recorder
         try:
-            node.on_scan(make_scan(0.2))
+            node.on_scan(make_full_scan(0.0, 0.2))
             node.on_command(forward_command())
             self.assertEqual(recorder.messages[-1].linear.x, 0.0)
 
-            node.on_scan(make_scan(1.0))
+            node.on_scan(make_full_scan(0.0, 1.0))
             node.on_command(forward_command())
             self.assertAlmostEqual(recorder.messages[-1].linear.x, 0.3)
         finally:
@@ -81,7 +95,7 @@ class ControlNodeTests(unittest.TestCase):
         recorder = RecordingPublisher()
         node.publisher = recorder
         try:
-            node.on_scan(make_scan(1.0))
+            node.on_scan(make_full_scan(0.0, 1.0))
             node.last_scan = time.monotonic() - 2.0
             node.on_command(forward_command())
             self.assertEqual(recorder.messages[-1].linear.x, 0.0)
@@ -108,9 +122,21 @@ class ControlNodeTests(unittest.TestCase):
                 Parameter('stop_distance', value=0.8),
                 Parameter('slow_distance', value=0.4),
             ])
-            node.on_scan(make_scan(1.0))
+            node.on_scan(make_full_scan(0.0, 1.0))
             node.on_command(forward_command())
             self.assertEqual(recorder.messages[-1].linear.x, 0.0)
+        finally:
+            node.destroy_node()
+
+    def test_collision_monitor_blocks_rotation_near_side_obstacle(self):
+        node = CollisionMonitor()
+        recorder = RecordingPublisher()
+        node.publisher = recorder
+        try:
+            node.on_scan(make_full_scan(math.pi / 2.0, 0.2))
+            node.on_command(forward_command())
+            self.assertAlmostEqual(recorder.messages[-1].linear.x, 0.3)
+            self.assertEqual(recorder.messages[-1].angular.z, 0.0)
         finally:
             node.destroy_node()
 

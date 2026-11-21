@@ -81,3 +81,76 @@ def test_native_bridge_rejects_invalid_specs_without_hanging_or_aborting(spec):
     result=subprocess.run([str(BRIDGE),spec],capture_output=True,text=True,env=env,timeout=5)
     assert result.returncode>0
     assert "corrupted" not in result.stderr
+
+
+def test_supervisor_reaps_launch_when_post_spawn_initialization_fails(tmp_path):
+    import shutil
+    import time
+    project = tmp_path / 'project'
+    scripts = project / 'scripts'
+    scripts.mkdir(parents=True)
+    for name in ['supervise.py', 'shutdown_context.py', 'runtime_context.py']:
+        shutil.copy2(ROOT / 'scripts' / name, scripts / name)
+    for name in ['env.sh', 'build.sh', 'run.sh', 'demo.sh']:
+        shutil.copy2(ROOT / name, project / name)
+    # Make latest.txt unwritable as a file after Popen has succeeded.
+    (project / 'runs' / 'latest.txt').mkdir(parents=True)
+    bin_dir = tmp_path / 'bin'
+    bin_dir.mkdir()
+    ros = bin_dir / 'ros2'
+    ros.write_text('#!/usr/bin/python3\nimport time\ntime.sleep(60)\n')
+    ros.chmod(0o755)
+    pid_file = tmp_path / 'child.pid'
+    hook = tmp_path / 'hook'
+    hook.mkdir()
+    (hook / 'sitecustomize.py').write_text('''import subprocess, os
+original = subprocess.Popen.__init__
+def wrapped(self, args, *a, **kw):
+    original(self, args, *a, **kw)
+    if isinstance(args, list) and args and args[0] == "ros2":
+        open(os.environ["TEST_LAUNCH_PID"], "w").write(str(self.pid))
+subprocess.Popen.__init__ = wrapped
+''')
+    env = dict(os.environ, PATH=str(bin_dir) + os.pathsep + os.environ['PATH'],
+        PYTHONPATH=str(hook) + os.pathsep + os.environ.get('PYTHONPATH',''),
+        ROS_DOMAIN_ID='226', IGN_PARTITION='fleet-supervisor-failure-test-226',
+        TEST_LAUNCH_PID=str(pid_file))
+    result = subprocess.run([sys.executable, str(scripts/'supervise.py'), '--base-only',
+        '--run-dir', str(tmp_path/'external'), '--config', str(ROOT/'src/fleet_bringup/config/fleet.yaml'),
+        '--seed', '24'], env=env, capture_output=True, text=True, timeout=30)
+    assert result.returncode != 0 and 'IsADirectoryError' in result.stderr
+    pid = int(pid_file.read_text())
+    try:
+        for _ in range(50):
+            if not Path(f'/proc/{pid}').exists(): break
+            time.sleep(0.02)
+        assert not Path(f'/proc/{pid}').exists()
+    finally:
+        try: os.killpg(pid, 9)
+        except ProcessLookupError: pass
+
+
+def test_supervisor_creates_latest_parent_for_external_run(tmp_path):
+    import shutil
+    project = tmp_path/'project'
+    scripts = project/'scripts'
+    scripts.mkdir(parents=True)
+    for name in ['supervise.py', 'shutdown_context.py', 'runtime_context.py']:
+        shutil.copy2(ROOT/'scripts'/name, scripts/name)
+    for name in ['env.sh', 'build.sh', 'run.sh', 'demo.sh']:
+        shutil.copy2(ROOT/name, project/name)
+    bin_dir = tmp_path/'bin'
+    bin_dir.mkdir()
+    ros = bin_dir/'ros2'
+    ros.write_text('#!/usr/bin/python3\nimport time\ntime.sleep(60)\n')
+    ros.chmod(0o755)
+    env = dict(os.environ, PATH=str(bin_dir)+os.pathsep+os.environ['PATH'],
+               ROS_DOMAIN_ID='227', IGN_PARTITION='fleet-supervisor-new-runs-test-227')
+    run = tmp_path/'external'
+    result = subprocess.run([sys.executable, str(scripts/'supervise.py'), '--base-only',
+        '--run-dir', str(run), '--config', str(ROOT/'src/fleet_bringup/config/fleet.yaml'),
+        '--seed', '24'], env=env, capture_output=True, text=True, timeout=30)
+    # This fixture intentionally omits the resource sampler, which triggers cleanup.
+    assert result.returncode != 0
+    assert (project/'runs/latest.txt').read_text() == str(run)
+    assert (run/'cleanup.json').exists()

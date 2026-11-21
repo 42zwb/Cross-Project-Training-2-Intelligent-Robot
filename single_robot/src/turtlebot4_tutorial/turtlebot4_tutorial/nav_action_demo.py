@@ -20,6 +20,8 @@ class NavigateActionDemo(Node):
         self.goal_handle = None
         self.goal_future = None
         self.result_future = None
+        self.cancel_future = None
+        self.terminal_confirmed = False
         self.done = False
         self.success = False
 
@@ -53,8 +55,13 @@ class NavigateActionDemo(Node):
             return
         self.goal_handle = goal_handle
         self.get_logger().info('目标已接受。')
-        self.result_future = goal_handle.get_result_async()
-        self.result_future.add_done_callback(self.on_result)
+        try:
+            self.result_future = goal_handle.get_result_async()
+            self.result_future.add_done_callback(self.on_result)
+        except Exception as error:
+            self.get_logger().error(f'请求导航结果失败: {error}')
+            self.done = True
+            self.request_cancel()
 
     def on_result(self, future):
         try:
@@ -62,6 +69,15 @@ class NavigateActionDemo(Node):
         except Exception as error:
             self.get_logger().error(f'读取导航结果失败: {error}')
             self.done = True
+            self.request_cancel()
+            return
+        self.terminal_confirmed = status in (GoalStatus.STATUS_SUCCEEDED,
+                                             GoalStatus.STATUS_CANCELED,
+                                             GoalStatus.STATUS_ABORTED)
+        if not self.terminal_confirmed:
+            self.get_logger().error('导航结果不是终态，正在取消。')
+            self.done = True
+            self.request_cancel()
             return
         self.success = status == GoalStatus.STATUS_SUCCEEDED
         if self.success:
@@ -69,6 +85,14 @@ class NavigateActionDemo(Node):
         else:
             self.get_logger().error(f'目标导航结束，状态码: {status}')
         self.done = True
+
+    def request_cancel(self):
+        if (self.goal_handle is not None and not self.terminal_confirmed
+                and self.cancel_future is None):
+            try:
+                self.cancel_future = self.goal_handle.cancel_goal_async()
+            except Exception as error:
+                self.get_logger().error(f'无法发送导航取消请求: {error}')
 
     def cancel(self, timeout=5.0):
         """Wait for cancellation acknowledgement and a terminal result."""
@@ -82,19 +106,24 @@ class NavigateActionDemo(Node):
             if not self.done:
                 self.get_logger().error('目标发送结果未返回，无法确认取消。')
             return self.done
-        if self.done:
+        if self.terminal_confirmed:
             return True
-        future = self.goal_handle.cancel_goal_async()
+        self.request_cancel()
+        future = self.cancel_future
+        if future is None:
+            return False
         remaining = max(0.0, deadline - time.monotonic())
         rclpy.spin_until_future_complete(self, future, timeout_sec=remaining)
         if not future.done() or not future.result().goals_canceling:
             self.get_logger().error('导航服务器未确认取消目标。')
             return False
-        while rclpy.ok() and not self.done and time.monotonic() < deadline:
+        while rclpy.ok() and not self.terminal_confirmed and time.monotonic() < deadline:
+            if self.result_future is None or self.result_future.done():
+                break
             rclpy.spin_once(self, timeout_sec=0.1)
-        if not self.done:
-            self.get_logger().warning('取消已确认，但导航结束结果尚未返回。')
-        return self.done
+        if not self.terminal_confirmed:
+            self.get_logger().warning('取消已确认，但导航结束结果尚未确认。')
+        return self.terminal_confirmed
 
 
 def main():
@@ -129,12 +158,16 @@ def main():
                 node.cancel()
                 timed_out = True
                 break
-    except RuntimeError as error:
+    except Exception as error:
         node.get_logger().error(str(error))
     except KeyboardInterrupt:
         node.get_logger().warning('用户中断导航。')
-        node.cancel()
     finally:
+        if node.goal_future is not None and not node.terminal_confirmed:
+            try:
+                node.cancel()
+            except Exception as error:
+                node.get_logger().error(f'取消导航失败，请检查机器人状态: {error}')
         node.destroy_node()
         rclpy.try_shutdown()
     return 0 if node.success and not timed_out else 1

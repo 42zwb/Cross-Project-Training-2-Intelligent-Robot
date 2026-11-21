@@ -7,6 +7,17 @@ FLEET_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 [[ -f "$FLEET_ROOT/install/setup.bash" ]] && source "$FLEET_ROOT/install/setup.bash"
 export ROS_DOMAIN_ID="${FLEET_DOMAIN_ID:-91}"
 export RMW_IMPLEMENTATION="${FLEET_RMW:-rmw_cyclonedds_cpp}"
+# This project runs three peers and one simulator on the same host. Bind both
+# transports to loopback so a Wi-Fi address change cannot split a live run.
+export ROS_LOCALHOST_ONLY=1
+if [[ "$RMW_IMPLEMENTATION" == rmw_cyclonedds_cpp ]]; then
+ # Humble's RMW injects another lo entry when ROS_LOCALHOST_ONLY=1; use
+ # one explicit interface in XML instead of selecting lo twice.
+ export ROS_LOCALHOST_ONLY=0
+ export CYCLONEDDS_URI="file://$FLEET_ROOT/src/fleet_bringup/config/cyclonedds-local.xml"
+fi
+export IGN_IP=127.0.0.1
+export GZ_IP="$IGN_IP"
 export IGN_PARTITION="${FLEET_IGN_PARTITION:-tb4_course_fleet}"
 export GZ_PARTITION="$IGN_PARTITION"
 export RCUTILS_LOGGING_BUFFERED_STREAM=1

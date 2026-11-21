@@ -5,7 +5,16 @@ from pathlib import Path
 
 run = Path(sys.argv[1])
 pid = int((run / "launch.pid").read_text())
+session = os.environ.get('TB4_SIM_SESSION')
 running = True
+
+
+def oom_kills():
+    return int(next(line.split()[1] for line in Path('/proc/vmstat').read_text().splitlines()
+                    if line.startswith('oom_kill ')))
+
+
+initial_oom_kills = oom_kills()
 
 
 def stop(*a):
@@ -26,6 +35,14 @@ with open(run / "resources.jsonl", "a", buffering=1) as out:
             except (OSError, ValueError, IndexError):
                 pass
         selected = {pid}
+        if session:
+            for member in processes:
+                try:
+                    raw = Path(f'/proc/{member}/environ').read_bytes().split(b'\0')
+                    if ('TB4_SIM_SESSION='+session).encode() in raw:
+                        selected.add(member)
+                except OSError:
+                    pass
         while True:
             extended = selected | {
                 p for p, (parent, _) in processes.items() if parent in selected
@@ -47,6 +64,7 @@ with open(run / "resources.jsonl", "a", buffering=1) as out:
                     / 1048576,
                     "process_count": len(selected),
                     "system_available_mb": mem["MemAvailable"] / 1024,
+                    "system_oom_kills_since_start": oom_kills()-initial_oom_kills,
                 }
             )
             + "\n"

@@ -1,0 +1,2740 @@
+{
+  "source_run": "release-v26/full-seed24-layout0",
+  "state": {
+    "steady_time": 20389.984573684,
+    "sim_time": 1107.0,
+    "mode": "IDLE",
+    "team_ready": true,
+    "coordinate_frame": "3f7e1e18d6690ce238c1b7c9",
+    "robots": {
+      "robot1": {
+        "ready": true,
+        "aligned": true,
+        "boot_id": "e148ef24d80b4bc990db9d57f815840f",
+        "map_epoch": 2,
+        "mission_id": "784f363126714adbb99f7af1c9c24677",
+        "alignment": {
+          "verified": true,
+          "ever_verified": true,
+          "map_aligned": true,
+          "hold_seconds": 11.900106407996645,
+          "target_revision": 95,
+          "current_revision": 107,
+          "confirmed_revision": 104,
+          "registered_revision": 97
+        },
+        "mapping_diagnostics": {
+          "confirmed_local_revision": 104,
+          "registered_local_revision": 97,
+          "map_ages": {
+            "robot2": 0.1310565610001504,
+            "robot3": 0.11369080600343295,
+            "robot1": 0.6473161280009663
+          },
+          "geometry": {
+            "certificates": 12,
+            "local_references": 3,
+            "computed_proofs": 2,
+            "receive_counts": {
+              "missing_certificate": 60,
+              "accepted": 74,
+              "replay": 40
+            },
+            "last_receive": {
+              "reason": "accepted",
+              "sender": "robot1",
+              "certificate": "7da0a9a1d98f025d06f46c62",
+              "revision": 104,
+              "steady_time": 20389.873790116
+            },
+            "recent_certificates": [
+              {
+                "certificate": "8547b165fa046fa1a408cb4c",
+                "local_reference": false,
+                "endpoints": {
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 1078,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 1054,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              },
+              {
+                "certificate": "2a8da2caa4074df15e609825",
+                "local_reference": false,
+                "endpoints": {
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 1089,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 1065,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              },
+              {
+                "certificate": "68864493eaaa24e7394eb93c",
+                "local_reference": false,
+                "endpoints": {
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 1091,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 1067,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              },
+              {
+                "certificate": "7da0a9a1d98f025d06f46c62",
+                "local_reference": true,
+                "endpoints": {
+                  "robot1": {
+                    "boot_id": "e148ef24d80b4bc990db9d57f815840f",
+                    "epoch": 2,
+                    "reference_revision": 85,
+                    "current_identity": [
+                      "e148ef24d80b4bc990db9d57f815840f",
+                      2
+                    ],
+                    "proof_revision": 104,
+                    "proof_age": 3.4664541210004245
+                  },
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 1081,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": 1098,
+                    "proof_age": 4.325318416002119
+                  }
+                }
+              },
+              {
+                "certificate": "e0c024bf4d74d40651254056",
+                "local_reference": true,
+                "endpoints": {
+                  "robot1": {
+                    "boot_id": "e148ef24d80b4bc990db9d57f815840f",
+                    "epoch": 2,
+                    "reference_revision": 89,
+                    "current_identity": [
+                      "e148ef24d80b4bc990db9d57f815840f",
+                      2
+                    ],
+                    "proof_revision": 104,
+                    "proof_age": 3.4777726610009267
+                  },
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 1085,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": 1098,
+                    "proof_age": 4.356797838001512
+                  }
+                }
+              },
+              {
+                "certificate": "56591531c8cfd9328e54ca65",
+                "local_reference": true,
+                "endpoints": {
+                  "robot1": {
+                    "boot_id": "e148ef24d80b4bc990db9d57f815840f",
+                    "epoch": 2,
+                    "reference_revision": 97,
+                    "current_identity": [
+                      "e148ef24d80b4bc990db9d57f815840f",
+                      2
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 1093,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              }
+            ],
+            "checks": [
+              {
+                "certificate": "e0c024bf4d74d40651254056",
+                "reference_revision": 89,
+                "revision": 104,
+                "reason": "accepted",
+                "score": 0.9894761397329161,
+                "rms": 0.0,
+                "observed": 1.0,
+                "conflict": 0.0
+              },
+              {
+                "certificate": "7da0a9a1d98f025d06f46c62",
+                "reference_revision": 85,
+                "revision": 104,
+                "reason": "accepted",
+                "score": 0.9640695301712187,
+                "rms": 0.020927403504297278,
+                "observed": 0.9738134206219312,
+                "conflict": 0.0
+              }
+            ]
+          },
+          "worker": {
+            "active_kind": "registration",
+            "active_age": 3.0000765360018704,
+            "last": {
+              "kind": "continuity",
+              "seconds": 0.5000310860013997
+            }
+          },
+          "registration": {
+            "last": {
+              "completed_steady": 20386.37340401,
+              "source": {
+                "robot": "robot1",
+                "boot_id": "e148ef24d80b4bc990db9d57f815840f",
+                "epoch": 2,
+                "revision": 97
+              },
+              "target": {
+                "robot": "robot2",
+                "boot_id": "c58236f02938402bb46191a020b5870a",
+                "epoch": 1,
+                "revision": 1093
+              },
+              "match": {
+                "transform": [
+                  4.804562972377802,
+                  0.26005487958831475,
+                  0.058137541264006096
+                ],
+                "score": 0.8859688908882095,
+                "overlap": 0.5722169362511893,
+                "rms": 0.0352218867631363
+              },
+              "assessment": {
+                "feature_matches": 22,
+                "hypotheses": 84,
+                "assessments": {
+                  "unsupported": 83,
+                  "below_floor": 0,
+                  "plausible": 2
+                },
+                "best_evaluated": [
+                  {
+                    "transform": [
+                      4.804562972377802,
+                      0.26005487958831475,
+                      0.058137541264006096
+                    ],
+                    "score": 0.8859688908882095,
+                    "overlap": 0.5722169362511893,
+                    "rms": 0.0352218867631363
+                  },
+                  {
+                    "transform": [
+                      4.801094853176749,
+                      0.26116242154598296,
+                      0.05779724727772913
+                    ],
+                    "score": 0.8847853475460005,
+                    "overlap": 0.5725975261655566,
+                    "rms": 0.03568084917264257
+                  }
+                ],
+                "candidates": [
+                  {
+                    "transform": [
+                      4.804562972377802,
+                      0.26005487958831475,
+                      0.058137541264006096
+                    ],
+                    "score": 0.8859688908882095,
+                    "overlap": 0.5722169362511893,
+                    "rms": 0.0352218867631363
+                  }
+                ],
+                "reason": "accepted"
+              },
+              "stable_count": 4,
+              "stable_seconds": 35.000893894997716,
+              "outcome": "stable_match",
+              "pending_endorsed": 0
+            },
+            "candidates": [
+              {
+                "source": [
+                  "robot1",
+                  "e148ef24d80b4bc990db9d57f815840f",
+                  2
+                ],
+                "target": [
+                  "robot2",
+                  "c58236f02938402bb46191a020b5870a",
+                  1
+                ],
+                "stable_count": 4,
+                "stable_seconds": 38.50099081100052,
+                "age": 3.5000969160028035
+              },
+              {
+                "source": [
+                  "robot1",
+                  "e148ef24d80b4bc990db9d57f815840f",
+                  2
+                ],
+                "target": [
+                  "robot3",
+                  "1948268643c04a79953d89d01b14c8d7",
+                  1
+                ],
+                "stable_count": 1,
+                "stable_seconds": 10.500304960001813,
+                "age": 10.500304960001813
+              }
+            ],
+            "pending_count": 1,
+            "pending": [
+              {
+                "constraint": "0eeb54e48065e74a877f8595",
+                "source": "robot1",
+                "source_boot": "e148ef24d80b4bc990db9d57f815840f",
+                "source_epoch": 2,
+                "source_revision": 88,
+                "target": "robot3",
+                "target_boot": "1948268643c04a79953d89d01b14c8d7",
+                "target_epoch": 1,
+                "target_revision": 1059,
+                "witnesses": [
+                  "robot3"
+                ]
+              }
+            ]
+          },
+          "continuity_rejections": 0
+        },
+        "safety": {
+          "reason": "\u5f85\u547d",
+          "moving_allowed": false,
+          "v": 0.0,
+          "w": 0.0,
+          "lease_valid": false,
+          "mission_id": "784f363126714adbb99f7af1c9c24677",
+          "scan_valid": true,
+          "odom_valid": true,
+          "localization_ok": true,
+          "scan_age": 0.0012637589970836416,
+          "odom_age": 0.016029639999032952,
+          "estop": false,
+          "command_epoch": ""
+        },
+        "regional_travel": 0.0,
+        "nav_ready": true,
+        "state_age": 0.05255544299870962,
+        "frame_epoch": "3f7e1e18d6690ce238c1b7c9",
+        "connected_members": [
+          "robot1",
+          "robot2",
+          "robot3"
+        ],
+        "pose": [
+          3.637151050125388,
+          0.2624711788188886,
+          -0.2628535189364301
+        ],
+        "local_pose": [
+          3.4490077480526904,
+          0.4236928852304094,
+          -0.2048270178005381
+        ],
+        "pose_sim_time": 1106.905,
+        "pose_steady_time": 20389.889875041998,
+        "goal": null
+      },
+      "robot2": {
+        "ready": true,
+        "aligned": true,
+        "boot_id": "c58236f02938402bb46191a020b5870a",
+        "map_epoch": 1,
+        "mission_id": "784f363126714adbb99f7af1c9c24677",
+        "alignment": {
+          "verified": true,
+          "ever_verified": true,
+          "map_aligned": true,
+          "hold_seconds": 1085.928717062001,
+          "target_revision": 17,
+          "current_revision": 1102,
+          "confirmed_revision": 1098,
+          "registered_revision": 1093
+        },
+        "mapping_diagnostics": {
+          "confirmed_local_revision": 1098,
+          "registered_local_revision": 1093,
+          "map_ages": {
+            "robot1": 0.24142791699705413,
+            "robot2": 0.7111014980000618,
+            "robot3": 0.7063211979984771
+          },
+          "geometry": {
+            "certificates": 15,
+            "local_references": 11,
+            "computed_proofs": 2,
+            "receive_counts": {
+              "accepted": 540,
+              "replay": 194,
+              "expired_or_future": 4,
+              "missing_certificate": 1
+            },
+            "last_receive": {
+              "reason": "accepted",
+              "sender": "robot2",
+              "certificate": "e0c024bf4d74d40651254056",
+              "revision": 1098,
+              "steady_time": 20389.46877116
+            },
+            "recent_certificates": [
+              {
+                "certificate": "8547b165fa046fa1a408cb4c",
+                "local_reference": true,
+                "endpoints": {
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 1078,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 1054,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              },
+              {
+                "certificate": "2a8da2caa4074df15e609825",
+                "local_reference": true,
+                "endpoints": {
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 1089,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 1065,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              },
+              {
+                "certificate": "68864493eaaa24e7394eb93c",
+                "local_reference": true,
+                "endpoints": {
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 1091,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 1067,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              },
+              {
+                "certificate": "7da0a9a1d98f025d06f46c62",
+                "local_reference": true,
+                "endpoints": {
+                  "robot1": {
+                    "boot_id": "e148ef24d80b4bc990db9d57f815840f",
+                    "epoch": 2,
+                    "reference_revision": 85,
+                    "current_identity": [
+                      "e148ef24d80b4bc990db9d57f815840f",
+                      2
+                    ],
+                    "proof_revision": 104,
+                    "proof_age": 3.0612073409974982
+                  },
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 1081,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": 1098,
+                    "proof_age": 3.920071635999193
+                  }
+                }
+              },
+              {
+                "certificate": "e0c024bf4d74d40651254056",
+                "local_reference": true,
+                "endpoints": {
+                  "robot1": {
+                    "boot_id": "e148ef24d80b4bc990db9d57f815840f",
+                    "epoch": 2,
+                    "reference_revision": 89,
+                    "current_identity": [
+                      "e148ef24d80b4bc990db9d57f815840f",
+                      2
+                    ],
+                    "proof_revision": 104,
+                    "proof_age": 3.0725258809980005
+                  },
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 1085,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": 1098,
+                    "proof_age": 3.9515510579985857
+                  }
+                }
+              },
+              {
+                "certificate": "56591531c8cfd9328e54ca65",
+                "local_reference": true,
+                "endpoints": {
+                  "robot1": {
+                    "boot_id": "e148ef24d80b4bc990db9d57f815840f",
+                    "epoch": 2,
+                    "reference_revision": 97,
+                    "current_identity": [
+                      "e148ef24d80b4bc990db9d57f815840f",
+                      2
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 1093,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              }
+            ],
+            "checks": [
+              {
+                "certificate": "e0c024bf4d74d40651254056",
+                "reference_revision": 1085,
+                "revision": 1098,
+                "reason": "accepted",
+                "score": 0.9977666971164334,
+                "rms": 0.0,
+                "observed": 1.0,
+                "conflict": 0.0
+              },
+              {
+                "certificate": "7da0a9a1d98f025d06f46c62",
+                "reference_revision": 1081,
+                "revision": 1098,
+                "reason": "accepted",
+                "score": 0.9977658331694765,
+                "rms": 0.0,
+                "observed": 1.0,
+                "conflict": 0.0
+              }
+            ]
+          },
+          "worker": {
+            "active_kind": "registration",
+            "active_age": 3.5000345179978467,
+            "last": {
+              "kind": "continuity",
+              "seconds": 0.5000442130003648
+            }
+          },
+          "registration": {
+            "last": {
+              "completed_steady": 20385.468189456,
+              "source": {
+                "robot": "robot2",
+                "boot_id": "c58236f02938402bb46191a020b5870a",
+                "epoch": 1,
+                "revision": 1091
+              },
+              "target": {
+                "robot": "robot3",
+                "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                "epoch": 1,
+                "revision": 1067
+              },
+              "match": {
+                "transform": [
+                  5.026798920539118,
+                  -0.005006561140795574,
+                  0.0005348395022614892
+                ],
+                "score": 0.9334493047004567,
+                "overlap": 0.9217887725975261,
+                "rms": 0.02515576512172274
+              },
+              "assessment": {
+                "feature_matches": 46,
+                "hypotheses": 84,
+                "assessments": {
+                  "unsupported": 83,
+                  "below_floor": 0,
+                  "plausible": 2
+                },
+                "best_evaluated": [
+                  {
+                    "transform": [
+                      5.026798920539118,
+                      -0.005006561140795574,
+                      0.0005348395022614892
+                    ],
+                    "score": 0.9334493047004567,
+                    "overlap": 0.9217887725975261,
+                    "rms": 0.02515576512172274
+                  },
+                  {
+                    "transform": [
+                      5.025298549524475,
+                      -0.00634643061332209,
+                      0.0004767778800706168
+                    ],
+                    "score": 0.9334493047004567,
+                    "overlap": 0.9217887725975261,
+                    "rms": 0.02515576512172274
+                  }
+                ],
+                "candidates": [
+                  {
+                    "transform": [
+                      5.026798920539118,
+                      -0.005006561140795574,
+                      0.0005348395022614892
+                    ],
+                    "score": 0.9334493047004567,
+                    "overlap": 0.9217887725975261,
+                    "rms": 0.02515576512172274
+                  }
+                ],
+                "reason": "accepted"
+              },
+              "stable_count": 23,
+              "stable_seconds": 304.508030316003,
+              "outcome": "stable_match",
+              "pending_endorsed": 1
+            },
+            "candidates": [
+              {
+                "source": [
+                  "robot1",
+                  "1d4835c5dbb641f587aa6413d3f0058a",
+                  1
+                ],
+                "target": [
+                  "robot2",
+                  "c58236f02938402bb46191a020b5870a",
+                  1
+                ],
+                "stable_count": 54,
+                "stable_seconds": 849.0225408669976,
+                "age": 115.50290560099893
+              },
+              {
+                "source": [
+                  "robot2",
+                  "c58236f02938402bb46191a020b5870a",
+                  1
+                ],
+                "target": [
+                  "robot3",
+                  "1948268643c04a79953d89d01b14c8d7",
+                  1
+                ],
+                "stable_count": 23,
+                "stable_seconds": 308.5080950060001,
+                "age": 4.000064689997089
+              },
+              {
+                "source": [
+                  "robot1",
+                  "e148ef24d80b4bc990db9d57f815840f",
+                  2
+                ],
+                "target": [
+                  "robot2",
+                  "c58236f02938402bb46191a020b5870a",
+                  1
+                ],
+                "stable_count": 3,
+                "stable_seconds": 36.50094308400003,
+                "age": 12.000289682000584
+              }
+            ],
+            "pending_count": 7,
+            "pending": [
+              {
+                "constraint": "f6bdd836291706e82b719ada",
+                "source": "robot1",
+                "source_boot": "1d4835c5dbb641f587aa6413d3f0058a",
+                "source_epoch": 1,
+                "source_revision": 203,
+                "target": "robot2",
+                "target_boot": "c58236f02938402bb46191a020b5870a",
+                "target_epoch": 1,
+                "target_revision": 200,
+                "witnesses": [
+                  "robot1"
+                ]
+              },
+              {
+                "constraint": "2c914ad154c27fb40e2cf257",
+                "source": "robot1",
+                "source_boot": "1d4835c5dbb641f587aa6413d3f0058a",
+                "source_epoch": 1,
+                "source_revision": 247,
+                "target": "robot3",
+                "target_boot": "1948268643c04a79953d89d01b14c8d7",
+                "target_epoch": 1,
+                "target_revision": 243,
+                "witnesses": [
+                  "robot3"
+                ]
+              },
+              {
+                "constraint": "a18c1622dd9b514c9ca1ef8d",
+                "source": "robot2",
+                "source_boot": "c58236f02938402bb46191a020b5870a",
+                "source_epoch": 1,
+                "source_revision": 276,
+                "target": "robot3",
+                "target_boot": "1948268643c04a79953d89d01b14c8d7",
+                "target_epoch": 1,
+                "target_revision": 275,
+                "witnesses": [
+                  "robot3"
+                ]
+              },
+              {
+                "constraint": "0eeb54e48065e74a877f8595",
+                "source": "robot1",
+                "source_boot": "e148ef24d80b4bc990db9d57f815840f",
+                "source_epoch": 2,
+                "source_revision": 88,
+                "target": "robot3",
+                "target_boot": "1948268643c04a79953d89d01b14c8d7",
+                "target_epoch": 1,
+                "target_revision": 1059,
+                "witnesses": [
+                  "robot3"
+                ]
+              }
+            ]
+          },
+          "continuity_rejections": 176
+        },
+        "safety": {
+          "reason": "\u5f85\u547d",
+          "moving_allowed": false,
+          "v": 0.0,
+          "w": 0.0,
+          "lease_valid": false,
+          "mission_id": "784f363126714adbb99f7af1c9c24677",
+          "scan_valid": true,
+          "odom_valid": true,
+          "localization_ok": true,
+          "scan_age": 0.023253432002093177,
+          "odom_age": 0.02732179300073767,
+          "estop": false,
+          "command_epoch": ""
+        },
+        "regional_travel": 22.49429599033274,
+        "nav_ready": true,
+        "state_age": 0.026171183999394998,
+        "frame_epoch": "3f7e1e18d6690ce238c1b7c9",
+        "connected_members": [
+          "robot1",
+          "robot2",
+          "robot3"
+        ],
+        "pose": [
+          4.140747316443959,
+          0.5821885371790532,
+          2.2668930032686205
+        ],
+        "local_pose": [
+          -0.8401250813578858,
+          0.5617872345428907,
+          2.2667819631405064
+        ],
+        "pose_sim_time": 1106.94,
+        "pose_steady_time": 20389.925480471997,
+        "goal": null
+      },
+      "robot3": {
+        "ready": true,
+        "aligned": true,
+        "boot_id": "1948268643c04a79953d89d01b14c8d7",
+        "map_epoch": 1,
+        "mission_id": "784f363126714adbb99f7af1c9c24677",
+        "alignment": {
+          "verified": true,
+          "ever_verified": true,
+          "map_aligned": true,
+          "hold_seconds": 275.3080409639988,
+          "target_revision": 803,
+          "current_revision": 1078,
+          "confirmed_revision": 1067,
+          "registered_revision": 1067
+        },
+        "mapping_diagnostics": {
+          "confirmed_local_revision": 1067,
+          "registered_local_revision": 1067,
+          "map_ages": {
+            "robot1": 0.1681235559990455,
+            "robot2": 0.6377142759993149,
+            "robot3": 0.6323887719991035
+          },
+          "geometry": {
+            "certificates": 15,
+            "local_references": 8,
+            "computed_proofs": 0,
+            "receive_counts": {
+              "accepted": 534,
+              "replay": 188,
+              "missing_certificate": 2,
+              "expired_or_future": 7
+            },
+            "last_receive": {
+              "reason": "accepted",
+              "sender": "robot1",
+              "certificate": "7da0a9a1d98f025d06f46c62",
+              "revision": 104,
+              "steady_time": 20389.374992849
+            },
+            "recent_certificates": [
+              {
+                "certificate": "8547b165fa046fa1a408cb4c",
+                "local_reference": true,
+                "endpoints": {
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 1078,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 1054,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              },
+              {
+                "certificate": "2a8da2caa4074df15e609825",
+                "local_reference": true,
+                "endpoints": {
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 1089,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 1065,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              },
+              {
+                "certificate": "68864493eaaa24e7394eb93c",
+                "local_reference": true,
+                "endpoints": {
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 1091,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 1067,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              },
+              {
+                "certificate": "7da0a9a1d98f025d06f46c62",
+                "local_reference": false,
+                "endpoints": {
+                  "robot1": {
+                    "boot_id": "e148ef24d80b4bc990db9d57f815840f",
+                    "epoch": 2,
+                    "reference_revision": 85,
+                    "current_identity": [
+                      "e148ef24d80b4bc990db9d57f815840f",
+                      2
+                    ],
+                    "proof_revision": 104,
+                    "proof_age": 2.9867791599972406
+                  },
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 1081,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": 1098,
+                    "proof_age": 3.8456434549989353
+                  }
+                }
+              },
+              {
+                "certificate": "e0c024bf4d74d40651254056",
+                "local_reference": false,
+                "endpoints": {
+                  "robot1": {
+                    "boot_id": "e148ef24d80b4bc990db9d57f815840f",
+                    "epoch": 2,
+                    "reference_revision": 89,
+                    "current_identity": [
+                      "e148ef24d80b4bc990db9d57f815840f",
+                      2
+                    ],
+                    "proof_revision": 104,
+                    "proof_age": 2.998097699997743
+                  },
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 1085,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": 1098,
+                    "proof_age": 3.877122876998328
+                  }
+                }
+              },
+              {
+                "certificate": "56591531c8cfd9328e54ca65",
+                "local_reference": false,
+                "endpoints": {
+                  "robot1": {
+                    "boot_id": "e148ef24d80b4bc990db9d57f815840f",
+                    "epoch": 2,
+                    "reference_revision": 97,
+                    "current_identity": [
+                      "e148ef24d80b4bc990db9d57f815840f",
+                      2
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 1093,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              }
+            ],
+            "checks": [
+              {
+                "certificate": "be6c193e0e1ea63a220922c9",
+                "reference_revision": 803,
+                "revision": 805,
+                "reason": "accepted",
+                "score": 0.9993297758782752,
+                "rms": 0.0,
+                "observed": 1.0,
+                "conflict": 0.0
+              },
+              {
+                "certificate": "15198e2e31343d5c8c6d0f0d",
+                "reference_revision": 111,
+                "revision": 805,
+                "reason": "accepted",
+                "score": 0.9594429421336683,
+                "rms": 0.020177469955957532,
+                "observed": 1.0,
+                "conflict": 0.0024311183144246355
+              },
+              {
+                "certificate": "cf18c3e013c56d40031cd165",
+                "reference_revision": 803,
+                "revision": 805,
+                "reason": "accepted",
+                "score": 0.9993297758782752,
+                "rms": 0.0,
+                "observed": 1.0,
+                "conflict": 0.0
+              },
+              {
+                "certificate": "07962e73822c190d9985dee1",
+                "reference_revision": 128,
+                "revision": 805,
+                "reason": "accepted",
+                "score": 0.9346106506751545,
+                "rms": 0.0278543011416192,
+                "observed": 0.9637268847795164,
+                "conflict": 0.002214022140221402
+              }
+            ]
+          },
+          "worker": {
+            "active_kind": "registration",
+            "active_age": 5.500118822998047,
+            "last": {
+              "kind": "registration",
+              "seconds": 7.500262128000031
+            }
+          },
+          "registration": {
+            "last": {
+              "completed_steady": 20383.893733442,
+              "source": {
+                "robot": "robot2",
+                "boot_id": "c58236f02938402bb46191a020b5870a",
+                "epoch": 1,
+                "revision": 1089
+              },
+              "target": {
+                "robot": "robot3",
+                "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                "epoch": 1,
+                "revision": 1065
+              },
+              "match": {
+                "transform": [
+                  5.026770589651879,
+                  -0.005043286772302261,
+                  0.000531156322386727
+                ],
+                "score": 0.9336638985311694,
+                "overlap": 0.9217887725975261,
+                "rms": 0.02517201438931633
+              },
+              "assessment": {
+                "feature_matches": 47,
+                "hypotheses": 84,
+                "assessments": {
+                  "unsupported": 83,
+                  "below_floor": 0,
+                  "plausible": 2
+                },
+                "best_evaluated": [
+                  {
+                    "transform": [
+                      5.026770589651879,
+                      -0.005043286772302261,
+                      0.000531156322386727
+                    ],
+                    "score": 0.9336638985311694,
+                    "overlap": 0.9217887725975261,
+                    "rms": 0.02517201438931633
+                  },
+                  {
+                    "transform": [
+                      5.025278553392104,
+                      -0.006419131574580855,
+                      0.00047342635743017133
+                    ],
+                    "score": 0.9336638985311694,
+                    "overlap": 0.9217887725975261,
+                    "rms": 0.02517201438931633
+                  }
+                ],
+                "candidates": [
+                  {
+                    "transform": [
+                      5.026770589651879,
+                      -0.005043286772302261,
+                      0.000531156322386727
+                    ],
+                    "score": 0.9336638985311694,
+                    "overlap": 0.9217887725975261,
+                    "rms": 0.02517201438931633
+                  }
+                ],
+                "reason": "accepted"
+              },
+              "stable_count": 23,
+              "stable_seconds": 297.0079739790017,
+              "outcome": "stable_match",
+              "pending_endorsed": 0
+            },
+            "candidates": [
+              {
+                "source": [
+                  "robot1",
+                  "1d4835c5dbb641f587aa6413d3f0058a",
+                  1
+                ],
+                "target": [
+                  "robot3",
+                  "1948268643c04a79953d89d01b14c8d7",
+                  1
+                ],
+                "stable_count": 29,
+                "stable_seconds": 501.51343917399936,
+                "age": 119.00329704699834
+              },
+              {
+                "source": [
+                  "robot2",
+                  "c58236f02938402bb46191a020b5870a",
+                  1
+                ],
+                "target": [
+                  "robot3",
+                  "1948268643c04a79953d89d01b14c8d7",
+                  1
+                ],
+                "stable_count": 23,
+                "stable_seconds": 302.50806650199956,
+                "age": 5.500092522997875
+              },
+              {
+                "source": [
+                  "robot1",
+                  "e148ef24d80b4bc990db9d57f815840f",
+                  2
+                ],
+                "target": [
+                  "robot3",
+                  "1948268643c04a79953d89d01b14c8d7",
+                  1
+                ],
+                "stable_count": 3,
+                "stable_seconds": 39.001052796000295,
+                "age": 13.000365373998648
+              }
+            ],
+            "pending_count": 8,
+            "pending": [
+              {
+                "constraint": "2c914ad154c27fb40e2cf257",
+                "source": "robot1",
+                "source_boot": "1d4835c5dbb641f587aa6413d3f0058a",
+                "source_epoch": 1,
+                "source_revision": 247,
+                "target": "robot3",
+                "target_boot": "1948268643c04a79953d89d01b14c8d7",
+                "target_epoch": 1,
+                "target_revision": 243,
+                "witnesses": [
+                  "robot3"
+                ]
+              },
+              {
+                "constraint": "a18c1622dd9b514c9ca1ef8d",
+                "source": "robot2",
+                "source_boot": "c58236f02938402bb46191a020b5870a",
+                "source_epoch": 1,
+                "source_revision": 276,
+                "target": "robot3",
+                "target_boot": "1948268643c04a79953d89d01b14c8d7",
+                "target_epoch": 1,
+                "target_revision": 275,
+                "witnesses": [
+                  "robot3"
+                ]
+              },
+              {
+                "constraint": "9748e0b553f2e8bfdc5d7a8e",
+                "source": "robot1",
+                "source_boot": "1d4835c5dbb641f587aa6413d3f0058a",
+                "source_epoch": 1,
+                "source_revision": 283,
+                "target": "robot2",
+                "target_boot": "c58236f02938402bb46191a020b5870a",
+                "target_epoch": 1,
+                "target_revision": 280,
+                "witnesses": [
+                  "robot1"
+                ]
+              },
+              {
+                "constraint": "0eeb54e48065e74a877f8595",
+                "source": "robot1",
+                "source_boot": "e148ef24d80b4bc990db9d57f815840f",
+                "source_epoch": 2,
+                "source_revision": 88,
+                "target": "robot3",
+                "target_boot": "1948268643c04a79953d89d01b14c8d7",
+                "target_epoch": 1,
+                "target_revision": 1059,
+                "witnesses": [
+                  "robot3"
+                ]
+              }
+            ]
+          },
+          "continuity_rejections": 144
+        },
+        "safety": {
+          "reason": "\u5f85\u547d",
+          "moving_allowed": false,
+          "v": 0.0,
+          "w": 0.0,
+          "lease_valid": false,
+          "mission_id": "784f363126714adbb99f7af1c9c24677",
+          "scan_valid": true,
+          "odom_valid": true,
+          "localization_ok": true,
+          "scan_age": 0.0899070160012343,
+          "odom_age": 0.03888275099961902,
+          "estop": false,
+          "command_epoch": ""
+        },
+        "regional_travel": 40.25012761462604,
+        "nav_ready": true,
+        "state_age": 0.08061675999852014,
+        "frame_epoch": "3f7e1e18d6690ce238c1b7c9",
+        "connected_members": [
+          "robot1",
+          "robot2",
+          "robot3"
+        ],
+        "pose": [
+          9.995447887125545,
+          0.10508580082536238,
+          -0.13851383761208128
+        ],
+        "local_pose": [
+          -0.014924136564344215,
+          0.0829633189000285,
+          -0.13895517918841807
+        ],
+        "pose_sim_time": 1106.87,
+        "pose_steady_time": 20389.855320166997,
+        "goal": null
+      }
+    }
+  },
+  "safe_moving_state": {
+    "stage": "safe_region_staging",
+    "steady_time": 20208.955878758,
+    "sim_time": 925.975,
+    "mode": "PATROLLING",
+    "team_ready": true,
+    "coordinate_frame": "3f7e1e18d6690ce238c1b7c9",
+    "robots": {
+      "robot1": {
+        "ready": true,
+        "aligned": true,
+        "boot_id": "1d4835c5dbb641f587aa6413d3f0058a",
+        "map_epoch": 1,
+        "mission_id": "763afff001454c24a6f97ad36e9575f7",
+        "alignment": {
+          "verified": true,
+          "ever_verified": true,
+          "map_aligned": true,
+          "hold_seconds": 903.8238057359995,
+          "target_revision": 20,
+          "current_revision": 924,
+          "confirmed_revision": 914,
+          "registered_revision": 914
+        },
+        "mapping_diagnostics": {
+          "confirmed_local_revision": 914,
+          "registered_local_revision": 914,
+          "map_ages": {
+            "robot1": 0.8309296939987689,
+            "robot2": 0.8340356600019732,
+            "robot3": 0.8331392360014434
+          },
+          "geometry": {
+            "certificates": 12,
+            "local_references": 8,
+            "computed_proofs": 0,
+            "receive_counts": {
+              "accepted": 467,
+              "replay": 103,
+              "expired_or_future": 4
+            },
+            "last_receive": {
+              "reason": "accepted",
+              "sender": "robot2",
+              "certificate": "15198e2e31343d5c8c6d0f0d",
+              "revision": 829,
+              "steady_time": 20131.463956728
+            },
+            "recent_certificates": [
+              {
+                "certificate": "adf9c897994b6c8002b05a58",
+                "local_reference": true,
+                "endpoints": {
+                  "robot1": {
+                    "boot_id": "1d4835c5dbb641f587aa6413d3f0058a",
+                    "epoch": 1,
+                    "reference_revision": 909,
+                    "current_identity": [
+                      "1d4835c5dbb641f587aa6413d3f0058a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 882,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              },
+              {
+                "certificate": "35b81dc2f682f751e3a822cb",
+                "local_reference": true,
+                "endpoints": {
+                  "robot1": {
+                    "boot_id": "1d4835c5dbb641f587aa6413d3f0058a",
+                    "epoch": 1,
+                    "reference_revision": 914,
+                    "current_identity": [
+                      "1d4835c5dbb641f587aa6413d3f0058a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 887,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              },
+              {
+                "certificate": "15198e2e31343d5c8c6d0f0d",
+                "local_reference": false,
+                "endpoints": {
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 112,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": 829,
+                    "proof_age": 92.09402507599953
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 111,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": 805,
+                    "proof_age": 92.1743335329993
+                  }
+                }
+              },
+              {
+                "certificate": "587fe0985bbf7001acc7082c",
+                "local_reference": false,
+                "endpoints": {
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 899,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 875,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              },
+              {
+                "certificate": "bd6d7b9a64887751223a5fa1",
+                "local_reference": false,
+                "endpoints": {
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 900,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 876,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              },
+              {
+                "certificate": "46a74dcff7292f113ed4a259",
+                "local_reference": false,
+                "endpoints": {
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 913,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 889,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              }
+            ],
+            "checks": [
+              {
+                "certificate": "03ae10a6344d3285a50bf935",
+                "reference_revision": 818,
+                "revision": 831,
+                "reason": "accepted",
+                "score": 0.9985797182834213,
+                "rms": 0.0,
+                "observed": 1.0,
+                "conflict": 0.0
+              },
+              {
+                "certificate": "07962e73822c190d9985dee1",
+                "reference_revision": 132,
+                "revision": 831,
+                "reason": "accepted",
+                "score": 0.9392185272179804,
+                "rms": 0.02412865098120044,
+                "observed": 1.0,
+                "conflict": 0.0
+              }
+            ]
+          },
+          "worker": {
+            "active_kind": "registration",
+            "active_age": 4.000158779999765,
+            "last": {
+              "kind": "registration",
+              "seconds": 6.500179268001375
+            }
+          },
+          "registration": {
+            "last": {
+              "completed_steady": 20204.607654655,
+              "source": {
+                "robot": "robot1",
+                "boot_id": "1d4835c5dbb641f587aa6413d3f0058a",
+                "epoch": 1,
+                "revision": 914
+              },
+              "target": {
+                "robot": "robot3",
+                "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                "epoch": 1,
+                "revision": 887
+              },
+              "match": {
+                "transform": [
+                  10.00288991466463,
+                  0.019551185114800015,
+                  0.00028996174511641094
+                ],
+                "score": 0.8875537009747264,
+                "overlap": 0.9121051598979792,
+                "rms": 0.03215443604430938
+              },
+              "assessment": {
+                "feature_matches": 36,
+                "hypotheses": 72,
+                "assessments": {
+                  "unsupported": 71,
+                  "below_floor": 0,
+                  "plausible": 2
+                },
+                "best_evaluated": [
+                  {
+                    "transform": [
+                      10.00288991466463,
+                      0.019551185114800015,
+                      0.00028996174511641094
+                    ],
+                    "score": 0.8875537009747264,
+                    "overlap": 0.9121051598979792,
+                    "rms": 0.03215443604430938
+                  },
+                  {
+                    "transform": [
+                      10.00400689297203,
+                      0.01678004288523694,
+                      0.0001350858355335321
+                    ],
+                    "score": 0.8875537009747264,
+                    "overlap": 0.9121051598979792,
+                    "rms": 0.03215443604430938
+                  }
+                ],
+                "candidates": [
+                  {
+                    "transform": [
+                      10.00288991466463,
+                      0.019551185114800015,
+                      0.00028996174511641094
+                    ],
+                    "score": 0.8875537009747264,
+                    "overlap": 0.9121051598979792,
+                    "rms": 0.03215443604430938
+                  }
+                ],
+                "reason": "accepted"
+              },
+              "stable_count": 23,
+              "stable_seconds": 311.5080859160007,
+              "outcome": "stable_match",
+              "pending_endorsed": 0
+            },
+            "candidates": [
+              {
+                "source": [
+                  "robot1",
+                  "1d4835c5dbb641f587aa6413d3f0058a",
+                  1
+                ],
+                "target": [
+                  "robot2",
+                  "c58236f02938402bb46191a020b5870a",
+                  1
+                ],
+                "stable_count": 50,
+                "stable_seconds": 670.5178693080015,
+                "age": 10.500326681001752
+              },
+              {
+                "source": [
+                  "robot1",
+                  "1d4835c5dbb641f587aa6413d3f0058a",
+                  1
+                ],
+                "target": [
+                  "robot3",
+                  "1948268643c04a79953d89d01b14c8d7",
+                  1
+                ],
+                "stable_count": 23,
+                "stable_seconds": 315.5082342400019,
+                "age": 4.000148324001202
+              }
+            ],
+            "pending_count": 8,
+            "pending": [
+              {
+                "constraint": "c3dce1dbf5d6a98ea7260187",
+                "source": "robot1",
+                "source_boot": "1d4835c5dbb641f587aa6413d3f0058a",
+                "source_epoch": 1,
+                "source_revision": 271,
+                "target": "robot2",
+                "target_boot": "c58236f02938402bb46191a020b5870a",
+                "target_epoch": 1,
+                "target_revision": 268,
+                "witnesses": [
+                  "robot1"
+                ]
+              },
+              {
+                "constraint": "a18c1622dd9b514c9ca1ef8d",
+                "source": "robot2",
+                "source_boot": "c58236f02938402bb46191a020b5870a",
+                "source_epoch": 1,
+                "source_revision": 276,
+                "target": "robot3",
+                "target_boot": "1948268643c04a79953d89d01b14c8d7",
+                "target_epoch": 1,
+                "target_revision": 275,
+                "witnesses": [
+                  "robot3"
+                ]
+              },
+              {
+                "constraint": "9748e0b553f2e8bfdc5d7a8e",
+                "source": "robot1",
+                "source_boot": "1d4835c5dbb641f587aa6413d3f0058a",
+                "source_epoch": 1,
+                "source_revision": 283,
+                "target": "robot2",
+                "target_boot": "c58236f02938402bb46191a020b5870a",
+                "target_epoch": 1,
+                "target_revision": 280,
+                "witnesses": [
+                  "robot1"
+                ]
+              },
+              {
+                "constraint": "05ccc99fbae7880fec733a8f",
+                "source": "robot2",
+                "source_boot": "c58236f02938402bb46191a020b5870a",
+                "source_epoch": 1,
+                "source_revision": 600,
+                "target": "robot3",
+                "target_boot": "1948268643c04a79953d89d01b14c8d7",
+                "target_epoch": 1,
+                "target_revision": 599,
+                "witnesses": [
+                  "robot2"
+                ]
+              }
+            ]
+          },
+          "continuity_rejections": 233
+        },
+        "safety": {
+          "reason": "\u5f85\u547d",
+          "moving_allowed": false,
+          "v": 0.0,
+          "w": 0.0,
+          "lease_valid": false,
+          "mission_id": "763afff001454c24a6f97ad36e9575f7",
+          "scan_valid": true,
+          "odom_valid": true,
+          "localization_ok": true,
+          "scan_age": 0.04247162300089258,
+          "odom_age": 0.016779737998149358,
+          "estop": false,
+          "command_epoch": ""
+        },
+        "regional_travel": 34.12947456838875,
+        "nav_ready": true,
+        "state_age": 0.0993557600013446,
+        "frame_epoch": "3f7e1e18d6690ce238c1b7c9",
+        "connected_members": [
+          "robot1",
+          "robot2",
+          "robot3"
+        ],
+        "pose": [
+          0.054419935984374224,
+          0.06151876548901747,
+          -0.0886144819016879
+        ],
+        "local_pose": [
+          0.054419935984374224,
+          0.06151876548901747,
+          -0.0886144819016879
+        ],
+        "pose_sim_time": 925.84,
+        "pose_steady_time": 20208.821557351002,
+        "goal": null
+      },
+      "robot2": {
+        "ready": true,
+        "aligned": true,
+        "boot_id": "c58236f02938402bb46191a020b5870a",
+        "map_epoch": 1,
+        "mission_id": "763afff001454c24a6f97ad36e9575f7",
+        "alignment": {
+          "verified": true,
+          "ever_verified": true,
+          "map_aligned": true,
+          "hold_seconds": 904.9240675210021,
+          "target_revision": 17,
+          "current_revision": 921,
+          "confirmed_revision": 913,
+          "registered_revision": 913
+        },
+        "mapping_diagnostics": {
+          "confirmed_local_revision": 913,
+          "registered_local_revision": 913,
+          "map_ages": {
+            "robot1": 0.6910222219994466,
+            "robot2": 0.7272858689975692,
+            "robot3": 0.708592511000461
+          },
+          "geometry": {
+            "certificates": 12,
+            "local_references": 8,
+            "computed_proofs": 0,
+            "receive_counts": {
+              "accepted": 468,
+              "replay": 164,
+              "expired_or_future": 4,
+              "missing_certificate": 1
+            },
+            "last_receive": {
+              "reason": "expired_or_future",
+              "sender": "robot2",
+              "certificate": "15198e2e31343d5c8c6d0f0d",
+              "revision": 829,
+              "steady_time": 20131.638660388
+            },
+            "recent_certificates": [
+              {
+                "certificate": "adf9c897994b6c8002b05a58",
+                "local_reference": false,
+                "endpoints": {
+                  "robot1": {
+                    "boot_id": "1d4835c5dbb641f587aa6413d3f0058a",
+                    "epoch": 1,
+                    "reference_revision": 909,
+                    "current_identity": [
+                      "1d4835c5dbb641f587aa6413d3f0058a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 882,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              },
+              {
+                "certificate": "35b81dc2f682f751e3a822cb",
+                "local_reference": false,
+                "endpoints": {
+                  "robot1": {
+                    "boot_id": "1d4835c5dbb641f587aa6413d3f0058a",
+                    "epoch": 1,
+                    "reference_revision": 914,
+                    "current_identity": [
+                      "1d4835c5dbb641f587aa6413d3f0058a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 887,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              },
+              {
+                "certificate": "15198e2e31343d5c8c6d0f0d",
+                "local_reference": true,
+                "endpoints": {
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 112,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": 829,
+                    "proof_age": 91.94991634399776
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 111,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": 805,
+                    "proof_age": 92.03022480099753
+                  }
+                }
+              },
+              {
+                "certificate": "587fe0985bbf7001acc7082c",
+                "local_reference": true,
+                "endpoints": {
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 899,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 875,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              },
+              {
+                "certificate": "bd6d7b9a64887751223a5fa1",
+                "local_reference": true,
+                "endpoints": {
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 900,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 876,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              },
+              {
+                "certificate": "46a74dcff7292f113ed4a259",
+                "local_reference": true,
+                "endpoints": {
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 913,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 889,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              }
+            ],
+            "checks": [
+              {
+                "certificate": "be6c193e0e1ea63a220922c9",
+                "reference_revision": 819,
+                "revision": 829,
+                "reason": "accepted",
+                "score": 0.9966517851552112,
+                "rms": 0.0,
+                "observed": 1.0,
+                "conflict": 0.0
+              },
+              {
+                "certificate": "15198e2e31343d5c8c6d0f0d",
+                "reference_revision": 112,
+                "revision": 829,
+                "reason": "accepted",
+                "score": 0.9500869745663929,
+                "rms": 0.020387073520475005,
+                "observed": 1.0,
+                "conflict": 0.006864988558352402
+              }
+            ]
+          },
+          "worker": {
+            "active_kind": "registration",
+            "active_age": 7.000072931998147,
+            "last": {
+              "kind": "registration",
+              "seconds": 8.000472061001346
+            }
+          },
+          "registration": {
+            "last": {
+              "completed_steady": 20201.463641163,
+              "source": {
+                "robot": "robot1",
+                "boot_id": "1d4835c5dbb641f587aa6413d3f0058a",
+                "epoch": 1,
+                "revision": 909
+              },
+              "target": {
+                "robot": "robot2",
+                "boot_id": "c58236f02938402bb46191a020b5870a",
+                "epoch": 1,
+                "revision": 906
+              },
+              "match": {
+                "transform": [
+                  5.014622022778428,
+                  0.019260925522202738,
+                  3.7430654690334245e-05
+                ],
+                "score": 0.9255393326290012,
+                "overlap": 0.9620518688024409,
+                "rms": 0.027895397045819663
+              },
+              "assessment": {
+                "feature_matches": 88,
+                "hypotheses": 84,
+                "assessments": {
+                  "unsupported": 83,
+                  "below_floor": 0,
+                  "plausible": 2
+                },
+                "best_evaluated": [
+                  {
+                    "transform": [
+                      5.014622022778428,
+                      0.019260925522202738,
+                      3.7430654690334245e-05
+                    ],
+                    "score": 0.9255393326290012,
+                    "overlap": 0.9620518688024409,
+                    "rms": 0.027895397045819663
+                  },
+                  {
+                    "transform": [
+                      5.0073944949003435,
+                      0.013920077881420537,
+                      -5.945607049669289e-05
+                    ],
+                    "score": 0.9255393326290012,
+                    "overlap": 0.9620518688024409,
+                    "rms": 0.027895397045819663
+                  }
+                ],
+                "candidates": [
+                  {
+                    "transform": [
+                      5.014622022778428,
+                      0.019260925522202738,
+                      3.7430654690334245e-05
+                    ],
+                    "score": 0.9255393326290012,
+                    "overlap": 0.9620518688024409,
+                    "rms": 0.027895397045819663
+                  }
+                ],
+                "reason": "accepted"
+              },
+              "stable_count": 49,
+              "stable_seconds": 661.0179278840005,
+              "outcome": "stable_match",
+              "pending_endorsed": 1
+            },
+            "candidates": [
+              {
+                "source": [
+                  "robot1",
+                  "1d4835c5dbb641f587aa6413d3f0058a",
+                  1
+                ],
+                "target": [
+                  "robot2",
+                  "c58236f02938402bb46191a020b5870a",
+                  1
+                ],
+                "stable_count": 49,
+                "stable_seconds": 668.0179809679976,
+                "age": 7.000053083997045
+              },
+              {
+                "source": [
+                  "robot2",
+                  "c58236f02938402bb46191a020b5870a",
+                  1
+                ],
+                "target": [
+                  "robot3",
+                  "1948268643c04a79953d89d01b14c8d7",
+                  1
+                ],
+                "stable_count": 9,
+                "stable_seconds": 127.50353510700006,
+                "age": 15.000525719999132
+              }
+            ],
+            "pending_count": 6,
+            "pending": [
+              {
+                "constraint": "e5b4174fec8d12d0886f8918",
+                "source": "robot1",
+                "source_boot": "1d4835c5dbb641f587aa6413d3f0058a",
+                "source_epoch": 1,
+                "source_revision": 194,
+                "target": "robot2",
+                "target_boot": "c58236f02938402bb46191a020b5870a",
+                "target_epoch": 1,
+                "target_revision": 191,
+                "witnesses": [
+                  "robot1"
+                ]
+              },
+              {
+                "constraint": "f6bdd836291706e82b719ada",
+                "source": "robot1",
+                "source_boot": "1d4835c5dbb641f587aa6413d3f0058a",
+                "source_epoch": 1,
+                "source_revision": 203,
+                "target": "robot2",
+                "target_boot": "c58236f02938402bb46191a020b5870a",
+                "target_epoch": 1,
+                "target_revision": 200,
+                "witnesses": [
+                  "robot1"
+                ]
+              },
+              {
+                "constraint": "2c914ad154c27fb40e2cf257",
+                "source": "robot1",
+                "source_boot": "1d4835c5dbb641f587aa6413d3f0058a",
+                "source_epoch": 1,
+                "source_revision": 247,
+                "target": "robot3",
+                "target_boot": "1948268643c04a79953d89d01b14c8d7",
+                "target_epoch": 1,
+                "target_revision": 243,
+                "witnesses": [
+                  "robot3"
+                ]
+              },
+              {
+                "constraint": "a18c1622dd9b514c9ca1ef8d",
+                "source": "robot2",
+                "source_boot": "c58236f02938402bb46191a020b5870a",
+                "source_epoch": 1,
+                "source_revision": 276,
+                "target": "robot3",
+                "target_boot": "1948268643c04a79953d89d01b14c8d7",
+                "target_epoch": 1,
+                "target_revision": 275,
+                "witnesses": [
+                  "robot3"
+                ]
+              }
+            ]
+          },
+          "continuity_rejections": 167
+        },
+        "safety": {
+          "reason": "",
+          "moving_allowed": true,
+          "v": 0.2,
+          "w": -0.06975150580694651,
+          "lease_valid": true,
+          "mission_id": "763afff001454c24a6f97ad36e9575f7",
+          "scan_valid": true,
+          "odom_valid": true,
+          "localization_ok": true,
+          "scan_age": 0.030337788997712778,
+          "odom_age": 0.028461234000133118,
+          "estop": false,
+          "command_epoch": "f5ecd20ad7f8431ba34d51bbebe7440c"
+        },
+        "regional_travel": 22.49429599033274,
+        "nav_ready": true,
+        "state_age": 3.601999924285337e-05,
+        "frame_epoch": "3f7e1e18d6690ce238c1b7c9",
+        "connected_members": [
+          "robot1",
+          "robot2",
+          "robot3"
+        ],
+        "pose": [
+          6.3248686674703585,
+          3.5067637071338966,
+          -1.7067085223284684
+        ],
+        "local_pose": [
+          1.3103771832863869,
+          3.487453735778899,
+          -1.7067459529831588
+        ],
+        "pose_sim_time": 925.94,
+        "pose_steady_time": 20208.920830930998,
+        "goal": [
+          5.004352401496909,
+          0.03386110270971065,
+          -0.006380367286262898
+        ]
+      },
+      "robot3": {
+        "ready": true,
+        "aligned": true,
+        "boot_id": "1948268643c04a79953d89d01b14c8d7",
+        "map_epoch": 1,
+        "mission_id": "763afff001454c24a6f97ad36e9575f7",
+        "alignment": {
+          "verified": true,
+          "ever_verified": true,
+          "map_aligned": true,
+          "hold_seconds": 94.30254536600114,
+          "target_revision": 803,
+          "current_revision": 897,
+          "confirmed_revision": 889,
+          "registered_revision": 889
+        },
+        "mapping_diagnostics": {
+          "confirmed_local_revision": 889,
+          "registered_local_revision": 889,
+          "map_ages": {
+            "robot1": 0.6161171990024741,
+            "robot2": 0.6532769020013802,
+            "robot3": 0.6329400480026379
+          },
+          "geometry": {
+            "certificates": 12,
+            "local_references": 8,
+            "computed_proofs": 0,
+            "receive_counts": {
+              "accepted": 464,
+              "replay": 188,
+              "missing_certificate": 2,
+              "expired_or_future": 7
+            },
+            "last_receive": {
+              "reason": "expired_or_future",
+              "sender": "robot3",
+              "certificate": "07962e73822c190d9985dee1",
+              "revision": 805,
+              "steady_time": 20131.557758986
+            },
+            "recent_certificates": [
+              {
+                "certificate": "adf9c897994b6c8002b05a58",
+                "local_reference": true,
+                "endpoints": {
+                  "robot1": {
+                    "boot_id": "1d4835c5dbb641f587aa6413d3f0058a",
+                    "epoch": 1,
+                    "reference_revision": 909,
+                    "current_identity": [
+                      "1d4835c5dbb641f587aa6413d3f0058a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 882,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              },
+              {
+                "certificate": "35b81dc2f682f751e3a822cb",
+                "local_reference": true,
+                "endpoints": {
+                  "robot1": {
+                    "boot_id": "1d4835c5dbb641f587aa6413d3f0058a",
+                    "epoch": 1,
+                    "reference_revision": 914,
+                    "current_identity": [
+                      "1d4835c5dbb641f587aa6413d3f0058a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 887,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              },
+              {
+                "certificate": "15198e2e31343d5c8c6d0f0d",
+                "local_reference": true,
+                "endpoints": {
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 112,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": 829,
+                    "proof_age": 91.87529707700014
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 111,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": 805,
+                    "proof_age": 91.95560553399991
+                  }
+                }
+              },
+              {
+                "certificate": "587fe0985bbf7001acc7082c",
+                "local_reference": true,
+                "endpoints": {
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 899,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 875,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              },
+              {
+                "certificate": "bd6d7b9a64887751223a5fa1",
+                "local_reference": true,
+                "endpoints": {
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 900,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 876,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              },
+              {
+                "certificate": "46a74dcff7292f113ed4a259",
+                "local_reference": true,
+                "endpoints": {
+                  "robot2": {
+                    "boot_id": "c58236f02938402bb46191a020b5870a",
+                    "epoch": 1,
+                    "reference_revision": 913,
+                    "current_identity": [
+                      "c58236f02938402bb46191a020b5870a",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  },
+                  "robot3": {
+                    "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                    "epoch": 1,
+                    "reference_revision": 889,
+                    "current_identity": [
+                      "1948268643c04a79953d89d01b14c8d7",
+                      1
+                    ],
+                    "proof_revision": null,
+                    "proof_age": null
+                  }
+                }
+              }
+            ],
+            "checks": [
+              {
+                "certificate": "be6c193e0e1ea63a220922c9",
+                "reference_revision": 803,
+                "revision": 805,
+                "reason": "accepted",
+                "score": 0.9993297758782752,
+                "rms": 0.0,
+                "observed": 1.0,
+                "conflict": 0.0
+              },
+              {
+                "certificate": "15198e2e31343d5c8c6d0f0d",
+                "reference_revision": 111,
+                "revision": 805,
+                "reason": "accepted",
+                "score": 0.9594429421336683,
+                "rms": 0.020177469955957532,
+                "observed": 1.0,
+                "conflict": 0.0024311183144246355
+              },
+              {
+                "certificate": "cf18c3e013c56d40031cd165",
+                "reference_revision": 803,
+                "revision": 805,
+                "reason": "accepted",
+                "score": 0.9993297758782752,
+                "rms": 0.0,
+                "observed": 1.0,
+                "conflict": 0.0
+              },
+              {
+                "certificate": "07962e73822c190d9985dee1",
+                "reference_revision": 128,
+                "revision": 805,
+                "reason": "accepted",
+                "score": 0.9346106506751545,
+                "rms": 0.0278543011416192,
+                "observed": 0.9637268847795164,
+                "conflict": 0.002214022140221402
+              }
+            ]
+          },
+          "worker": {
+            "active_kind": "registration",
+            "active_age": 1.500014987999748,
+            "last": {
+              "kind": "registration",
+              "seconds": 7.000399723001465
+            }
+          },
+          "registration": {
+            "last": {
+              "completed_steady": 20206.889078777,
+              "source": {
+                "robot": "robot2",
+                "boot_id": "c58236f02938402bb46191a020b5870a",
+                "epoch": 1,
+                "revision": 913
+              },
+              "target": {
+                "robot": "robot3",
+                "boot_id": "1948268643c04a79953d89d01b14c8d7",
+                "epoch": 1,
+                "revision": 889
+              },
+              "match": {
+                "transform": [
+                  5.0276666295473,
+                  0.00415385564592177,
+                  0.00020806433906763795
+                ],
+                "score": 0.9371823675396304,
+                "overlap": 0.9200991609458429,
+                "rms": 0.024262161894866557
+              },
+              "assessment": {
+                "feature_matches": 39,
+                "hypotheses": 72,
+                "assessments": {
+                  "unsupported": 71,
+                  "below_floor": 0,
+                  "plausible": 2
+                },
+                "best_evaluated": [
+                  {
+                    "transform": [
+                      5.0276666295473,
+                      0.00415385564592177,
+                      0.00020806433906763795
+                    ],
+                    "score": 0.9371823675396304,
+                    "overlap": 0.9200991609458429,
+                    "rms": 0.024262161894866557
+                  },
+                  {
+                    "transform": [
+                      5.02664235012167,
+                      0.002359558449588248,
+                      0.0003378007021031041
+                    ],
+                    "score": 0.9371823675396304,
+                    "overlap": 0.9200991609458429,
+                    "rms": 0.024262161894866557
+                  }
+                ],
+                "candidates": [
+                  {
+                    "transform": [
+                      5.0276666295473,
+                      0.00415385564592177,
+                      0.00020806433906763795
+                    ],
+                    "score": 0.9371823675396304,
+                    "overlap": 0.9200991609458429,
+                    "rms": 0.024262161894866557
+                  }
+                ],
+                "reason": "accepted"
+              },
+              "stable_count": 10,
+              "stable_seconds": 120.00331931400069,
+              "outcome": "stable_match",
+              "pending_endorsed": 0
+            },
+            "candidates": [
+              {
+                "source": [
+                  "robot1",
+                  "1d4835c5dbb641f587aa6413d3f0058a",
+                  1
+                ],
+                "target": [
+                  "robot3",
+                  "1948268643c04a79953d89d01b14c8d7",
+                  1
+                ],
+                "stable_count": 24,
+                "stable_seconds": 320.508688189002,
+                "age": 8.500402240002586
+              },
+              {
+                "source": [
+                  "robot2",
+                  "c58236f02938402bb46191a020b5870a",
+                  1
+                ],
+                "target": [
+                  "robot3",
+                  "1948268643c04a79953d89d01b14c8d7",
+                  1
+                ],
+                "stable_count": 10,
+                "stable_seconds": 121.50331551700219,
+                "age": 1.4999962030015013
+              }
+            ],
+            "pending_count": 7,
+            "pending": [
+              {
+                "constraint": "f6bdd836291706e82b719ada",
+                "source": "robot1",
+                "source_boot": "1d4835c5dbb641f587aa6413d3f0058a",
+                "source_epoch": 1,
+                "source_revision": 203,
+                "target": "robot2",
+                "target_boot": "c58236f02938402bb46191a020b5870a",
+                "target_epoch": 1,
+                "target_revision": 200,
+                "witnesses": [
+                  "robot1"
+                ]
+              },
+              {
+                "constraint": "2c914ad154c27fb40e2cf257",
+                "source": "robot1",
+                "source_boot": "1d4835c5dbb641f587aa6413d3f0058a",
+                "source_epoch": 1,
+                "source_revision": 247,
+                "target": "robot3",
+                "target_boot": "1948268643c04a79953d89d01b14c8d7",
+                "target_epoch": 1,
+                "target_revision": 243,
+                "witnesses": [
+                  "robot3"
+                ]
+              },
+              {
+                "constraint": "a18c1622dd9b514c9ca1ef8d",
+                "source": "robot2",
+                "source_boot": "c58236f02938402bb46191a020b5870a",
+                "source_epoch": 1,
+                "source_revision": 276,
+                "target": "robot3",
+                "target_boot": "1948268643c04a79953d89d01b14c8d7",
+                "target_epoch": 1,
+                "target_revision": 275,
+                "witnesses": [
+                  "robot3"
+                ]
+              },
+              {
+                "constraint": "9748e0b553f2e8bfdc5d7a8e",
+                "source": "robot1",
+                "source_boot": "1d4835c5dbb641f587aa6413d3f0058a",
+                "source_epoch": 1,
+                "source_revision": 283,
+                "target": "robot2",
+                "target_boot": "c58236f02938402bb46191a020b5870a",
+                "target_epoch": 1,
+                "target_revision": 280,
+                "witnesses": [
+                  "robot1"
+                ]
+              }
+            ]
+          },
+          "continuity_rejections": 138
+        },
+        "safety": {
+          "reason": "\u5f85\u547d",
+          "moving_allowed": false,
+          "v": 0.0,
+          "w": 0.0,
+          "lease_valid": false,
+          "mission_id": "763afff001454c24a6f97ad36e9575f7",
+          "scan_valid": true,
+          "odom_valid": true,
+          "localization_ok": true,
+          "scan_age": 0.08701817600012873,
+          "odom_age": 0.00022723100119037554,
+          "estop": false,
+          "command_epoch": ""
+        },
+        "regional_travel": 40.25012761462604,
+        "nav_ready": true,
+        "state_age": 0.057332427000801545,
+        "frame_epoch": "3f7e1e18d6690ce238c1b7c9",
+        "connected_members": [
+          "robot1",
+          "robot2",
+          "robot3"
+        ],
+        "pose": [
+          4.953675787554777,
+          4.243965359946348,
+          -0.13263725304926477
+        ],
+        "local_pose": [
+          -5.047988996357347,
+          4.225878076161042,
+          -0.13292721479438122
+        ],
+        "pose_sim_time": 925.87,
+        "pose_steady_time": 20208.849824569,
+        "goal": null
+      }
+    }
+  }
+}

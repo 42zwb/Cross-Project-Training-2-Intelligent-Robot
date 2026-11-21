@@ -1,0 +1,14 @@
+std_msgs/Header header
+string session_id
+string robot_id
+string boot_id
+uint64 sequence
+string mission_id
+string request_id
+string resource
+string frame_epoch
+bool enabled
+bool estop
+bool bootstrap
+float64 maximum_speed
+string limits_json

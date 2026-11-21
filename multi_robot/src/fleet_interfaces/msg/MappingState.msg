@@ -1,0 +1,12 @@
+std_msgs/Header header
+string session_id
+string robot_id
+string boot_id
+uint64 map_epoch
+uint64 revision
+string frame_epoch
+string anchor_id
+string anchor_boot
+bool aligned
+geometry_msgs/Pose2D team_from_local
+string details_json

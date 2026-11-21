@@ -1,0 +1,175 @@
+{
+  "state": {
+    "steady_time": 5743.747685435,
+    "sim_time": 725.315,
+    "mode": "PATROLLING",
+    "team_ready": true,
+    "coordinate_frame": "9072f97c31fbd960a1ca61a9",
+    "robots": {
+      "robot1": {
+        "ready": true,
+        "aligned": true,
+        "boot_id": "1312aa5a382a4b8d811f5559b764c5f8",
+        "map_epoch": 1,
+        "safety": {
+          "reason": "",
+          "moving_allowed": true,
+          "v": 0.0,
+          "w": 0.0,
+          "scan_valid": true,
+          "odom_valid": true,
+          "localization_ok": true,
+          "scan_age": 0.0846220829998856,
+          "odom_age": 0.020027303999995638,
+          "estop": false,
+          "command_epoch": "6274ead86fb6409cada07abdb93f095a"
+        },
+        "nav_ready": true,
+        "state_age": 0.09484069100017223,
+        "frame_epoch": "9072f97c31fbd960a1ca61a9",
+        "pose": [
+          2.778277076814293,
+          9.411930889820656,
+          2.186740995348707
+        ],
+        "pose_steady_time": 5743.630506619,
+        "goal": [
+          2.9750000443309546,
+          9.02500013448298,
+          -1.099289899645213
+        ]
+      },
+      "robot2": {
+        "ready": true,
+        "aligned": true,
+        "boot_id": "e0672520cd8543f39bdcb4d6f9d1dc47",
+        "map_epoch": 1,
+        "safety": {
+          "reason": "\u5f85\u547d",
+          "moving_allowed": false,
+          "v": 0.0,
+          "w": 0.0,
+          "scan_valid": true,
+          "odom_valid": true,
+          "localization_ok": true,
+          "scan_age": 0.030178469000020414,
+          "odom_age": 0.008174777999556682,
+          "estop": false,
+          "command_epoch": ""
+        },
+        "nav_ready": true,
+        "state_age": 0.024464337000608793,
+        "frame_epoch": "9072f97c31fbd960a1ca61a9",
+        "pose": [
+          2.2851641892185786,
+          10.080700508150002,
+          2.817598365577032
+        ],
+        "pose_steady_time": 5743.674646575,
+        "goal": null
+      },
+      "robot3": {
+        "ready": true,
+        "aligned": true,
+        "boot_id": "73f15962f70242eaba581d18fc3f375a",
+        "map_epoch": 1,
+        "safety": {
+          "reason": "\u5f85\u547d",
+          "moving_allowed": false,
+          "v": 0.0,
+          "w": 0.0,
+          "scan_valid": true,
+          "odom_valid": true,
+          "localization_ok": true,
+          "scan_age": 0.07553946299958625,
+          "odom_age": 0.0031405569998241845,
+          "estop": false,
+          "command_epoch": ""
+        },
+        "nav_ready": true,
+        "state_age": 0.0070019340000726515,
+        "frame_epoch": "9072f97c31fbd960a1ca61a9",
+        "pose": [
+          11.5591650220817,
+          8.73971114278678,
+          1.8238325990402373
+        ],
+        "pose_steady_time": 5743.750086448,
+        "goal": null
+      }
+    }
+  },
+  "release": {
+    "owner": "robot1",
+    "start": [
+      2.777816843091165,
+      9.411738145594438,
+      2.1867647876394045
+    ],
+    "target": [
+      2.9750000443309546,
+      9.02500013448298,
+      -1.099289899645213
+    ],
+    "others": {
+      "robot2": [
+        2.2851472310072602,
+        10.080759943375822,
+        2.8175930074813604
+      ],
+      "robot3": [
+        11.559618389212577,
+        8.740242758347643,
+        1.8237924443696474
+      ]
+    },
+    "initial_separations": {
+      "robot2": 0.8308510772560516,
+      "robot3": 8.807436883143367
+    },
+    "peer_clearance": 0.9,
+    "maximum_length": 1.0,
+    "normal_plan": [
+      [
+        "robot1",
+        [
+          1.889489816569656e-05,
+          0.002616396868846946,
+          -6.588341333483375e-05
+        ]
+      ],
+      [
+        "robot2",
+        [
+          5.003157081885614,
+          0.03426626489432905,
+          -0.00645071982264757
+        ]
+      ],
+      [
+        "robot3",
+        [
+          10.021288195273376,
+          0.05579020343265156,
+          -0.0009715882671690029
+        ]
+      ]
+    ]
+  },
+  "identities": {
+    "robot1": [
+      "1312aa5a382a4b8d811f5559b764c5f8",
+      1
+    ],
+    "robot2": [
+      "e0672520cd8543f39bdcb4d6f9d1dc47",
+      1
+    ],
+    "robot3": [
+      "73f15962f70242eaba581d18fc3f375a",
+      1
+    ]
+  },
+  "frame": "9072f97c31fbd960a1ca61a9",
+  "now": 5743.747685435
+}

@@ -7,9 +7,11 @@ from launch.conditions import IfCondition, UnlessCondition
 from launch.event_handlers import OnProcessExit
 from launch.events import Shutdown
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import (LaunchConfiguration, PathJoinSubstitution,
+                                  PythonExpression)
 from launch_ros.actions import Node
 from turtlebot4_tutorial.launch_support import check_navigation_map, make_rviz
+from turtlebot4_tutorial.simulation_preflight import launch_preflight
 
 
 def generate_launch_description():
@@ -17,6 +19,7 @@ def generate_launch_description():
     tutorial = get_package_share_directory('turtlebot4_tutorial')
 
     start_sim = LaunchConfiguration('start_sim')
+    safety = LaunchConfiguration('safety')
     use_sim_time = LaunchConfiguration('use_sim_time')
     map_file = LaunchConfiguration('map')
     params_file = LaunchConfiguration('params_file')
@@ -46,8 +49,20 @@ def generate_launch_description():
             'z': LaunchConfiguration('z'),
             'yaw': yaw,
             'spawn_dock': LaunchConfiguration('spawn_dock'),
+            'safety': safety,
         }.items(),
         condition=IfCondition(start_sim),
+    )
+    safety_nodes = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(PathJoinSubstitution(
+            [tutorial, 'launch', 'tutorial_safety.launch.py'])),
+        launch_arguments={
+            'namespace': namespace,
+            'use_sim_time': use_sim_time,
+        }.items(),
+        condition=IfCondition(PythonExpression([
+            "'", safety, "' == 'true' and '", start_sim, "' == 'false'",
+        ])),
     )
     localization = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -76,6 +91,7 @@ def generate_launch_description():
         arguments=[x, y, yaw, '--duration', '45.0', '--wait-for-amcl'],
         parameters=[{'use_sim_time': use_sim_time}],
         namespace=namespace,
+        remappings=[('/tf', 'tf'), ('/tf_static', 'tf_static')],
         condition=IfCondition(auto_initial_pose),
     )
 
@@ -103,6 +119,9 @@ def generate_launch_description():
         DeclareLaunchArgument('spawn_dock', default_value='false',
                               choices=['true', 'false'],
                               description='Enable the charging dock for docking experiments'),
+        DeclareLaunchArgument('safety', default_value='false',
+                              choices=['true', 'false'],
+                              description='Start the velocity arbiter and collision filter'),
         DeclareLaunchArgument('world', default_value='warehouse'),
         DeclareLaunchArgument('namespace', default_value=''),
         DeclareLaunchArgument('x', default_value='0.0'),
@@ -116,7 +135,9 @@ def generate_launch_description():
             'params_file', default_value=PathJoinSubstitution(
                 [tutorial, 'config', 'nav2_params.yaml'])),
         OpaqueFunction(function=check_navigation_map),
+        OpaqueFunction(function=launch_preflight, condition=IfCondition(start_sim)),
         GroupAction(actions=[simulation]),
+        safety_nodes,
         # Loading the 1006 x 1674 map and configuring every Nav2 server at the
         # same instant can make lifecycle service calls time out on modest PCs.
         TimerAction(period=6.0, actions=[localization]),

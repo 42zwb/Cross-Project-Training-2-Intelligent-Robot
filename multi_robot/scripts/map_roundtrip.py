@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Load the saved PGM in a real Nav2 map_server and compare all cells."""
-import argparse, signal, subprocess, time
+import argparse, signal, subprocess, time, math, json
 from pathlib import Path
 import numpy as np
 import rclpy
@@ -12,7 +12,7 @@ p = argparse.ArgumentParser()
 p.add_argument("map")
 a = p.parse_args()
 path = Path(a.map).resolve()
-expected, _ = load_map(path)
+expected, metadata = load_map(path)
 log = open(path.parent / "map_server_roundtrip.log", "w")
 proc = subprocess.Popen(
     [
@@ -58,12 +58,18 @@ try:
     m = call(GetMap, "/fleet_map_audit/map_server/map", GetMap.Request()).map
     actual = np.asarray(m.data, dtype=np.int8).reshape(m.info.height, m.info.width)
     assert np.array_equal(actual, expected), "Nav2 map_server 栅格不一致"
+    p, q = m.info.origin.position, m.info.origin.orientation
+    loaded_origin = [p.x, p.y, math.atan2(2*(q.w*q.z+q.x*q.y), 1-2*(q.y*q.y+q.z*q.z))]
+    assert abs(m.info.resolution-metadata['resolution']) < 1e-7, 'Nav2 分辨率不一致'
+    assert np.allclose(loaded_origin, metadata['origin'], atol=1e-7, rtol=0), 'Nav2 地图原点不一致'
     report = {
         "passed": True,
         "cells": actual.size,
         "unknown": int((actual < 0).sum()),
         "free": int((actual == 0).sum()),
         "occupied": int((actual == 100).sum()),
+        "resolution": m.info.resolution, "origin": loaded_origin,
+        "metadata_pass": True,
     }
     import json
 

@@ -27,6 +27,10 @@ setup(
             "dashboard=fleet_control.dashboard:main",
             "fleetctl=fleet_control.cli:main",
             "evaluate=fleet_control.evaluate:main",
+            'local_mapper=fleet_control.local_mapper:main',
+            'local_safety=fleet_control.local_safety:main',
+            'peer_agent=fleet_control.peer_agent:main',
+            'peer_gateway=fleet_control.peer_gateway:main',
         ]
     },
 )

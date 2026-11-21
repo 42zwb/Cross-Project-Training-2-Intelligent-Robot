@@ -1,40 +1,28 @@
-# Cross Project Training 2 — Intelligent Robot
+# ROS 2 TurtleBot4 课程项目
 
-本仓库并列收录两套相互独立的 ROS 2 Humble 课程工程：
+本仓库把单机器人教学工程与三机器人协同工程放在两个独立的 colcon 工作空间中。两套工程均在 Ubuntu 22.04 x86_64、ROS 2 Humble、Ignition Gazebo Fortress 下核查，使用不同的 ROS 域和 Gazebo 分区。
 
-- [`single_robot/`](single_robot/)：TurtleBot4 单机器人教程工程，包含 `turtlebot4_tutorial` 与 `turtlebot4_cartographer` 两个 ROS 包。
-- [`multi_robot/`](multi_robot/)：三台 TurtleBot4 协同建图与队形切换大作业，包含 SLAM、地图融合、分区航点巡逻、Navfn/Smac2D、队形调度、状态诊断、安全门控、网页控制与离线评估。
+| 工程 | 主要内容 | 文档 |
+| --- | --- | --- |
+| [单机器人](single_robot/) | TurtleBot4 Lite 仓库仿真、遥控、Cartographer 建图、地图保存、AMCL / Nav2、自建地图巡航、速度仲裁与急停 | [快速开始](single_robot/README.md) · [操作手册](single_robot/docs/操作指南.md) · [验证结果](single_robot/docs/验证与范围.md) |
+| [三机器人](multi_robot/) | 三车在同一世界中自治建图与导航，通过对等消息完成地图配准、分区探索、巡逻和静态队形切换 | [快速开始](multi_robot/README.md) · [操作手册](multi_robot/docs/操作指南.md) · [工程架构](multi_robot/docs/算法与工程结构.md) · [验证结果](multi_robot/docs/验证与范围.md) |
 
-## 构建
-
-需要 Ubuntu 22.04、ROS 2 Humble 和各项目 README 中列出的 ROS 依赖。
+## 开始使用
 
 ```bash
-source /opt/ros/humble/setup.bash
-cd single_robot
-colcon build --symlink-install
-source install/setup.bash
-
-cd ../multi_robot
-./build.sh
+git clone https://github.com/42zwb/Cross-Project-Training-2-Intelligent-Robot.git
+cd Cross-Project-Training-2-Intelligent-Robot
 ```
 
-单机器人工作空间可按 `single_robot/README.md` 中的 launch 命令运行。大作业从 `multi_robot/` 目录执行 `./run.sh`；完整说明见各目录 README。两个项目分别加载自己的环境，不要同时 source 两个工作空间。
+在各自子目录构建工程。启动及操作终端分别加载对应的 `env.sh`。本机一次运行一套 TurtleBot 仿真，切换工程前在原启动终端按 Ctrl+C，并等待进程退出。仿真入口会按项目归属检查旧进程。
 
-本仓库收录源码、配置、构建脚本和 Markdown 文档。ROS 构建目录、仿真日志、地图、PBStream、运行结果和本机核查证据未上传；运行验收须在目标环境重新执行。
+| 工作空间 | 构建目录 | 默认 ROS 域 | 默认 Gazebo 分区 |
+| --- | --- | ---: | --- |
+| `single_robot` | `single_robot/{build,install,log}/` | 74 | `tb4_single_demo` |
+| `multi_robot` | `multi_robot/{build,install,log}/` | 91 | `tb4_course_fleet` |
 
-2026-10-26 优化与新鲜仿真结果见 [多机器人优化与回归报告](multi_robot/docs/优化与回归报告-20261026.md)。
+## 版本与结果
 
-## 15×15 米随机场景预览
-
-原预览分支 `preview/seeded-scenes-15m` 已合入 `main`，包含每轮随机种子、可复现障碍布局及分区受阻时自动跨区。2026-10-27 的修复进一步改为按最短安全路径派车。使用 `./run.sh --seed 24` 查看场景。最初预览见 [随机场景预览报告](multi_robot/docs/随机场景预览报告-20261026.md)。
-
-后续核查修复了桥接循环引用及退出生命周期、地图重采样孔洞、启动状态竞争和辅助进程异常清理。该轮 80 项多机器人测试、18 项单机器人测试、原生对照、Memcheck、三轮冷启动及真实仿真结果见 [桥接退出与代码修复报告](multi_robot/docs/桥接退出与代码修复报告-20261026.md)。
-
-进一步修复起点附近补盲遗漏与墙后未知区造成的绕行，增加封闭实心障碍内部推断、观测与推断分项，以及 Nav2 当前规划虚线。100 项测试与实际返回补盲结果见 [探索补盲与障碍补全修复](multi_robot/docs/探索补盲与障碍补全修复-20261026.md)。
-
-当前默认场景进一步增加随机旋转矩形、凸/凹多边形、圆形及扇形。122 项测试、34 个种子检查和 480 秒真实探索结果见 [混合形状障碍报告](multi_robot/docs/混合形状障碍报告-20261026.md)。旧矩形种子可通过 `--scene-generator rectangles-v1` 复现。
-
-2026-10-27 修复跨区固定轮换导致的绕远派车、障碍推断到期丢失及重复计算开销。140 项测试、17 次就近分配核对、障碍稳定性与 CPU 对照见 [调度与障碍稳定性修复](multi_robot/docs/调度与障碍稳定性修复-20261027.md)。
-
-后续补充已探明外墙到地图边缘的障碍推断，计入已知比例并独立保存补全层。158 项测试与实跑核对见 [外墙到地图边缘补全](multi_robot/docs/外墙到地图边缘补全-20261027.md)。
+- 本次提交从独立检出的源码重建单机 2 个包和多机 5 个包，运行离线测试和命令入口检查。结果见上表的验证文档。
+- 单机运行记录来自 2026-11-04 的仓库仿真，自建地图建图、重载、导航和急停均有实测。多机运行记录来自 2026-11-18 的默认去中心化场景，探索、巡逻、三种队形、地图重载、浏览器和退出均有实测。
+- 仓库包含可用的单机示例地图、多机回归测试数据和发布核查工具。运行日志、构建产物及本机环境通过各自的构建和运行命令生成。2026-10 的旧多机边界墙和调度记录可从历史提交查阅。[历史版本](https://github.com/42zwb/Cross-Project-Training-2-Intelligent-Robot/tree/59c807858edf65eaa99537da77635f14c8090124)

@@ -4,8 +4,10 @@ from launch.actions import (DeclareLaunchArgument, GroupAction, IncludeLaunchDes
                             OpaqueFunction, TimerAction)
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import (LaunchConfiguration, PathJoinSubstitution,
+                                  PythonExpression)
 from turtlebot4_tutorial.launch_support import make_rviz
+from turtlebot4_tutorial.simulation_preflight import launch_preflight
 
 
 def generate_launch_description():
@@ -13,6 +15,7 @@ def generate_launch_description():
     cartographer = get_package_share_directory('turtlebot4_cartographer')
     use_sim_time = LaunchConfiguration('use_sim_time')
     start_sim = LaunchConfiguration('start_sim')
+    safety = LaunchConfiguration('safety')
     gz_args = LaunchConfiguration('gz_args')
     model = LaunchConfiguration('model')
     world = LaunchConfiguration('world')
@@ -35,8 +38,20 @@ def generate_launch_description():
             'y': LaunchConfiguration('y'),
             'z': LaunchConfiguration('z'),
             'yaw': LaunchConfiguration('yaw'),
+            'safety': safety,
         }.items(),
         condition=IfCondition(start_sim),
+    )
+    safety_nodes = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(PathJoinSubstitution(
+            [tutorial, 'launch', 'tutorial_safety.launch.py'])),
+        launch_arguments={
+            'namespace': namespace,
+            'use_sim_time': use_sim_time,
+        }.items(),
+        condition=IfCondition(PythonExpression([
+            "'", safety, "' == 'true' and '", start_sim, "' == 'false'",
+        ])),
     )
     slam = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(PathJoinSubstitution(
@@ -57,6 +72,7 @@ def generate_launch_description():
         DeclareLaunchArgument('software_rendering', default_value='true',
                               choices=['true', 'false']),
         DeclareLaunchArgument('spawn_dock', default_value='false', choices=['true', 'false']),
+        DeclareLaunchArgument('safety', default_value='false', choices=['true', 'false']),
         DeclareLaunchArgument('load_state_filename', default_value=''),
         DeclareLaunchArgument('load_frozen_state', default_value='false',
                               choices=['true', 'false']),
@@ -68,6 +84,8 @@ def generate_launch_description():
         DeclareLaunchArgument('z', default_value='0.0'),
         DeclareLaunchArgument('yaw', default_value='0.0'),
         DeclareLaunchArgument('gz_args', default_value=''),
+        OpaqueFunction(function=launch_preflight, condition=IfCondition(start_sim)),
         GroupAction(actions=[simulation]),
+        safety_nodes,
         TimerAction(period=6.0, actions=[slam, rviz_node]),
     ])

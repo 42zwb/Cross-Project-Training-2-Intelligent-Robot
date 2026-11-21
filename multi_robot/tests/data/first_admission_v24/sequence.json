@@ -1,0 +1,323 @@
+{
+  "source_run": "release-v24/full-seed24-layout0",
+  "robot": "robot3",
+  "boot": "778a2c89081f489b8f28eb3c783496d9",
+  "epoch": 6,
+  "error_m": 0.10384697285086104,
+  "error_degrees": 1.2766582616742976,
+  "rows": [
+    {
+      "steady_time": 9501.524762788,
+      "alignment": {
+        "verified": false,
+        "map_aligned": true,
+        "hold_seconds": 0.0,
+        "target_revision": null,
+        "current_revision": 75,
+        "confirmed_revision": 70
+      },
+      "reference_revisions": [
+        70
+      ],
+      "pose": [
+        -1.3741127776250606,
+        1.5900270620962589,
+        2.574921333168196
+      ],
+      "team_pose": null,
+      "aggregate_team_transform": [
+        10.216293526120223,
+        0.01325372250620871,
+        -0.018838084492885935
+      ]
+    },
+    {
+      "steady_time": 9502.027183793,
+      "alignment": {
+        "verified": false,
+        "map_aligned": true,
+        "hold_seconds": 0.0,
+        "target_revision": null,
+        "current_revision": 75,
+        "confirmed_revision": 70
+      },
+      "reference_revisions": [
+        70
+      ],
+      "pose": [
+        -1.3735560327715834,
+        1.5898655534193753,
+        2.5801692511078187
+      ],
+      "team_pose": null,
+      "aggregate_team_transform": [
+        10.216293526120223,
+        0.01325372250620871,
+        -0.018838084492885935
+      ]
+    },
+    {
+      "steady_time": 9502.529940634,
+      "alignment": {
+        "verified": false,
+        "map_aligned": true,
+        "hold_seconds": 0.2834595230015111,
+        "target_revision": 75,
+        "current_revision": 76,
+        "confirmed_revision": 70
+      },
+      "reference_revisions": [],
+      "pose": [
+        -1.3736510700067228,
+        1.5898448134651109,
+        2.580155145911856
+      ],
+      "team_pose": null,
+      "aggregate_team_transform": [
+        10.216293526120223,
+        0.01325372250620871,
+        -0.018838084492885935
+      ]
+    },
+    {
+      "steady_time": 9503.03180549,
+      "alignment": {
+        "verified": false,
+        "map_aligned": true,
+        "hold_seconds": 0.7835239360010746,
+        "target_revision": 75,
+        "current_revision": 76,
+        "confirmed_revision": 70
+      },
+      "reference_revisions": [],
+      "pose": [
+        -1.3737549946985324,
+        1.5898406057691588,
+        2.580167249105752
+      ],
+      "team_pose": null,
+      "aggregate_team_transform": [
+        10.216293526120223,
+        0.01325372250620871,
+        -0.018838084492885935
+      ]
+    },
+    {
+      "steady_time": 9503.539688302,
+      "alignment": {
+        "verified": false,
+        "map_aligned": true,
+        "hold_seconds": 1.2834512410008756,
+        "target_revision": 75,
+        "current_revision": 77,
+        "confirmed_revision": 70
+      },
+      "reference_revisions": [],
+      "pose": [
+        -1.3739380682151427,
+        1.5898672624014978,
+        2.5801747831755506
+      ],
+      "team_pose": null,
+      "aggregate_team_transform": [
+        10.216293526120223,
+        0.01325372250620871,
+        -0.018838084492885935
+      ]
+    },
+    {
+      "steady_time": 9504.041402004,
+      "alignment": {
+        "verified": false,
+        "map_aligned": true,
+        "hold_seconds": 1.783493057000669,
+        "target_revision": 75,
+        "current_revision": 77,
+        "confirmed_revision": 70
+      },
+      "reference_revisions": [],
+      "pose": [
+        -1.3740935140461046,
+        1.5898948969392075,
+        2.5801797740776222
+      ],
+      "team_pose": null,
+      "aggregate_team_transform": [
+        10.216293526120223,
+        0.01325372250620871,
+        -0.018838084492885935
+      ]
+    },
+    {
+      "steady_time": 9504.544718765,
+      "alignment": {
+        "verified": false,
+        "map_aligned": true,
+        "hold_seconds": 2.283496838001156,
+        "target_revision": 75,
+        "current_revision": 78,
+        "confirmed_revision": 70
+      },
+      "reference_revisions": [],
+      "pose": [
+        -1.3742269609782007,
+        1.5899318709727344,
+        2.58017845887776
+      ],
+      "team_pose": null,
+      "aggregate_team_transform": [
+        10.216293526120223,
+        0.01325372250620871,
+        -0.018838084492885935
+      ]
+    },
+    {
+      "steady_time": 9505.046308152,
+      "alignment": {
+        "verified": false,
+        "map_aligned": true,
+        "hold_seconds": 2.78355223500148,
+        "target_revision": 75,
+        "current_revision": 78,
+        "confirmed_revision": 70
+      },
+      "reference_revisions": [],
+      "pose": [
+        -1.3743400568362691,
+        1.5899411218226744,
+        2.580188425003058
+      ],
+      "team_pose": null,
+      "aggregate_team_transform": [
+        10.193823940802686,
+        0.0024282360671075143,
+        -0.022284236308213825
+      ]
+    },
+    {
+      "steady_time": 9505.549866929,
+      "alignment": {
+        "verified": false,
+        "map_aligned": true,
+        "hold_seconds": 3.2833501750010328,
+        "target_revision": 75,
+        "current_revision": 79,
+        "confirmed_revision": 73
+      },
+      "reference_revisions": [
+        70,
+        73
+      ],
+      "pose": [
+        -1.374383405181674,
+        1.5899501770344082,
+        2.580187269736199
+      ],
+      "team_pose": null,
+      "aggregate_team_transform": [
+        10.193823940802686,
+        0.0024282360671075143,
+        -0.022284236308213825
+      ]
+    },
+    {
+      "steady_time": 9506.051641128,
+      "alignment": {
+        "verified": false,
+        "map_aligned": true,
+        "hold_seconds": 3.7836780329998874,
+        "target_revision": 75,
+        "current_revision": 79,
+        "confirmed_revision": 73
+      },
+      "reference_revisions": [
+        70,
+        73
+      ],
+      "pose": [
+        -1.3744234673090032,
+        1.5899597431634036,
+        2.5801853869327322
+      ],
+      "team_pose": null,
+      "aggregate_team_transform": [
+        10.193823940802686,
+        0.0024282360671075143,
+        -0.022284236308213825
+      ]
+    },
+    {
+      "steady_time": 9506.554774966,
+      "alignment": {
+        "verified": false,
+        "map_aligned": true,
+        "hold_seconds": 4.283572550000827,
+        "target_revision": 75,
+        "current_revision": 80,
+        "confirmed_revision": 73
+      },
+      "reference_revisions": [
+        70,
+        73
+      ],
+      "pose": [
+        -1.374766596372293,
+        1.590384084234377,
+        2.5801795816493795
+      ],
+      "team_pose": null,
+      "aggregate_team_transform": [
+        10.193823940802686,
+        0.0024282360671075143,
+        -0.022284236308213825
+      ]
+    },
+    {
+      "steady_time": 9507.059648993,
+      "alignment": {
+        "verified": true,
+        "map_aligned": true,
+        "hold_seconds": 4.783591309000258,
+        "target_revision": 75,
+        "current_revision": 80,
+        "confirmed_revision": 80
+      },
+      "reference_revisions": [
+        70,
+        73
+      ],
+      "pose": [
+        -1.374570525880459,
+        1.5900312278104336,
+        2.5801881400328357
+      ],
+      "team_pose": [
+        8.855024396980413,
+        1.6226934049493227,
+        2.557903903724622
+      ],
+      "aggregate_team_transform": [
+        10.193823940802686,
+        0.0024282360671075143,
+        -0.022284236308213825
+      ]
+    }
+  ],
+  "expected": {
+    "robot1": [
+      0.2544733037672913,
+      -0.05832218383251675,
+      -0.1181625022925713
+    ],
+    "robot2": [
+      5.029978767180273,
+      0.11461948664147936,
+      0.12211398218098411
+    ],
+    "robot3": [
+      10.19594442958673,
+      0.06942757014230327,
+      -0.04456612639721779
+    ]
+  }
+}
