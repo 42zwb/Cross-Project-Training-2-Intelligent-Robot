@@ -3,6 +3,7 @@ from types import SimpleNamespace
 
 import numpy as np
 import pytest
+from nav_msgs.msg import Odometry
 
 from fleet_control.geometry import Grid
 from fleet_control.peer_agent import PeerAgent, FORMATION_HEADING_CORRECTION_LIMIT
@@ -56,7 +57,45 @@ def test_late_heading_error_queues_a_new_leased_goal_after_stop_and_fresh_pose(r
     assert agent.resource == 'team_motion' and agent.request_id
     assert agent.completed_step == 2
     assert not agent.formation_settled and agent.formation_stable is None
+    assert agent.formation_heading_corrections == 0 and not events
+
+
+def test_turn_completes_on_odometry_despite_map_heading_jump(row):
+    agent, plan, _, events = row
+    agent.formation_plan = plan
+    agent.odom_epoch = 'encoder-boot'
+    agent.get_clock = lambda: SimpleNamespace(now=lambda: SimpleNamespace(nanoseconds=8_000_000_000))
+    odom = Odometry()
+    odom.header.stamp.sec = 8
+    odom.header.frame_id, odom.child_frame_id = 'robot3/odom', 'robot3/base_link'
+    q = odom.pose.pose.orientation
+    original = -.8
+    q.z, q.w = math.sin(original/2), math.cos(original/2)
+    agent.odom_data = 101.55, odom
+    outcomes = []
+    agent.finish_work = outcomes.append
+    agent.finish_formation(101.6)
+
+    PeerAgent.formation_turn_tick(agent, 101.6)
+    assert agent.work['turn_rate'] < 0. and agent.formation_heading_corrections == 1
     assert events[-1][0] == 'formation_heading_correction'
+    target = agent.work['turn_target']
+    assert target == pytest.approx(original-math.radians(26.5))
+
+    # A transient near-zero mapped yaw is irrelevant to the odometry delta.
+    agent.pose = (*agent.pose[:2], math.radians(1.45))
+    agent.stopped = lambda now: False
+    PeerAgent.formation_turn_tick(agent, 101.7)
+    assert agent.work['turn_target'] == target and agent.work['turn_rate'] < 0.
+    assert not outcomes
+
+    q.z, q.w = math.sin(target/2), math.cos(target/2)
+    agent.work['turn_rate'] = 0.  # Reset at each control tick before checking the lease.
+    PeerAgent.formation_turn_tick(agent, 101.8)
+    assert agent.work['turn_rate'] == 0. and not outcomes
+    agent.stopped = lambda now: True
+    PeerAgent.formation_turn_tick(agent, 101.9)
+    assert outcomes == [True]
 
 
 def test_good_pose_must_be_held_for_three_seconds_after_all_peers_settle(row):

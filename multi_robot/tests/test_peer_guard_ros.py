@@ -36,14 +36,20 @@ def guard(tmp_path):
     op = node.create_publisher(Odometry, '/robot1/odom', 10)
     tp = node.create_publisher(TFMessage, '/robot1/tf', 10)
     mission = node.create_publisher(MissionCommand, '/fleet/peer/mission', EVENT_QOS)
-    outputs = []
-    node.create_subscription(Twist, '/robot1/diffdrive_controller/cmd_vel_unstamped',
-                             lambda m: outputs.append((time.monotonic(), m.linear.x)), 100)
+    outputs, rotations = [], []
+
+    def output(message):
+        received = time.monotonic()
+        outputs.append((received, message.linear.x))
+        rotations.append((received, message.angular.z))
+
+    node.create_subscription(Twist, '/robot1/diffdrive_controller/cmd_vel_unstamped', output, 100)
     serial = dict.fromkeys(cfg['members'], 0)
     sequence, request = 0, 0
     frozen = None
 
-    def spin(seconds, grants=True, sensors=True, freeze=False, late=False, old_boot=False, bad_map_age=None):
+    def spin(seconds, grants=True, sensors=True, freeze=False, late=False, old_boot=False,
+             bad_map_age=None, turn_rate=None):
         nonlocal sequence, request, frozen
         end, sent = time.monotonic()+seconds, 0.
         while time.monotonic() < end:
@@ -71,11 +77,13 @@ def guard(tmp_path):
                     'map_ages': {'robot1': 0. if bad_map_age is None else bad_map_age}})
                 mp.publish(mapping)
                 m = MissionCommand(session_id='guard-test', issuer_id='test', command_id='mission', revision=1,
-                    kind='explore', participant_boot_ids=['b1', 'b2', 'b3'], expires_at=now+1.)
+                    kind='explore' if turn_rate is None else 'formation',
+                    participant_boot_ids=['b1', 'b2', 'b3'], expires_at=now+1.)
                 mission.publish(m)
                 auth = LocalAuthorization(session_id='guard-test', robot_id='robot1', boot_id='b1',
                     sequence=sequence, mission_id='mission', request_id='request', resource='team_motion',
-                    frame_epoch='frame', enabled=True, maximum_speed=.2, limits_json='{}')
+                    frame_epoch='frame', enabled=True, maximum_speed=.2,
+                    limits_json=dumps({} if turn_rate is None else {'formation_turn_rate': turn_rate}))
                 ap.publish(auth)
                 command = Twist()
                 command.linear.x = .1
@@ -111,7 +119,7 @@ def guard(tmp_path):
                         events[name].publish(g)
             rclpy.spin_once(safety, timeout_sec=.001)
             rclpy.spin_once(node, timeout_sec=.001)
-        return outputs
+        return outputs if turn_rate is None else rotations
     try:
         yield safety, node, spin, outputs
     finally:
@@ -128,6 +136,18 @@ def test_guard_expires_majority_even_while_agent_command_and_heartbeat_continue(
     spin(.85, grants=False)
     assert outputs[-1][1] == 0.
     assert all(v == 0. for t, v in outputs if t >= failure+.8)
+
+
+def test_leased_formation_turn_ignores_nav_translation_and_stops_without_votes(guard):
+    _, _, spin, outputs = guard
+    rotations = spin(1., turn_rate=-.25)
+    assert any(w == -.25 for _, w in rotations)
+    assert all(v == 0. for _, v in outputs)
+    failure = time.monotonic()
+    spin(.85, grants=False, turn_rate=-.25)
+    assert rotations[-1][1] == 0.
+    assert all(w == 0. for t, w in rotations if t >= failure+.8)
+    assert all(v == 0. for _, v in outputs)
 
 
 def test_sensor_data_freeze_stops_before_eight_tenths_despite_live_commands_and_votes(guard):

@@ -22,6 +22,30 @@ from .peer_persistence import Journal
 from .peer_transport import PeerInbox
 
 SENSOR_TTL = .65  # Leave scheduling margin inside the 0.8 s stop requirement.
+FORMATION_TURN_MAXIMUM = .35
+
+
+def authorized_twist(auth, mission_kind, command_data, now):
+    try:
+        limits = loads(auth.limits_json) if auth.limits_json else {}
+        if not isinstance(limits, dict):
+            raise ValueError()
+    except (TypeError, ValueError):
+        return None, {}, '非法运动约束'
+    if 'formation_turn_rate' not in limits:
+        if not command_data or now-command_data[0] > .5:
+            return None, limits, '等待新速度'
+        return command_data[1], limits, ''
+
+    rate = limits['formation_turn_rate']
+    if (mission_kind != 'formation' or auth.bootstrap or auth.resource != 'team_motion'
+            or type(rate) not in (int, float) or not -FORMATION_TURN_MAXIMUM <= rate <= FORMATION_TURN_MAXIMUM):
+        return None, limits, '非法编队原地转向'
+    # Bind the turn command to the same heartbeat and lease as permission to
+    # move. Pending Nav2 velocity messages cannot add translation during it.
+    rotation = Twist()
+    rotation.angular.z = float(rate)
+    return rotation, limits, ''
 
 
 def inside_region(name, point, limits, margin):
@@ -263,8 +287,11 @@ class LocalSafety(Node):
             pass
         received, auth = self.authorization if self.authorization else (0., None)
         auth_fresh = auth is not None and now-received <= .5
+        cmd, limits, command_reason = None, {}, ''
         if auth_fresh:
             self.apply_authorized_mission(auth, boots)
+            kind = self.pending_commands.get(auth.mission_id, (None, ''))[1]
+            cmd, limits, command_reason = authorized_twist(auth, kind, self.command_data, now)
         if self.estop:
             reason = '急停锁定'
         elif not auth_fresh:
@@ -287,10 +314,9 @@ class LocalSafety(Node):
             reason = '本车尚未重新定位'
         elif self.mapping[2].get('map_ages', {}).get(self.name, math.inf) > 3.:
             reason = '本车 SLAM 地图超时'
-        elif not self.command_data or now-self.command_data[0] > .5:
-            reason = '等待新速度'
+        elif cmd is None:
+            reason = command_reason
         else:
-            cmd = self.command_data[1]
             if not all(math.isfinite(v) for v in (cmd.linear.x, cmd.linear.y, cmd.linear.z,
                                                    cmd.angular.x, cmd.angular.y, cmd.angular.z)):
                 reason = '非法速度'
@@ -358,7 +384,6 @@ class LocalSafety(Node):
                         if not peer_motion_clear(pose[:2], pose[2], out.linear.x, out.angular.z,
                                                  fresh, self.radius, self.speed):
                             reason = '机器人间距保护'
-                        limits = loads(auth.limits_json) if auth.limits_json else {}
                         predicted = (pose[0]+math.cos(pose[2])*out.linear.x*.6,
                                      pose[1]+math.sin(pose[2])*out.linear.x*.6, pose[2])
                         if not inside_region(self.name, compose(team_from_local, predicted), limits, self.radius+.02):

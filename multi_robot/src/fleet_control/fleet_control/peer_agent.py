@@ -35,7 +35,7 @@ from .peer_protocol import (MEMBERS, ReplayWindow, LeaseVoter, GrantTracker, dig
                             finite_pose, choose_motion_owner, command_targets_boot, command_is_current)
 from .peer_common import (STATE_QOS, EVENT_QOS, load_config, dumps, loads, peer_topic,
                           pose_list, set_pose, local_frame)
-from .local_safety import inside_region
+from .local_safety import FORMATION_TURN_MAXIMUM, SENSOR_TTL, inside_region
 from .peer_persistence import Journal
 from .peer_plans import validate_formation_plan, agreed_formation_plan
 from .peer_transport import PeerInbox
@@ -44,6 +44,7 @@ from .peer_auction import valid_offer, quote_frontiers, frontier_winner
 FORMATION_LOCALIZATION_SETTLE_SECONDS = 1.2
 FORMATION_HEADING_CORRECTION_LIMIT = 2
 FORMATION_HEADING_CORRECTION_TIMEOUT = 30.
+FORMATION_ODOMETRY_TURN_TOLERANCE = math.radians(2.)
 
 
 class PeerAgent(Node):
@@ -642,12 +643,6 @@ class PeerAgent(Node):
             return
         generation, mission = self.goal_generation, self.mission_id
         work = self.work
-        if work.get('heading_correction'):
-            target = self.formation_heading_goal(self.formation_plan)
-            if target is None:
-                self.cancel()
-                return
-            work['target'] = target
         target = work['target']
         goal = NavigateToPose.Goal()
         goal.pose = PoseStamped()
@@ -1098,6 +1093,8 @@ class PeerAgent(Node):
                     or (self.work.get('heading_correction')
                         and now-self.work['started'] > FORMATION_HEADING_CORRECTION_TIMEOUT)):
                 self.finish_work(False)
+            if self.work and self.work.get('heading_correction'):
+                self.work['turn_rate'] = 0.
             if self.work and not self.estop and self.local_ready and self.nav_ready and self.motion_turn(now):
                 self.request_sequence += 1
                 sent = time.monotonic_ns()
@@ -1108,7 +1105,10 @@ class PeerAgent(Node):
                     payload=dict(frame_epoch=self.mapping[1].frame_epoch,
                                  region_hash=digest([self.seeds, self.regions]), bootstrap=self.work.get('bootstrap', False)))
                 if self.grants.valid(self.request_id, self.mission_id, self.resource, now, self.boots()):
-                    self.send_goal()
+                    if self.work.get('heading_correction'):
+                        self.formation_turn_tick(now)
+                    else:
+                        self.send_goal()
             self.publish_authorization()
             self.publish_state(now)
 
@@ -1225,6 +1225,52 @@ class PeerAgent(Node):
             return None
         return list(goal)
 
+    def formation_turn_tick(self, now):
+        work = self.work
+        epoch = self.odom_epoch
+        received, odom = self.odom_data or (0., None)
+        if (not epoch or odom is None or now-received >= SENSOR_TTL or not valid_odom(odom)
+                or odom.header.frame_id != self.name+'/odom'
+                or odom.child_frame_id != self.name+'/base_link'
+                or not stamp_fresh(odom.header.stamp, self.get_clock().now().nanoseconds, max_age=SENSOR_TTL)):
+            self.finish_work(False)
+            return
+        q = odom.pose.pose.orientation
+        if not .99 <= q.x*q.x+q.y*q.y+q.z*q.z+q.w*q.w <= 1.01:
+            self.finish_work(False)
+            return
+        odom_heading = yaw(q)
+        stamp = odom.header.stamp.sec*1_000_000_000 + odom.header.stamp.nanosec
+        if 'turn_target' not in work:
+            if not self.stopped(now):
+                return
+            plan = self.formation_plan
+            target = self.formation_heading_goal(plan)
+            if target is None:
+                self.cancel()
+                return
+            # Establish an odometry-frame target at rest. Localization updates
+            # during the turn cannot jump the remaining rotation distance.
+            turn = angle(target[2]-self.pose[2])
+            work.update(target=target, turn_epoch=epoch, turn_target=angle(odom_heading+turn),
+                        turn_stamp=stamp)
+            self.formation_heading_corrections += 1
+            slot = plan['slots'][plan['assignment'][MEMBERS.index(self.name)]]
+            self.record('formation_heading_correction', attempt=self.formation_heading_corrections,
+                        yaw_error_deg=abs(math.degrees(turn)), position_error_m=math.dist(self.pose[:2], target[:2]),
+                        slot=slot, method='wheel_odometry_rotation')
+        elif epoch != work['turn_epoch'] or stamp < work['turn_stamp']:
+            self.finish_work(False)
+            return
+        work['turn_stamp'] = stamp
+        remaining = angle(work['turn_target']-odom_heading)
+        if abs(remaining) <= FORMATION_ODOMETRY_TURN_TOLERANCE:
+            if self.stopped(now):
+                self.finish_work(True)
+        else:
+            rate = min(FORMATION_TURN_MAXIMUM, max(.10, 1.2*abs(remaining)))
+            work['turn_rate'] = math.copysign(rate, remaining)
+
     def formation_finish_tick(self, plan, now):
         self.formation_settled = False
         arrival = self.formation_arrival
@@ -1249,13 +1295,10 @@ class PeerAgent(Node):
                     self.mode, self.message = 'FAULT', '队形航向纠偏次数已用完，保持停车'
                     self.record('formation_heading_correction_exhausted', yaw_error_deg=math.degrees(yaw_error))
                 else:
-                    self.formation_heading_corrections += 1
                     self.work = dict(kind='formation', target=goal, heading_correction=True,
                                      bootstrap=False, resource='team_motion', started=now)
                     self.request_id, self.request_sequence, self.resource = uuid.uuid4().hex, 0, 'team_motion'
                     self.message = '等待队形航向纠偏的对等授权'
-                    self.record('formation_heading_correction', attempt=self.formation_heading_corrections,
-                                yaw_error_deg=math.degrees(yaw_error), position_error_m=position_error, slot=slot)
         peers_settled = all(name == self.name or (peer.mission_id == self.mission_id
                     and details.get('formation_plan_id') == plan['plan_id']
                     and details.get('formation_settled') is True)
@@ -1295,7 +1338,10 @@ class PeerAgent(Node):
         msg.enabled, msg.estop = bool(self.work and self.local_ready and self.nav_ready), self.estop
         msg.bootstrap = bool(self.work and self.work.get('bootstrap'))
         msg.maximum_speed = .08 if msg.bootstrap else self.cfg['max_speed']
-        msg.limits_json = dumps(self.limits())
+        limits = self.limits()
+        if self.work and self.work.get('heading_correction'):
+            limits['formation_turn_rate'] = self.work.get('turn_rate', 0.)
+        msg.limits_json = dumps(limits)
         self.authpub.publish(msg)
 
     def publish_state(self, now):
