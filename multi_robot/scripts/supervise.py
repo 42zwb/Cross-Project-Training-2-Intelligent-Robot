@@ -91,6 +91,10 @@ manifest = {
             "GZ_IP",
             "IGN_PARTITION",
             "PYTHONNOUSERSITE",
+            "FLEET_EGL_HEADLESS",
+            "LIBGL_ALWAYS_SOFTWARE",
+            "GALLIUM_DRIVER",
+            "LP_NUM_THREADS",
         ]
     },
     "memory_total_kb": int(

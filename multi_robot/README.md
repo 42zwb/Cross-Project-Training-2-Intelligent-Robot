@@ -43,6 +43,8 @@ ros2 run fleet_control fleetctl save --output results/my_peer_map
 ./demo.sh
 ```
 
+具备 OpenGL EGL 驱动的 OGRE2 环境可运行 `FLEET_EGL_HEADLESS=1 ./demo.sh --headless`，在无窗口时使用 EGL 渲染。
+
 保留显式的集中式兼容入口 `./run.sh --architecture centralized`。其他场景可用 `--seed` 和 `--spawn-layout` 指定。
 
 ## 验证与源码

@@ -2,9 +2,11 @@
 // Robot algorithms still run in their separate, independently guarded nodes.
 #include <chrono>
 #include <csignal>
+#include <cstdlib>
 #include <filesystem>
 #include <iostream>
 #include <memory>
+#include <string_view>
 #include <thread>
 #include <ignition/common/Console.hh>
 #include <ignition/gazebo/Server.hh>
@@ -29,6 +31,11 @@ int main(int argc, char **argv) {
   try {
     ignition::gazebo::ServerConfig config;
     config.SetSdfFile(argv[1]);
+    const char *egl_headless = std::getenv("FLEET_EGL_HEADLESS");
+    if (egl_headless && std::string_view(egl_headless) == "1") {
+      config.SetHeadlessRendering(true);
+      std::cout << "fleet_sim_server: requested headless EGL\n" << std::flush;
+    }
     auto server = std::make_unique<ignition::gazebo::Server>(config);
     if (!server->EntityCount().has_value()) {
       throw std::runtime_error("world could not be loaded");
