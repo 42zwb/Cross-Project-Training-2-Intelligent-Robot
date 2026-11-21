@@ -27,7 +27,8 @@ from fleet_interfaces.msg import (PeerState, MappingState, CoordinationEvent,
 from fleet_mapping.grid import valid_grid_message, save_map
 from fleet_mapping.registration import (angle, compose, inverse, dynamic_fusion,
                                         transform_points, voronoi_mask)
-from .geometry import (Grid, formation, plan_formation, formation_pass, region_return,
+from .geometry import (FORMATION_POSITION_TOLERANCE, FORMATION_YAW_TOLERANCE,
+                       Grid, formation, plan_formation, formation_pass, region_return,
                        region_entry_margin, private_observation_grid, yaw)
 from .health import scan_health, valid_odom, stamp_fresh
 from .peer_protocol import (MEMBERS, ReplayWindow, LeaseVoter, GrantTracker, digest,
@@ -39,6 +40,10 @@ from .peer_persistence import Journal
 from .peer_plans import validate_formation_plan, agreed_formation_plan
 from .peer_transport import PeerInbox
 from .peer_auction import valid_offer, quote_frontiers, frontier_winner
+
+FORMATION_LOCALIZATION_SETTLE_SECONDS = 1.2
+FORMATION_HEADING_CORRECTION_LIMIT = 2
+FORMATION_HEADING_CORRECTION_TIMEOUT = 30.
 
 
 class PeerAgent(Node):
@@ -86,6 +91,9 @@ class PeerAgent(Node):
         self.formation_plan, self.formation_plans, self.formation_votes = None, {}, {}
         self.formation_validations, self.formation_emit_at = {}, 0.
         self.formation_step, self.completed_step, self.formation_stable = 0, -1, None
+        self.formation_arrival = None
+        self.formation_heading_corrections = 0
+        self.formation_settled = False
         self.patrol, self.patrol_index, self.patrol_cycle = None, 0, 0
         self.patrol_dwell_until, self.goal_pending_since = 0., 0.
         self.events, self.plan_points = [], []
@@ -549,6 +557,9 @@ class PeerAgent(Node):
         self.release_votes = {}
         self.quote_future, self.local_quotes, self.frontier_quotes = None, {}, {}
         self.formation_step, self.completed_step, self.formation_stable = 0, -1, None
+        self.formation_arrival = None
+        self.formation_heading_corrections = 0
+        self.formation_settled = False
         self.record('command_committed', command=message.kind, command_id=message.command_id)
         if message.kind == 'clear-estop':
             self.estop, self.mode = False, 'IDLE'
@@ -609,7 +620,9 @@ class PeerAgent(Node):
             if success:
                 self.visits.append(work['target'])
                 if work['kind'] == 'formation':
-                    self.completed_step = self.formation_step
+                    self.formation_arrival = (time.monotonic(), self.pose_sim_time)
+                    if not work.get('heading_correction'):
+                        self.completed_step = self.formation_step
                 elif work['kind'] == 'patrol':
                     self.patrol_index += 1
                     self.patrol_dwell_until = time.monotonic()+self.patrol.get('dwell', 0)
@@ -618,6 +631,9 @@ class PeerAgent(Node):
                 if work['kind'] in ('formation', 'patrol'):
                     self.mode, self.message = 'FAULT', '本车导航失败，保持停车'
             self.record('goal_result', success=success, kind=work['kind'], target=work['target'])
+            if work.get('heading_correction'):
+                self.record('formation_heading_correction_result', success=success,
+                            attempt=self.formation_heading_corrections)
         self.cancel()
 
     def send_goal(self):
@@ -626,6 +642,12 @@ class PeerAgent(Node):
             return
         generation, mission = self.goal_generation, self.mission_id
         work = self.work
+        if work.get('heading_correction'):
+            target = self.formation_heading_goal(self.formation_plan)
+            if target is None:
+                self.cancel()
+                return
+            work['target'] = target
         target = work['target']
         goal = NavigateToPose.Goal()
         goal.pose = PoseStamped()
@@ -1072,7 +1094,9 @@ class PeerAgent(Node):
                 self.patrol_tick(now)
             timeout = self.patrol.get('goal_timeout', 120) if self.work and self.work['kind'] == 'patrol' and self.patrol else 160
             if self.work and ((self.goal_sending and now-self.goal_pending_since > 5)
-                    or (self.work.get('navigation_started') and now-self.work['navigation_started'] > timeout)):
+                    or (self.work.get('navigation_started') and now-self.work['navigation_started'] > timeout)
+                    or (self.work.get('heading_correction')
+                        and now-self.work['started'] > FORMATION_HEADING_CORRECTION_TIMEOUT)):
                 self.finish_work(False)
             if self.work and not self.estop and self.local_ready and self.nav_ready and self.motion_turn(now):
                 self.request_sequence += 1
@@ -1091,6 +1115,8 @@ class PeerAgent(Node):
     def formation_tick(self, now):
         if (not self.all_aligned() or any(not peer.local_ready or not peer.nav_ready
                                          for _, peer, _ in self.live().values())):
+            self.formation_stable = None
+            self.formation_settled = False
             self.cancel()
             self.message = '三车队形需要全部成员在线、定位有效且导航可用'
             return
@@ -1116,6 +1142,7 @@ class PeerAgent(Node):
                 plan_id, plan = agreement
                 self.formation_plan = copy.deepcopy(plan)
                 self.formation_plan['plan_id'] = plan_id
+                self.formation_plan['frame_epoch'] = self.mapping[1].frame_epoch
                 self.record('formation_plan', plan_id=plan_id, assignment=plan['assignment'], slots=plan['slots'])
             else:
                 self.message = '等待三车对同一静态队形计划完成可行性确认'
@@ -1132,8 +1159,17 @@ class PeerAgent(Node):
         if not self.formation_plan:
             return
         plan = self.formation_plan
-        if any(name != self.name and details.get('formation_plan_id') != plan['plan_id']
+        if plan['frame_epoch'] != self.mapping[1].frame_epoch:
+            self.formation_stable = None
+            self.formation_settled = False
+            self.cancel()
+            self.mode, self.message = 'FAULT', '队形计划的共同坐标已变化，保持停车'
+            return
+        if any(name != self.name and (peer.mission_id != self.mission_id
+                    or details.get('formation_plan_id') != plan['plan_id'])
                for name, (_, peer, details) in self.live().items()):
+            self.formation_stable = None
+            self.formation_settled = False
             self.message = '等待全部成员确认同一队形计划后开始通行'
             return
         routes = plan['routes']
@@ -1155,14 +1191,82 @@ class PeerAgent(Node):
                                  bootstrap=False, resource='team_motion', started=now)
                 self.request_id, self.request_sequence, self.resource = uuid.uuid4().hex, 0, 'team_motion'
         if self.formation_step == len(routes):
-            poses = self.team_poses()
-            good = len(poses) == 3 and formation_pass([poses[n] for n in MEMBERS], plan['slots'],
-                                                      plan['assignment'], self.cfg['robot_radius'])
-            self.formation_stable = (self.formation_stable or now) if good else None
-            if self.formation_stable and now-self.formation_stable >= 3:
-                self.mode = 'FORMATION_READY'
-                self.message = '静态队形已稳定到位'
-                self.record('formation_ready', slots=plan['slots'], assignment=plan['assignment'])
+            self.formation_finish_tick(plan, now)
+
+    def formation_heading_goal(self, plan):
+        if (not plan or self.estop or not self.all_aligned() or self.grid is None
+                or plan['frame_epoch'] != self.mapping[1].frame_epoch):
+            return None
+        for name, (_, peer, details) in self.live().items():
+            if name == self.name:
+                continue
+            if (peer.mission_id != self.mission_id or peer.estop or not peer.nav_ready
+                    or peer.mode not in ('FORMING', 'FORMATION_READY')
+                    or details.get('formation_plan_id') != plan['plan_id']
+                    or details.get('formation_step') != len(plan['routes'])
+                    or details.get('motion_lease_held') or not peer.odom_valid
+                    or abs(peer.velocity.linear.x) >= .015 or abs(peer.velocity.angular.z) >= .04):
+                return None
+        poses = self.team_poses()
+        if set(poses) != set(MEMBERS):
+            return None
+        slot = plan['slots'][plan['assignment'][MEMBERS.index(self.name)]]
+        pose = poses[self.name]
+        if (math.dist(pose[:2], slot[:2]) > FORMATION_POSITION_TOLERANCE
+                or abs(angle(pose[2]-slot[2])) <= FORMATION_YAW_TOLERANCE):
+            return None
+        local_from_team = inverse(self.team_transform())
+        goal = compose(local_from_team, slot)
+        others = [compose(local_from_team, pose) for name, pose in poses.items() if name != self.name]
+        allowed = self.grid.allowed(others=others, other_clearance=.85)
+        # The small move back to the voted slot must remain safe in the live map.
+        cell = self.grid.cell(self.pose)
+        if not self.grid.inside(cell) or not allowed[cell] or not self.grid.astar(self.pose, goal, allowed):
+            return None
+        return list(goal)
+
+    def formation_finish_tick(self, plan, now):
+        self.formation_settled = False
+        arrival = self.formation_arrival
+        poses = self.team_poses()
+        if (self.estop or self.work or self.release_pending or not arrival or not self.stopped(now)
+                or self.pose_steady_time is None or self.pose_steady_time <= arrival[0]
+                or self.pose_sim_time is None or (arrival[1] is not None and self.pose_sim_time <= arrival[1])
+                or now-arrival[0] < FORMATION_LOCALIZATION_SETTLE_SECONDS or set(poses) != set(MEMBERS)):
+            self.formation_stable = None
+            return
+        slot = plan['slots'][plan['assignment'][MEMBERS.index(self.name)]]
+        pose = poses[self.name]
+        position_error = math.dist(pose[:2], slot[:2])
+        yaw_error = abs(angle(pose[2]-slot[2]))
+        self.formation_settled = (position_error <= FORMATION_POSITION_TOLERANCE
+                                  and yaw_error <= FORMATION_YAW_TOLERANCE)
+        if position_error <= FORMATION_POSITION_TOLERANCE and yaw_error > FORMATION_YAW_TOLERANCE:
+            self.message = '导航已结束，航向仍超出槽位容差，检查纠偏路径'
+            goal = self.formation_heading_goal(plan)
+            if goal is not None:
+                if self.formation_heading_corrections >= FORMATION_HEADING_CORRECTION_LIMIT:
+                    self.mode, self.message = 'FAULT', '队形航向纠偏次数已用完，保持停车'
+                    self.record('formation_heading_correction_exhausted', yaw_error_deg=math.degrees(yaw_error))
+                else:
+                    self.formation_heading_corrections += 1
+                    self.work = dict(kind='formation', target=goal, heading_correction=True,
+                                     bootstrap=False, resource='team_motion', started=now)
+                    self.request_id, self.request_sequence, self.resource = uuid.uuid4().hex, 0, 'team_motion'
+                    self.message = '等待队形航向纠偏的对等授权'
+                    self.record('formation_heading_correction', attempt=self.formation_heading_corrections,
+                                yaw_error_deg=math.degrees(yaw_error), position_error_m=position_error, slot=slot)
+        peers_settled = all(name == self.name or (peer.mission_id == self.mission_id
+                    and details.get('formation_plan_id') == plan['plan_id']
+                    and details.get('formation_settled') is True)
+                    for name, (_, peer, details) in self.live().items())
+        good = self.formation_settled and peers_settled and formation_pass(
+            [poses[n] for n in MEMBERS], plan['slots'], plan['assignment'], self.cfg['robot_radius'])
+        self.formation_stable = (self.formation_stable or now) if good else None
+        if self.formation_stable and now-self.formation_stable >= 3:
+            self.mode = 'FORMATION_READY'
+            self.message = '静态队形已稳定到位'
+            self.record('formation_ready', slots=plan['slots'], assignment=plan['assignment'])
 
     def patrol_tick(self, now):
         route = self.patrol.get('routes', {}).get(self.name, []) if self.patrol else []
@@ -1247,6 +1351,7 @@ class PeerAgent(Node):
             formation_slots=self.formation_plan['slots'] if self.formation_plan else [],
             assignment=self.formation_plan['assignment'] if self.formation_plan else None,
             completed_step=self.completed_step, formation_step=self.formation_step,
+            formation_settled=self.formation_settled,
             patrol_index=self.patrol_index, patrol_cycle=self.patrol_cycle,
             patrol_total=len(self.patrol.get('routes', {}).get(self.name, []))*self.patrol.get('cycles', 1) if self.patrol else 0,
             patrol_completed=(self.patrol_cycle*len(self.patrol.get('routes', {}).get(self.name, []))+self.patrol_index) if self.patrol else 0,
