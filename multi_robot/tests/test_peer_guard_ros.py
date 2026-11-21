@@ -214,3 +214,41 @@ def test_new_estop_fences_old_clear_and_needs_fresh_authorization(guard):
     # A retransmission of a consumed release cannot arm it again.
     command('clear-estop', 'clear-2', 13)
     assert safety.clear_command is None
+
+
+def test_pending_clear_survives_stop_heartbeat_and_commits_atomically(guard, monkeypatch):
+    safety, _node, spin, outputs = guard
+    spin(1.)
+    assert any(v > .05 for _, v in outputs)
+    previous_order = safety.command_order
+    clear = MissionCommand(session_id='guard-test', issuer_id='test',
+        command_id='new-clear', revision=10, kind='clear-estop',
+        participant_boot_ids=['b1', 'b2', 'b3'], expires_at=time.monotonic()+1.)
+    safety.mission(clear)
+    safety.mission_votes[clear.command_id] = {'robot1': 'b1', 'robot2': 'b2'}
+
+    def authorize(estop):
+        safety.authorize(LocalAuthorization(session_id='guard-test', robot_id='robot1',
+            boot_id='b1', sequence=safety.auth_sequence+1, mission_id=clear.command_id,
+            enabled=False, estop=estop))
+
+    # The stop heartbeat and the clear command travel on different topics.
+    authorize(True)
+    safety.tick()
+    assert safety.estop and safety.command_order == previous_order
+
+    authorize(False)
+    with monkeypatch.context() as patch:
+        def fail_write(**_values):
+            raise OSError('simulated unavailable journal')
+        patch.setattr(safety.journal, 'update', fail_write)
+        with pytest.raises(OSError, match='simulated unavailable journal'):
+            safety.tick()
+    assert safety.estop and safety.command_order == previous_order
+    stopped_state = json.loads(safety.journal.path.read_text())
+    assert stopped_state['estop'] and tuple(stopped_state['command_order']) == previous_order
+
+    safety.tick()
+    state = json.loads(safety.journal.path.read_text())
+    assert not safety.estop and state['estop'] is False
+    assert safety.command_id == clear.command_id == state['command_order'][2]

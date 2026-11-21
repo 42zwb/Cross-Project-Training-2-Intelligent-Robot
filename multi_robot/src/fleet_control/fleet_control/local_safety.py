@@ -172,7 +172,7 @@ class LocalSafety(Node):
         if order < self.command_order:
             return
         if message.kind in ('explore', 'pause', 'estop', 'clear-estop', 'formation', 'regions', 'patrol'):
-            self.pending_commands[message.command_id] = order
+            self.pending_commands[message.command_id] = (order, message.kind)
             if len(self.pending_commands) > 64:
                 self.pending_commands.pop(next(iter(self.pending_commands)))
             if message.kind in ('pause', 'estop') and order > self.command_order:
@@ -182,14 +182,16 @@ class LocalSafety(Node):
             self.stop_revision = message.revision
             self.command_data = None
             pending_clear = self.pending_commands.get(self.clear_command)
-            if pending_clear is None or pending_clear[0] <= self.stop_revision:
+            if pending_clear is None or pending_clear[0][0] <= self.stop_revision:
                 self.clear_command = None
             if message.kind == 'estop':
                 self.estop = True
             self.journal.update(estop=self.estop, stop_revision=self.stop_revision)
         if (message.kind == 'clear-estop' and message.revision > self.stop_revision
                 and order > self.command_order):
-            self.clear_command = message.command_id
+            pending_clear = self.pending_commands.get(self.clear_command)
+            if pending_clear is None or order >= pending_clear[0]:
+                self.clear_command = message.command_id
 
     def authorize(self, message):
         if (message.session_id != self.session or message.robot_id != self.name
@@ -203,8 +205,27 @@ class LocalSafety(Node):
         if message.estop:
             if not self.estop:
                 self.estop = True
-                self.clear_command = None
                 self.journal.update(estop=True)
+
+    def apply_authorized_mission(self, auth, boots):
+        pending = self.pending_commands.get(auth.mission_id)
+        if pending is None:
+            return
+        order, kind = pending
+        votes = self.mission_votes.get(auth.mission_id, {})
+        if order <= self.command_order or sum(boots.get(n) == boot for n, boot in votes.items()) < 2:
+            return
+        if kind == 'clear-estop':
+            if auth.estop or order[0] <= self.stop_revision or auth.mission_id != self.clear_command:
+                return
+            # Persist the release and its command fence together, so a restart
+            # cannot treat an armed but uncommitted release as consumed.
+            self.journal.update(command_order=list(order), estop=False)
+            self.estop = False
+            self.clear_command = None
+        else:
+            self.journal.update(command_order=list(order))
+        self.command_order, self.command_id = order, auth.mission_id
 
     def tick(self):
         now, ros_now = time.monotonic(), self.get_clock().now().nanoseconds
@@ -242,21 +263,8 @@ class LocalSafety(Node):
             pass
         received, auth = self.authorization if self.authorization else (0., None)
         auth_fresh = auth is not None and now-received <= .5
-        if auth_fresh and auth.mission_id in self.pending_commands:
-            order = self.pending_commands[auth.mission_id]
-            votes = self.mission_votes.get(auth.mission_id, {})
-            if order > self.command_order and sum(boots.get(n) == boot for n, boot in votes.items()) >= 2:
-                self.command_order, self.command_id = order, auth.mission_id
-                self.journal.update(command_order=list(order))
-        if (self.estop and auth_fresh and not auth.estop
-                and auth.mission_id == self.clear_command == self.command_id):
-            clear_order = self.pending_commands.get(self.clear_command)
-            votes = self.mission_votes.get(self.clear_command, {})
-            if (clear_order is not None and clear_order[0] > self.stop_revision
-                    and sum(boots.get(n) == boot for n, boot in votes.items()) >= 2):
-                self.journal.update(estop=False)
-                self.estop = False
-                self.clear_command = None
+        if auth_fresh:
+            self.apply_authorized_mission(auth, boots)
         if self.estop:
             reason = '急停锁定'
         elif not auth_fresh:
