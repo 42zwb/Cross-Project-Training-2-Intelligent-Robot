@@ -14,7 +14,7 @@ from nav_msgs.msg import Odometry
 from std_msgs.msg import String
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 from tf2_ros import Buffer, TransformListener, TransformException
-from .health import scan_health, valid_odom
+from .health import scan_health, valid_odom, stamp_fresh, lidar_motion_check, peer_motion_clear
 
 
 class Safety(Node):
@@ -31,6 +31,7 @@ class Safety(Node):
         self.commands = {}
         self.scans = {}
         self.odoms = {}
+        self.stamp_progress = {"scan": {}, "odom": {}}
         self.pubs = {}
         self.subs = []
         self.qos = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL)
@@ -47,7 +48,7 @@ class Safety(Node):
                 self.create_subscription(
                     Twist,
                     f"/{n}/cmd_vel_nav",
-                    lambda m, n=n: self.commands.update({n: (time.monotonic(), m)}),
+                    lambda m, n=n: self.command_cb(n, m),
                     1,
                 )
             )
@@ -55,7 +56,7 @@ class Safety(Node):
                 self.create_subscription(
                     LaserScan,
                     f"/{n}/scan",
-                    lambda m, n=n: self.scans.update({n: (time.monotonic(), m)}),
+                    lambda m, n=n: self.sensor_cb("scan", n, m),
                     qos_profile_sensor_data,
                 )
             )
@@ -63,11 +64,26 @@ class Safety(Node):
                 self.create_subscription(
                     Odometry,
                     f"/{n}/odom",
-                    lambda m, n=n: self.odoms.update({n: (time.monotonic(), m)}),
+                    lambda m, n=n: self.sensor_cb("odom", n, m),
                     qos_profile_sensor_data,
                 )
             )
         self.create_timer(0.05, self.tick)
+
+    def sensor_cb(self, kind, name, msg):
+        now = time.monotonic()
+        cache = self.scans if kind == "scan" else self.odoms
+        cache[name] = (now, msg)
+        stamp = (msg.header.stamp.sec, msg.header.stamp.nanosec)
+        previous = self.stamp_progress[kind].get(name)
+        if previous is None or previous[0] != stamp:
+            self.stamp_progress[kind][name] = (stamp, now)
+
+    def command_cb(self, name, msg):
+        now = time.monotonic()
+        if (now - self.lease <= 0.8 and not self.state.get("estop", True)
+                and name in self.state.get("active", [])):
+            self.commands[name] = (now, msg)
 
     def lease_cb(self, msg):
         try:
@@ -90,8 +106,15 @@ class Safety(Node):
                     for bounds in regions
                 )
             )
+            epochs = state.get("command_epochs", {}) if isinstance(state, dict) else {}
+            valid_epochs = (isinstance(epochs, dict)
+                            and ("command_epochs" not in state or set(epochs) == set(self.pubs))
+                            and all(
+                isinstance(n, str) and n in self.pubs and isinstance(v, int)
+                and not isinstance(v, bool) and v >= 0 for n, v in epochs.items()))
             if (
-                not isinstance(state, dict)
+                not valid_epochs
+                or not isinstance(state, dict)
                 or not isinstance(state.get("active"), list)
                 or not isinstance(state.get("estop"), bool)
                 or not isinstance(state.get("region_enabled"), bool)
@@ -103,13 +126,24 @@ class Safety(Node):
                 or state.get("generation", 0) < 0
             ):
                 raise ValueError("invalid drive lease")
-            if state.get("generation", 0) != self.state.get("generation", 0):
+            now = time.monotonic()
+            if (state.get("generation", 0) != self.state.get("generation", 0)
+                    or now - self.lease > 0.8 or state["estop"]):
                 self.commands.clear()
+            else:
+                old_active = set(self.state.get("active", []))
+                new_active = set(state["active"])
+                old_epochs = self.state.get("command_epochs", {})
+                for name in self.pubs:
+                    if ((name in old_active) != (name in new_active)
+                            or old_epochs.get(name, 0) != epochs.get(name, 0)):
+                        self.commands.pop(name, None)
             self.state = state
-            self.lease = time.monotonic()
+            self.lease = now
         except (ValueError, TypeError, OverflowError):
             self.state = {}
             self.lease = 0.0
+            self.commands.clear()
 
     def tick(self):
         now = time.monotonic()
@@ -123,6 +157,13 @@ class Safety(Node):
             odom_age = now - self.odoms[n][0] if n in self.odoms else None
             scan_valid, nearest = scan_health(self.scans[n][1]) if n in self.scans else (False, None)
             odom_valid = valid_odom(self.odoms[n][1]) if n in self.odoms else False
+            now_ns = self.get_clock().now().nanoseconds
+            scan_stamp_ok = (n in self.scans and stamp_fresh(self.scans[n][1].header.stamp, now_ns)
+                             and n in self.stamp_progress["scan"]
+                             and now - self.stamp_progress["scan"][n][1] <= 0.8)
+            odom_stamp_ok = (n in self.odoms and stamp_fresh(self.odoms[n][1].header.stamp, now_ns)
+                             and n in self.stamp_progress["odom"]
+                             and now - self.stamp_progress["odom"][n][1] <= 0.8)
             localization_reason, localization_age = "", None
             try:
                 t = self.buffer.lookup_transform("map", n + "/base_link", rclpy.time.Time())
@@ -142,10 +183,14 @@ class Safety(Node):
                 reason = "待命"
             elif scan_age is None or scan_age > 0.8:
                 reason = "雷达超时"
+            elif not scan_stamp_ok:
+                reason = "雷达时间戳超时或无效"
             elif not scan_valid:
                 reason = "雷达数据无效"
             elif odom_age is None or odom_age > 0.8:
                 reason = "里程计超时"
+            elif not odom_stamp_ok:
+                reason = "里程计时间戳超时或无效"
             elif not odom_valid:
                 reason = "里程计数据无效"
             else:
@@ -164,40 +209,79 @@ class Safety(Node):
                             -self.max_speed, min(self.max_speed, cmd.linear.x)
                         )
                         out.angular.z = max(-0.6, min(0.6, cmd.angular.z))
-                        scan = self.scans[n][1]
-                        # Sensor is close to the body centre; never rely on wheel odometry alone.
-                        direction = 0.0 if out.linear.x >= 0 else math.pi
-                        directional = [
-                            v
-                            for j, v in enumerate(scan.ranges)
-                            if abs(
-                                math.atan2(
-                                    math.sin(
-                                        scan.angle_min
-                                        + j * scan.angle_increment
-                                        - direction
-                                    ),
-                                    math.cos(
-                                        scan.angle_min
-                                        + j * scan.angle_increment
-                                        - direction
-                                    ),
-                                )
-                            )
-                            < 0.45
-                        ]
-                        ranges = [v for v in directional if math.isfinite(v) and scan.range_min <= v <= scan.range_max]
-                        observed = any((math.isinf(v) and v > 0) or (math.isfinite(v) and scan.range_min <= v <= scan.range_max) for v in directional)
-                        if not observed and abs(out.linear.x) > 0.001:
-                            out = Twist()
-                            reason = "运动方向雷达数据无效"
-                        if (
-                            ranges
-                            and min(ranges) < self.robot_radius + 0.06
-                            and abs(out.linear.x) > 0.001
-                        ):
+                        # Values below the motion-check deadband must not reach the base.
+                        if abs(out.linear.x) <= 0.001:
                             out.linear.x = 0.0
-                            reason = "近障停车"
+                        if abs(out.angular.z) <= 0.001:
+                            out.angular.z = 0.0
+                        scan = self.scans[n][1]
+                        if abs(out.linear.x) > 0.001 or abs(out.angular.z) > 0.001:
+                            try:
+                                if not scan.header.frame_id:
+                                    raise ValueError("empty laser frame")
+                                laser_tf = self.buffer.lookup_transform(
+                                    n + "/base_link", scan.header.frame_id,
+                                    rclpy.time.Time.from_msg(scan.header.stamp))
+                                coverage, blocked = lidar_motion_check(
+                                    scan, laser_tf.transform, out.linear.x, self.robot_radius, out.angular.z)
+                                # Rotation in place also needs coverage on the rear side.
+                                if abs(out.angular.z) > 0.001:
+                                    reverse_coverage, reverse_blocked = lidar_motion_check(
+                                        scan, laser_tf.transform, 0.0, self.robot_radius,
+                                        check_backward=out.linear.x >= 0)
+                                    coverage = coverage and reverse_coverage
+                                    blocked = blocked or reverse_blocked
+                                if not coverage:
+                                    out = Twist()
+                                    reason = "运动方向雷达数据无效"
+                                elif blocked:
+                                    out = Twist()
+                                    reason = "近障停车"
+                            except (TransformException, ValueError, OverflowError):
+                                out = Twist()
+                                reason = "雷达坐标变换不可用"
+                        # Lidar height, occlusion and removed simulator visuals can
+                        # hide other robots. Check each peer independently in map TF.
+                        if not reason and (out.linear.x or out.angular.z):
+                            peer_positions = []
+                            peer_ok = True
+                            for peer in self.cfg["robots"]:
+                                other = peer["name"]
+                                if other == n:
+                                    continue
+                                try:
+                                    odom = self.odoms[other]
+                                    progress = self.stamp_progress["odom"][other]
+                                    if (now - odom[0] > 0.8 or now - progress[1] > 0.8
+                                            or not valid_odom(odom[1])
+                                            or not stamp_fresh(odom[1].header.stamp, now_ns)):
+                                        raise ValueError("stale peer odometry")
+                                    peer_tf = self.buffer.lookup_transform(
+                                        "map", other + "/base_link", rclpy.time.Time())
+                                    peer_pose = peer_tf.transform.translation
+                                    peer_q = peer_tf.transform.rotation
+                                    if (not stamp_fresh(peer_tf.header.stamp, now_ns)
+                                            or not all(math.isfinite(v) for v in (
+                                                peer_pose.x, peer_pose.y, peer_q.x, peer_q.y, peer_q.z, peer_q.w))
+                                            or sum(v*v for v in (peer_q.x, peer_q.y, peer_q.z, peer_q.w)) < 0.01):
+                                        raise ValueError("invalid peer pose")
+                                    peer_ns = peer_tf.header.stamp.sec * 1_000_000_000 + peer_tf.header.stamp.nanosec
+                                    peer_positions.append((peer_pose.x, peer_pose.y, (now_ns - peer_ns) * 1e-9))
+                                except (KeyError, ValueError, TransformException):
+                                    peer_ok = False
+                                    break
+                            if not peer_ok:
+                                out = Twist()
+                                reason = "其他机器人定位或里程计不可用"
+                            else:
+                                p, q = t.transform.translation, t.transform.rotation
+                                heading = math.atan2(2*(q.w*q.z + q.x*q.y), 1-2*(q.y*q.y+q.z*q.z))
+                                if not peer_motion_clear((p.x, p.y), heading, out.linear.x,
+                                                         out.angular.z, peer_positions,
+                                                         self.robot_radius, self.max_speed,
+                                                         localization_age):
+                                    out = Twist()
+                                    reason = "机器人间距保护"
                         if self.state.get("region_enabled", False):
                             bounds = self.state["regions"][i]
                             p = t.transform.translation
@@ -221,6 +305,7 @@ class Safety(Node):
             self.pubs[n].publish(out)
             report[n] = {
                 "reason": reason,
+                "command_epoch": self.state.get("command_epochs", {}).get(n, 0) if now - self.lease <= 0.8 and active and not self.state.get("estop", True) else -1,
                 "moving_allowed": active and not bool(reason),
                 "v": out.linear.x,
                 "w": out.angular.z,
@@ -228,8 +313,8 @@ class Safety(Node):
                 "odom_age": odom_age,
                 "localization_age": localization_age,
                 "localization_ok": not bool(localization_reason),
-                "scan_valid": scan_valid,
-                "odom_valid": odom_valid,
+                "scan_valid": scan_valid and scan_stamp_ok,
+                "odom_valid": odom_valid and odom_stamp_ok,
                 "nearest_obstacle": nearest,
             }
         self.status.publish(String(data=json.dumps(report)))

@@ -1,0 +1,24 @@
+uint8 REQUEST=0
+uint8 GRANT=1
+uint8 RELEASE=2
+uint8 MISSION_VOTE=3
+uint8 BID=4
+uint8 PLAN_VOTE=5
+uint8 MISSION_RELAY=6
+std_msgs/Header header
+string session_id
+string robot_id
+string boot_id
+uint64 sequence
+uint8 phase
+string mission_id
+string resource
+string owner_id
+string owner_boot
+string request_id
+uint64 request_sequence
+# Used only by the owner's same-host safety process, never as a remote clock.
+uint64 sent_steady_ns
+bool stopped
+string payload_json
+fleet_interfaces/MissionCommand task

@@ -1,0 +1,252 @@
+{
+  "source": "candidate22 full-seed24-layout0-v22; initial functional pause/resume commands only",
+  "transcript": [
+    {
+      "event": "command",
+      "wall_time": 1794471660.1355455,
+      "kind": "command",
+      "data": {
+        "command": "explore"
+      },
+      "result": {
+        "success": true,
+        "message": "任务已获对等确认",
+        "command_id": "273f8861ae94425f91558ea1383da17c",
+        "members": [
+          "robot2",
+          "robot1"
+        ],
+        "partial": true,
+        "results": {
+          "robot2": {
+            "accepted": true,
+            "reason": "已验证"
+          },
+          "robot1": {
+            "accepted": true,
+            "reason": "已验证"
+          },
+          "robot3": {
+            "accepted": true,
+            "reason": "已验证"
+          }
+        }
+      }
+    },
+    {
+      "event": "command",
+      "wall_time": 1794471846.2342012,
+      "kind": "command",
+      "data": {
+        "command": "pause"
+      },
+      "result": {
+        "success": true,
+        "message": "任务已获对等确认",
+        "command_id": "a5030875e4c24cbb9974d6bf20d72b16",
+        "members": [
+          "robot1",
+          "robot2"
+        ],
+        "partial": true,
+        "results": {
+          "robot1": {
+            "accepted": true,
+            "reason": "已验证"
+          },
+          "robot2": {
+            "accepted": true,
+            "reason": "已验证"
+          },
+          "robot3": {
+            "accepted": true,
+            "reason": "已验证"
+          }
+        }
+      }
+    },
+    {
+      "event": "command",
+      "wall_time": 1794471846.6351528,
+      "kind": "command",
+      "data": {
+        "command": "explore"
+      },
+      "result": {
+        "success": true,
+        "message": "任务已获对等确认",
+        "command_id": "04ffea2f2c22411eaee9db52716bd19b",
+        "members": [
+          "robot3",
+          "robot1"
+        ],
+        "partial": true,
+        "results": {
+          "robot2": {
+            "accepted": true,
+            "reason": "已验证"
+          },
+          "robot3": {
+            "accepted": true,
+            "reason": "已验证"
+          },
+          "robot1": {
+            "accepted": true,
+            "reason": "已验证"
+          }
+        }
+      }
+    },
+    {
+      "event": "exploration_complete",
+      "wall_time": 1794472074.5969055,
+      "seconds": 414.46103711900014
+    }
+  ],
+  "events": {
+    "robot1": [
+      {
+        "event": "command_committed",
+        "robot": "robot1",
+        "wall_time": 1794471660.1267772,
+        "steady_time": 5460.438932778,
+        "boot_id": "a3aff08bcf8c4d21853e1cf36f6bd31f",
+        "map_epoch": 1,
+        "mission_id": "273f8861ae94425f91558ea1383da17c",
+        "sim_time": 5.5,
+        "command": "explore",
+        "command_id": "273f8861ae94425f91558ea1383da17c"
+      },
+      {
+        "event": "command_committed",
+        "robot": "robot1",
+        "wall_time": 1794471846.2309139,
+        "steady_time": 5646.543069409,
+        "boot_id": "a3aff08bcf8c4d21853e1cf36f6bd31f",
+        "map_epoch": 1,
+        "mission_id": "a5030875e4c24cbb9974d6bf20d72b16",
+        "sim_time": 191.60500000000002,
+        "command": "pause",
+        "command_id": "a5030875e4c24cbb9974d6bf20d72b16"
+      },
+      {
+        "event": "command_committed",
+        "robot": "robot1",
+        "wall_time": 1794471846.6327002,
+        "steady_time": 5646.944855893,
+        "boot_id": "a3aff08bcf8c4d21853e1cf36f6bd31f",
+        "map_epoch": 1,
+        "mission_id": "04ffea2f2c22411eaee9db52716bd19b",
+        "sim_time": 192.00500000000002,
+        "command": "explore",
+        "command_id": "04ffea2f2c22411eaee9db52716bd19b"
+      },
+      {
+        "event": "exploration_complete",
+        "robot": "robot1",
+        "wall_time": 1794472074.3371818,
+        "steady_time": 5874.6493373,
+        "boot_id": "a3aff08bcf8c4d21853e1cf36f6bd31f",
+        "map_epoch": 1,
+        "mission_id": "04ffea2f2c22411eaee9db52716bd19b",
+        "sim_time": 419.71000000000004
+      }
+    ],
+    "robot2": [
+      {
+        "event": "command_committed",
+        "robot": "robot2",
+        "wall_time": 1794471660.1301706,
+        "steady_time": 5460.442326578,
+        "boot_id": "e4da666981f842fdb153dc78a9860f4e",
+        "map_epoch": 1,
+        "mission_id": "273f8861ae94425f91558ea1383da17c",
+        "sim_time": 5.505000000000001,
+        "command": "explore",
+        "command_id": "273f8861ae94425f91558ea1383da17c"
+      },
+      {
+        "event": "command_committed",
+        "robot": "robot2",
+        "wall_time": 1794471846.233439,
+        "steady_time": 5646.545594664,
+        "boot_id": "e4da666981f842fdb153dc78a9860f4e",
+        "map_epoch": 1,
+        "mission_id": "a5030875e4c24cbb9974d6bf20d72b16",
+        "sim_time": 191.61,
+        "command": "pause",
+        "command_id": "a5030875e4c24cbb9974d6bf20d72b16"
+      },
+      {
+        "event": "command_committed",
+        "robot": "robot2",
+        "wall_time": 1794471846.6342204,
+        "steady_time": 5646.946376293,
+        "boot_id": "e4da666981f842fdb153dc78a9860f4e",
+        "map_epoch": 1,
+        "mission_id": "04ffea2f2c22411eaee9db52716bd19b",
+        "sim_time": 192.01000000000002,
+        "command": "explore",
+        "command_id": "04ffea2f2c22411eaee9db52716bd19b"
+      },
+      {
+        "event": "exploration_complete",
+        "robot": "robot2",
+        "wall_time": 1794472074.3399627,
+        "steady_time": 5874.652118313,
+        "boot_id": "e4da666981f842fdb153dc78a9860f4e",
+        "map_epoch": 1,
+        "mission_id": "04ffea2f2c22411eaee9db52716bd19b",
+        "sim_time": 419.71500000000003
+      }
+    ],
+    "robot3": [
+      {
+        "event": "command_committed",
+        "robot": "robot3",
+        "wall_time": 1794471660.1466503,
+        "steady_time": 5460.458805892,
+        "boot_id": "93acc7534d8f4b97aa24cda11c25c28f",
+        "map_epoch": 1,
+        "mission_id": "273f8861ae94425f91558ea1383da17c",
+        "sim_time": 5.5200000000000005,
+        "command": "explore",
+        "command_id": "273f8861ae94425f91558ea1383da17c"
+      },
+      {
+        "event": "command_committed",
+        "robot": "robot3",
+        "wall_time": 1794471846.2495716,
+        "steady_time": 5646.561727131,
+        "boot_id": "93acc7534d8f4b97aa24cda11c25c28f",
+        "map_epoch": 1,
+        "mission_id": "a5030875e4c24cbb9974d6bf20d72b16",
+        "sim_time": 191.625,
+        "command": "pause",
+        "command_id": "a5030875e4c24cbb9974d6bf20d72b16"
+      },
+      {
+        "event": "command_committed",
+        "robot": "robot3",
+        "wall_time": 1794471846.5499969,
+        "steady_time": 5646.862152685,
+        "boot_id": "93acc7534d8f4b97aa24cda11c25c28f",
+        "map_epoch": 1,
+        "mission_id": "04ffea2f2c22411eaee9db52716bd19b",
+        "sim_time": 191.925,
+        "command": "explore",
+        "command_id": "04ffea2f2c22411eaee9db52716bd19b"
+      },
+      {
+        "event": "exploration_complete",
+        "robot": "robot3",
+        "wall_time": 1794472074.256585,
+        "steady_time": 5874.5687407,
+        "boot_id": "93acc7534d8f4b97aa24cda11c25c28f",
+        "map_epoch": 1,
+        "mission_id": "04ffea2f2c22411eaee9db52716bd19b",
+        "sim_time": 419.63000000000005
+      }
+    ]
+  }
+}

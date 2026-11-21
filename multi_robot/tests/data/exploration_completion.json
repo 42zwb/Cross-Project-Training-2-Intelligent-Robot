@@ -1,0 +1,565 @@
+{
+  "provenance": "map-only agent events and telemetry from recovery-fullmap-v17; no truth data",
+  "telemetry": [
+    {
+      "steady_time": 43542.849193879,
+      "sim_time": 7.37,
+      "mode": "ALIGNING",
+      "team_ready": false,
+      "coordinate_frame": "b1aa284e7c7d6c4c47d0be24",
+      "robots": {
+        "robot1": {
+          "ready": true,
+          "aligned": false,
+          "boot_id": "967b987136454716851332105253f61b",
+          "map_epoch": 1,
+          "mission_id": "88abcb67bf674a7db4942309dc0b8db8",
+          "frame_epoch": "b1aa284e7c7d6c4c47d0be24",
+          "goal": null,
+          "safety": {
+            "reason": "\u5f85\u547d",
+            "moving_allowed": false,
+            "v": 0.0,
+            "w": 0.0,
+            "scan_valid": true,
+            "odom_valid": true,
+            "localization_ok": true,
+            "scan_age": 0.08405550800671335,
+            "odom_age": 0.018501928003388457,
+            "estop": false,
+            "command_epoch": ""
+          }
+        },
+        "robot2": {
+          "ready": true,
+          "aligned": false,
+          "boot_id": "054f1e536b744fb3bf98dc994dd41563",
+          "map_epoch": 1,
+          "mission_id": "88abcb67bf674a7db4942309dc0b8db8",
+          "frame_epoch": "0d4fc76d51f41499b2ed033a",
+          "goal": null,
+          "safety": {
+            "reason": "\u5f85\u547d",
+            "moving_allowed": false,
+            "v": 0.0,
+            "w": 0.0,
+            "scan_valid": true,
+            "odom_valid": true,
+            "localization_ok": true,
+            "scan_age": 0.042887391995463986,
+            "odom_age": 0.010128483998414595,
+            "estop": false,
+            "command_epoch": ""
+          }
+        },
+        "robot3": {
+          "ready": false,
+          "aligned": false,
+          "boot_id": "c6357b003f574451ac5158226fe88106",
+          "map_epoch": 1,
+          "mission_id": "88abcb67bf674a7db4942309dc0b8db8",
+          "frame_epoch": "0344a19f609923d3c00d31d7",
+          "goal": null,
+          "safety": {
+            "reason": "\u5f85\u547d",
+            "moving_allowed": false,
+            "v": 0.0,
+            "w": 0.0,
+            "scan_valid": true,
+            "odom_valid": true,
+            "localization_ok": true,
+            "scan_age": 0.09645350000209874,
+            "odom_age": 0.0182015960017452,
+            "estop": false,
+            "command_epoch": ""
+          }
+        }
+      }
+    },
+    {
+      "steady_time": 43701.133653597,
+      "sim_time": 165.655,
+      "mode": "ALIGNING",
+      "team_ready": true,
+      "coordinate_frame": "b1aa284e7c7d6c4c47d0be24",
+      "robots": {
+        "robot1": {
+          "ready": true,
+          "aligned": true,
+          "boot_id": "967b987136454716851332105253f61b",
+          "map_epoch": 1,
+          "mission_id": "88abcb67bf674a7db4942309dc0b8db8",
+          "frame_epoch": "b1aa284e7c7d6c4c47d0be24",
+          "goal": null,
+          "safety": {
+            "reason": "\u5f85\u547d",
+            "moving_allowed": false,
+            "v": 0.0,
+            "w": 0.0,
+            "scan_valid": true,
+            "odom_valid": true,
+            "localization_ok": true,
+            "scan_age": 0.08501481500570662,
+            "odom_age": 0.02028034400427714,
+            "estop": false,
+            "command_epoch": ""
+          }
+        },
+        "robot2": {
+          "ready": true,
+          "aligned": true,
+          "boot_id": "054f1e536b744fb3bf98dc994dd41563",
+          "map_epoch": 1,
+          "mission_id": "88abcb67bf674a7db4942309dc0b8db8",
+          "frame_epoch": "b1aa284e7c7d6c4c47d0be24",
+          "goal": null,
+          "safety": {
+            "reason": "\u5f85\u547d",
+            "moving_allowed": false,
+            "v": 0.0,
+            "w": 0.0,
+            "scan_valid": true,
+            "odom_valid": true,
+            "localization_ok": true,
+            "scan_age": 0.04534930599766085,
+            "odom_age": 0.012598269997397438,
+            "estop": false,
+            "command_epoch": ""
+          }
+        },
+        "robot3": {
+          "ready": true,
+          "aligned": true,
+          "boot_id": "c6357b003f574451ac5158226fe88106",
+          "map_epoch": 1,
+          "mission_id": "88abcb67bf674a7db4942309dc0b8db8",
+          "frame_epoch": "b1aa284e7c7d6c4c47d0be24",
+          "goal": null,
+          "safety": {
+            "reason": "\u5f85\u547d",
+            "moving_allowed": false,
+            "v": 0.0,
+            "w": 0.0,
+            "scan_valid": true,
+            "odom_valid": true,
+            "localization_ok": true,
+            "scan_age": 0.0018751999959931709,
+            "odom_age": 0.021042927997768857,
+            "estop": false,
+            "command_epoch": ""
+          }
+        }
+      }
+    },
+    {
+      "steady_time": 44026.967075477,
+      "sim_time": 491.485,
+      "mode": "EXPLORING",
+      "team_ready": true,
+      "coordinate_frame": "b1aa284e7c7d6c4c47d0be24",
+      "robots": {
+        "robot1": {
+          "ready": true,
+          "aligned": true,
+          "boot_id": "967b987136454716851332105253f61b",
+          "map_epoch": 1,
+          "mission_id": "88abcb67bf674a7db4942309dc0b8db8",
+          "frame_epoch": "b1aa284e7c7d6c4c47d0be24",
+          "goal": null,
+          "safety": {
+            "reason": "\u5f85\u547d",
+            "moving_allowed": false,
+            "v": 0.0,
+            "w": 0.0,
+            "scan_valid": true,
+            "odom_valid": true,
+            "localization_ok": true,
+            "scan_age": 0.095725275001314,
+            "odom_age": 0.024698284003534354,
+            "estop": false,
+            "command_epoch": ""
+          }
+        },
+        "robot2": {
+          "ready": true,
+          "aligned": true,
+          "boot_id": "054f1e536b744fb3bf98dc994dd41563",
+          "map_epoch": 1,
+          "mission_id": "88abcb67bf674a7db4942309dc0b8db8",
+          "frame_epoch": "b1aa284e7c7d6c4c47d0be24",
+          "goal": null,
+          "safety": {
+            "reason": "\u5f85\u547d",
+            "moving_allowed": false,
+            "v": 0.0,
+            "w": 0.0,
+            "scan_valid": true,
+            "odom_valid": true,
+            "localization_ok": true,
+            "scan_age": 0.0559529919992201,
+            "odom_age": 0.018139642001187894,
+            "estop": false,
+            "command_epoch": ""
+          }
+        },
+        "robot3": {
+          "ready": true,
+          "aligned": true,
+          "boot_id": "c6357b003f574451ac5158226fe88106",
+          "map_epoch": 1,
+          "mission_id": "88abcb67bf674a7db4942309dc0b8db8",
+          "frame_epoch": "b1aa284e7c7d6c4c47d0be24",
+          "goal": null,
+          "safety": {
+            "reason": "\u5f85\u547d",
+            "moving_allowed": false,
+            "v": 0.0,
+            "w": 0.0,
+            "scan_valid": true,
+            "odom_valid": true,
+            "localization_ok": true,
+            "scan_age": 0.010781092998513486,
+            "odom_age": 0.02532618399709463,
+            "estop": false,
+            "command_epoch": ""
+          }
+        }
+      }
+    },
+    {
+      "steady_time": 44027.470674307,
+      "sim_time": 491.99,
+      "mode": "EXPLORING",
+      "team_ready": true,
+      "coordinate_frame": "b1aa284e7c7d6c4c47d0be24",
+      "robots": {
+        "robot1": {
+          "ready": true,
+          "aligned": true,
+          "boot_id": "967b987136454716851332105253f61b",
+          "map_epoch": 1,
+          "mission_id": "88abcb67bf674a7db4942309dc0b8db8",
+          "frame_epoch": "b1aa284e7c7d6c4c47d0be24",
+          "goal": null,
+          "safety": {
+            "reason": "\u5f85\u547d",
+            "moving_allowed": false,
+            "v": 0.0,
+            "w": 0.0,
+            "scan_valid": true,
+            "odom_valid": true,
+            "localization_ok": true,
+            "scan_age": 0.08823826300067594,
+            "odom_age": 0.0248514460035949,
+            "estop": false,
+            "command_epoch": ""
+          }
+        },
+        "robot2": {
+          "ready": true,
+          "aligned": true,
+          "boot_id": "054f1e536b744fb3bf98dc994dd41563",
+          "map_epoch": 1,
+          "mission_id": "88abcb67bf674a7db4942309dc0b8db8",
+          "frame_epoch": "b1aa284e7c7d6c4c47d0be24",
+          "goal": null,
+          "safety": {
+            "reason": "\u5f85\u547d",
+            "moving_allowed": false,
+            "v": 0.0,
+            "w": 0.0,
+            "scan_valid": true,
+            "odom_valid": true,
+            "localization_ok": true,
+            "scan_age": 0.04742884199367836,
+            "odom_age": 0.015940116994897835,
+            "estop": false,
+            "command_epoch": ""
+          }
+        },
+        "robot3": {
+          "ready": true,
+          "aligned": true,
+          "boot_id": "c6357b003f574451ac5158226fe88106",
+          "map_epoch": 1,
+          "mission_id": "88abcb67bf674a7db4942309dc0b8db8",
+          "frame_epoch": "b1aa284e7c7d6c4c47d0be24",
+          "goal": null,
+          "safety": {
+            "reason": "\u5f85\u547d",
+            "moving_allowed": false,
+            "v": 0.0,
+            "w": 0.0,
+            "scan_valid": true,
+            "odom_valid": true,
+            "localization_ok": true,
+            "scan_age": 0.01663763100077631,
+            "odom_age": 0.02617043499776628,
+            "estop": false,
+            "command_epoch": ""
+          }
+        }
+      }
+    },
+    {
+      "steady_time": 44027.973871954,
+      "sim_time": 492.495,
+      "mode": "IDLE",
+      "team_ready": true,
+      "coordinate_frame": "b1aa284e7c7d6c4c47d0be24",
+      "robots": {
+        "robot1": {
+          "ready": true,
+          "aligned": true,
+          "boot_id": "967b987136454716851332105253f61b",
+          "map_epoch": 1,
+          "mission_id": "b75a609f62314926940fc02b5323f68f",
+          "frame_epoch": "b1aa284e7c7d6c4c47d0be24",
+          "goal": null,
+          "safety": {
+            "reason": "\u5f85\u547d",
+            "moving_allowed": false,
+            "v": 0.0,
+            "w": 0.0,
+            "scan_valid": true,
+            "odom_valid": true,
+            "localization_ok": true,
+            "scan_age": 0.09299865100183524,
+            "odom_age": 0.02464873700228054,
+            "estop": false,
+            "command_epoch": ""
+          }
+        },
+        "robot2": {
+          "ready": true,
+          "aligned": true,
+          "boot_id": "054f1e536b744fb3bf98dc994dd41563",
+          "map_epoch": 1,
+          "mission_id": "b75a609f62314926940fc02b5323f68f",
+          "frame_epoch": "b1aa284e7c7d6c4c47d0be24",
+          "goal": null,
+          "safety": {
+            "reason": "\u5f85\u547d",
+            "moving_allowed": false,
+            "v": 0.0,
+            "w": 0.0,
+            "scan_valid": true,
+            "odom_valid": true,
+            "localization_ok": true,
+            "scan_age": 0.056983677997777704,
+            "odom_age": 0.01806419200147502,
+            "estop": false,
+            "command_epoch": ""
+          }
+        },
+        "robot3": {
+          "ready": true,
+          "aligned": true,
+          "boot_id": "c6357b003f574451ac5158226fe88106",
+          "map_epoch": 1,
+          "mission_id": "b75a609f62314926940fc02b5323f68f",
+          "frame_epoch": "b1aa284e7c7d6c4c47d0be24",
+          "goal": null,
+          "safety": {
+            "reason": "\u5f85\u547d",
+            "moving_allowed": false,
+            "v": 0.0,
+            "w": 0.0,
+            "scan_valid": true,
+            "odom_valid": true,
+            "localization_ok": true,
+            "scan_age": 0.014279084003646858,
+            "odom_age": 0.02587674900132697,
+            "estop": false,
+            "command_epoch": ""
+          }
+        }
+      }
+    },
+    {
+      "steady_time": 44028.479715256,
+      "sim_time": 493.00000000000006,
+      "mode": "IDLE",
+      "team_ready": true,
+      "coordinate_frame": "b1aa284e7c7d6c4c47d0be24",
+      "robots": {
+        "robot1": {
+          "ready": true,
+          "aligned": true,
+          "boot_id": "967b987136454716851332105253f61b",
+          "map_epoch": 1,
+          "mission_id": "b75a609f62314926940fc02b5323f68f",
+          "frame_epoch": "b1aa284e7c7d6c4c47d0be24",
+          "goal": null,
+          "safety": {
+            "reason": "\u5f85\u547d",
+            "moving_allowed": false,
+            "v": 0.0,
+            "w": 0.0,
+            "scan_valid": true,
+            "odom_valid": true,
+            "localization_ok": true,
+            "scan_age": 0.09091587299917592,
+            "odom_age": 0.02453894799691625,
+            "estop": false,
+            "command_epoch": ""
+          }
+        },
+        "robot2": {
+          "ready": true,
+          "aligned": true,
+          "boot_id": "054f1e536b744fb3bf98dc994dd41563",
+          "map_epoch": 1,
+          "mission_id": "b75a609f62314926940fc02b5323f68f",
+          "frame_epoch": "b1aa284e7c7d6c4c47d0be24",
+          "goal": null,
+          "safety": {
+            "reason": "\u5f85\u547d",
+            "moving_allowed": false,
+            "v": 0.0,
+            "w": 0.0,
+            "scan_valid": true,
+            "odom_valid": true,
+            "localization_ok": true,
+            "scan_age": 0.05561592600133736,
+            "odom_age": 0.017752241001289804,
+            "estop": false,
+            "command_epoch": ""
+          }
+        },
+        "robot3": {
+          "ready": true,
+          "aligned": true,
+          "boot_id": "c6357b003f574451ac5158226fe88106",
+          "map_epoch": 1,
+          "mission_id": "b75a609f62314926940fc02b5323f68f",
+          "frame_epoch": "b1aa284e7c7d6c4c47d0be24",
+          "goal": null,
+          "safety": {
+            "reason": "\u5f85\u547d",
+            "moving_allowed": false,
+            "v": 0.0,
+            "w": 0.0,
+            "scan_valid": true,
+            "odom_valid": true,
+            "localization_ok": true,
+            "scan_age": 0.012361018001683988,
+            "odom_age": 0.02628830700268736,
+            "estop": false,
+            "command_epoch": ""
+          }
+        }
+      }
+    }
+  ],
+  "events": {
+    "robot1": [
+      {
+        "event": "command_committed",
+        "robot": "robot1",
+        "wall_time": 1794404859.664158,
+        "steady_time": 43542.510113715,
+        "boot_id": "967b987136454716851332105253f61b",
+        "map_epoch": 1,
+        "mission_id": "88abcb67bf674a7db4942309dc0b8db8",
+        "sim_time": 7.025,
+        "command": "explore",
+        "command_id": "88abcb67bf674a7db4942309dc0b8db8"
+      },
+      {
+        "event": "exploration_complete",
+        "robot": "robot1",
+        "wall_time": 1794405344.5692081,
+        "steady_time": 44027.415163621,
+        "boot_id": "967b987136454716851332105253f61b",
+        "map_epoch": 1,
+        "mission_id": "88abcb67bf674a7db4942309dc0b8db8",
+        "sim_time": 491.93
+      },
+      {
+        "event": "command_committed",
+        "robot": "robot1",
+        "wall_time": 1794405344.770075,
+        "steady_time": 44027.616030577,
+        "boot_id": "967b987136454716851332105253f61b",
+        "map_epoch": 1,
+        "mission_id": "b75a609f62314926940fc02b5323f68f",
+        "sim_time": 492.13000000000005,
+        "command": "pause",
+        "command_id": "b75a609f62314926940fc02b5323f68f"
+      }
+    ],
+    "robot2": [
+      {
+        "event": "command_committed",
+        "robot": "robot2",
+        "wall_time": 1794404859.6349475,
+        "steady_time": 43542.480903082,
+        "boot_id": "054f1e536b744fb3bf98dc994dd41563",
+        "map_epoch": 1,
+        "mission_id": "88abcb67bf674a7db4942309dc0b8db8",
+        "sim_time": 7.0,
+        "command": "explore",
+        "command_id": "88abcb67bf674a7db4942309dc0b8db8"
+      },
+      {
+        "event": "exploration_complete",
+        "robot": "robot2",
+        "wall_time": 1794405344.4398053,
+        "steady_time": 44027.285760887,
+        "boot_id": "054f1e536b744fb3bf98dc994dd41563",
+        "map_epoch": 1,
+        "mission_id": "88abcb67bf674a7db4942309dc0b8db8",
+        "sim_time": 491.805
+      },
+      {
+        "event": "command_committed",
+        "robot": "robot2",
+        "wall_time": 1794405344.7535934,
+        "steady_time": 44027.599548886,
+        "boot_id": "054f1e536b744fb3bf98dc994dd41563",
+        "map_epoch": 1,
+        "mission_id": "b75a609f62314926940fc02b5323f68f",
+        "sim_time": 492.1,
+        "command": "pause",
+        "command_id": "b75a609f62314926940fc02b5323f68f"
+      }
+    ],
+    "robot3": [
+      {
+        "event": "command_committed",
+        "robot": "robot3",
+        "wall_time": 1794404859.6703904,
+        "steady_time": 43542.516346027,
+        "boot_id": "c6357b003f574451ac5158226fe88106",
+        "map_epoch": 1,
+        "mission_id": "88abcb67bf674a7db4942309dc0b8db8",
+        "sim_time": 7.035,
+        "command": "explore",
+        "command_id": "88abcb67bf674a7db4942309dc0b8db8"
+      },
+      {
+        "event": "exploration_complete",
+        "robot": "robot3",
+        "wall_time": 1794405344.6755717,
+        "steady_time": 44027.521527329,
+        "boot_id": "c6357b003f574451ac5158226fe88106",
+        "map_epoch": 1,
+        "mission_id": "88abcb67bf674a7db4942309dc0b8db8",
+        "sim_time": 492.04
+      },
+      {
+        "event": "command_committed",
+        "robot": "robot3",
+        "wall_time": 1794405344.7756207,
+        "steady_time": 44027.621576068,
+        "boot_id": "c6357b003f574451ac5158226fe88106",
+        "map_epoch": 1,
+        "mission_id": "b75a609f62314926940fc02b5323f68f",
+        "sim_time": 492.14000000000004,
+        "command": "pause",
+        "command_id": "b75a609f62314926940fc02b5323f68f"
+      }
+    ]
+  }
+}

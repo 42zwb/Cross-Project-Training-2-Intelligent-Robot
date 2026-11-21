@@ -6,6 +6,7 @@ import rclpy
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 from rclpy.signals import SignalHandlerOptions
 from sensor_msgs.msg import LaserScan
 
@@ -22,7 +23,7 @@ class MappingPatrol(Node):
         self.declare_parameter('side_length', 0.90)
         self.declare_parameter('turn_angle', math.pi / 2.0)
         self.publisher = self.create_publisher(Twist, 'cmd_vel', 10)
-        self.create_subscription(LaserScan, 'scan', self.on_scan, 10)
+        self.create_subscription(LaserScan, 'scan', self.on_scan, qos_profile_sensor_data)
         self.create_subscription(Odometry, 'odom', self.on_odom, 10)
         self.nearest_front = math.inf
         self.has_front_measurement = False

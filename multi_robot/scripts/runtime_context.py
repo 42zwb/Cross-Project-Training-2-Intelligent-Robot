@@ -10,14 +10,49 @@ from urllib.parse import quote
 import yaml
 
 
-def reproduction_command(config, seed):
-    return shlex.join(["./run.sh", "--config", str(config), "--seed", str(seed)])
+def reproduction_command(config, seed, architecture=None, spawn_layout=None, headless=False,
+                         no_dashboard=False, acceptance_scene=None, gui=False):
+    command = ["./run.sh", "--config", str(config), "--seed", str(seed)]
+    if architecture:
+        command += ['--architecture', architecture]
+    # The saved effective config already contains the chosen spawn layout.
+    # Reapplying layout overrides would change a customized saved configuration.
+    if gui:
+        command.append('--gui')
+    elif headless:
+        command.append('--headless')
+    if no_dashboard:
+        command.append('--no-dashboard')
+    if acceptance_scene:
+        command += ['--acceptance-scene', acceptance_scene]
+    return shlex.join(command)
 
 
 class RuntimeClient:
     def __init__(self, run, base_url=None):
         self.run = Path(run).resolve()
         self.override_url = base_url
+        self._peer = None
+        self.stopping = None
+
+    def peer(self):
+        metadata = self.run/'architecture.json'
+        if not metadata.exists() or json.loads(metadata.read_text()).get('architecture') != 'decentralized':
+            return None
+        if self._peer is None:
+            import rclpy
+            from fleet_control.peer_client import PeerClient
+            self.verify_ros_domain()
+            if not rclpy.ok():
+                if self.stopping:
+                    from rclpy.signals import SignalHandlerOptions
+                    rclpy.init(signal_handler_options=SignalHandlerOptions.NO)
+                else:
+                    rclpy.init()
+            self._peer = PeerClient(self.run)
+            if self.stopping:
+                self._peer.node._fleet_stopping = self.stopping
+        return self._peer
 
     def wait_ready(self, timeout=180.0):
         """Wait for this invocation without ever sending to a foreign backend."""
@@ -50,6 +85,9 @@ class RuntimeClient:
         return f"http://127.0.0.1:{port}"
 
     def state(self, timeout=5):
+        peer = self.peer()
+        if peer:
+            return peer.state(min(timeout, .5))
         with urllib.request.urlopen(self.base_url + "/api/state", timeout=timeout) as response:
             result = json.load(response)
         if not isinstance(result, dict):
@@ -59,6 +97,9 @@ class RuntimeClient:
         return result
 
     def request(self, kind, data, timeout=20):
+        peer = self.peer()
+        if peer:
+            return peer.request(kind, data, timeout)
         request = urllib.request.Request(self.base_url + "/api/" + kind,
             json.dumps(data, allow_nan=False).encode(),
             {"Content-Type":"application/json", "X-Fleet-Run":quote(str(self.run))}, method="POST")

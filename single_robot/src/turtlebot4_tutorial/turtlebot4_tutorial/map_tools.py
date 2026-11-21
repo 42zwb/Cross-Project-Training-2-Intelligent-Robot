@@ -41,13 +41,12 @@ def read_map(path):
 
 
 def has_unsafe_unknowns(metadata, image):
-    """Detect canonical map_saver images whose unknown gray becomes free."""
+    """Conservatively reject ambiguous gray 205 when it would load as free."""
     if metadata.get('mode', 'trinary') != 'trinary' or metadata.get('negate', 0):
         return False
     with Image.open(image) as source:
         counts = Counter(source.convert('L').getdata())
-    canonical = set(counts).issubset({0, 205, 254, 255})
-    return (canonical and counts.get(205, 0) > 0
+    return (counts.get(205, 0) > 0
             and float(metadata['free_thresh']) >= (255.0 - 205.0) / 255.0)
 
 
@@ -66,6 +65,9 @@ def repair_map(path):
     path, metadata, image = read_map(path)
     if not has_unsafe_unknowns(metadata, image):
         return None
+    with Image.open(image) as source:
+        if not set(source.convert('L').getdata()).issubset({0, 205, 254, 255}):
+            raise ValueError('混合灰度地图的语义不明确；请人工确认后修改阈值')
     backup = path.with_name(path.name + '.bak-' + datetime.now().strftime('%Y%m%d-%H%M%S-%f'))
     shutil.copy2(path, backup)
     metadata['free_thresh'] = FREE_THRESHOLD

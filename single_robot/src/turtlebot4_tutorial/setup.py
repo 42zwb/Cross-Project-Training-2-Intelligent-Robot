@@ -37,6 +37,7 @@ setup(
             'robot_status_publisher = turtlebot4_tutorial.robot_status_publisher:main',
             'multi_robot_patrol = turtlebot4_tutorial.multi_robot_patrol:main',
             'collision_monitor = turtlebot4_tutorial.collision_monitor:main',
+            'velocity_arbiter = turtlebot4_tutorial.velocity_arbiter:main',
             'mapping_patrol = turtlebot4_tutorial.mapping_patrol:main',
             'robot_description_filter = turtlebot4_tutorial.robot_description_filter:main',
             'initial_pose_publisher = turtlebot4_tutorial.initial_pose_publisher:main',

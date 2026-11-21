@@ -303,12 +303,13 @@ def nav_config(name, cfg):
             update_frequency=5.0 if key == "local_costmap" else 2.0,
             publish_frequency=1.0,
             plugins=["static_layer", "obstacle_layer", "inflation_layer"],
+            use_maximum=False,
             filters=["keepout_filter"],
         )
         p.pop("voxel_layer", None)
         p["static_layer"] = {
             "plugin": "nav2_costmap_2d::StaticLayer",
-            "map_topic": "/map",
+            "map_topic": f"/{name}/navigation_map",
             "map_subscribe_transient_local": True,
             "subscribe_to_updates": False,
         }
@@ -366,7 +367,24 @@ def nav_config(name, cfg):
     return {name: d}
 
 
-def prepare(out, config):
+def remove_sim_lidar_self_occlusion(root):
+    """Remove simulated lidar/body visuals that occlude the GPU lidar itself.
+
+    The camera bracket intersects rear rays at 9 cm. At some orientations the
+    GPU lidar also sees the lidar housing at 2.5–3.5 cm. Both are inside its
+    16.4 cm minimum range. Remove the visuals in the simulation only, retaining
+    links, joints, inertial, collision geometry and the lidar sensor. Physical
+    lidar coverage must be assessed separately; -inf remains invalid in safety.
+    """
+    for name in ("oakd_camera_bracket", "rplidar_link"):
+        link = root.find(f"link[@name='{name}']")
+        if link is None:
+            raise ValueError(f"{name} link missing from simulated robot")
+        for visual in list(link.findall("visual")):
+            link.remove(visual)
+
+
+def prepare(out, config, *, remove_lidar_visuals=True):
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
     cfg = validate_config(yaml.safe_load(Path(config).read_text()))
@@ -389,6 +407,8 @@ def prepare(out, config):
             f"namespace:={n}",
         ]
         root = ET.fromstring(subprocess.check_output(cmd, text=True))
+        if remove_lidar_visuals:
+            remove_sim_lidar_self_occlusion(root)
         for parent in list(root.iter()):
             for child in list(parent):
                 if child.tag == "sensor" and child.attrib.get("name") != "rplidar":

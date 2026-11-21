@@ -3,7 +3,7 @@ A worker performs long operations; ROS callbacks and safety leases stay live.
 Every operation carries a generation token so cancellation cannot revive motion.
 """
 
-import datetime, itertools, json, math, queue, threading, time, shutil, uuid
+import datetime, itertools, json, math, queue, threading, time, shutil, uuid, secrets
 from pathlib import Path
 import numpy as np
 import yaml
@@ -39,7 +39,34 @@ from .geometry import (
     formation_pass,
     validate_regions,
     plan_formation,
+    peer_obstacle_grid,
+    navigation_peer_radius,
 )
+
+
+# Cartographer occupancy grid is configured to publish every second even when
+# its contents do not change; allow substantial scheduling/simulation jitter.
+LOCAL_MAP_TIMEOUT = 15.0
+
+
+def local_maps_fresh(mapping, names):
+    ages = mapping.get("local_map_age", {})
+    return (isinstance(ages, dict) and set(ages) == set(names)
+            and all(isinstance(age, (int, float)) and not isinstance(age, bool)
+                    and 0 <= age < LOCAL_MAP_TIMEOUT for age in ages.values()))
+
+
+def safety_sensors_ready(safety, names):
+    # These diagnostics are reported even while robots are idle. Never infer
+    # readiness from the idle reason alone, which masks sensor failures.
+    return all(isinstance(safety.get(n), dict)
+               and all(safety[n].get(key) is True
+                       for key in ("scan_valid", "odom_valid", "localization_ok"))
+               and all(isinstance(safety[n].get(key), (int, float))
+                       and not isinstance(safety[n].get(key), bool)
+                       and 0 <= safety[n][key] < 0.8
+                       for key in ("scan_age", "odom_age"))
+               for n in names)
 
 
 class Coordinator(Node):
@@ -84,6 +111,7 @@ class Coordinator(Node):
         self.last_boundary_check = 0.0
         self.generation = 0
         self.active = set()
+        self.command_epochs = {n: secrets.randbits(48) for n in self.names}
         self.mapping = {}
         self.mapping_received = 0.0
         self.safety_received = 0.0
@@ -123,9 +151,14 @@ class Coordinator(Node):
             String, "/fleet/save_request", self.save_qos
         )
         self.maskpub = {}
+        self.peerpub = {}
+        self.peer_maps_complete = False
         self.infopub = {}
         self.actions = {}
         for n in self.names:
+            self.peerpub[n] = self.create_publisher(
+                OccupancyGrid, f"/{n}/navigation_map", self.qos
+            )
             self.maskpub[n] = self.create_publisher(
                 OccupancyGrid, f"/{n}/keepout_mask", self.qos
             )
@@ -184,6 +217,7 @@ class Coordinator(Node):
         )
         self.create_timer(0.1, self.tick, callback_group=self.group)
         self.create_timer(2.0, self.publish_masks)
+        self.create_timer(0.2, self.publish_peer_obstacles)
         self.eventfile = open(self.run / "events.jsonl", "a", buffering=1)
         self.telemetry = open(self.run / "telemetry.jsonl", "a", buffering=1)
         self.event_lock = threading.Lock()
@@ -212,6 +246,7 @@ class Coordinator(Node):
             aligned = mapping.get("aligned")
             local_maps = mapping.get("local_maps")
             scan_age = mapping.get("scan_age")
+            local_map_age = mapping.get("local_map_age")
             known_fraction = mapping.get("known_fraction")
             if (
                 not isinstance(aligned, list)
@@ -220,6 +255,10 @@ class Coordinator(Node):
                 or not isinstance(local_maps, list)
                 or not all(isinstance(name, str) for name in local_maps)
                 or set(local_maps) != set(self.names)
+                or not isinstance(local_map_age, dict)
+                or set(local_map_age) != set(self.names)
+                or any(isinstance(age, bool) or not isinstance(age, (int, float))
+                       or not 0.0 <= age < float("inf") for age in local_map_age.values())
                 or not isinstance(scan_age, dict)
                 or set(scan_age) != set(self.names)
                 or isinstance(known_fraction, bool)
@@ -270,10 +309,11 @@ class Coordinator(Node):
             not isinstance(request_id, str)
             or not request_id
             or not isinstance(result.get("success"), bool)
+            or not isinstance(result.get("destination"), str)
         ):
             return
         with self.save_condition:
-            self.save_results[request_id] = result
+            self.save_results[(request_id, result["destination"])] = result
             while len(self.save_results) > 32:
                 self.save_results.pop(next(iter(self.save_results)))
             self.save_condition.notify_all()
@@ -362,6 +402,44 @@ class Coordinator(Node):
                 return
             stride = max(1, int(math.ceil(len(points) / 500)))
             self.nav_plans[name] = points[::stride] + [points[-1]]
+
+    def publish_peer_obstacles(self):
+        # Every vehicle gets its own Nav2-only copy. Shared /map and SLAM inputs
+        # are never modified, and each full map clears old peer positions.
+        with self.lock:
+            poses = dict(self.poses)
+            if len(poses) == len(self.names):
+                self.peer_maps_complete = True
+            elif self.peer_maps_complete:
+                return  # retain last conservative snapshot on TF loss
+            grid = self.grid
+            if grid is None:
+                return
+            base = grid.data.copy()
+            shape, res, origin = base.shape, grid.res, grid.origin
+        for name in self.names:
+            others = [poses[n][:2] for n in self.names if n != name and n in poses]
+            # Safety checks a 0.6 s sweep and relative closing speed. Account
+            # for both, maximum turning margin and 5 cm planning margin. Nav2
+            # inflation adds the moving robot's own radius.
+            peer_radius = navigation_peer_radius(
+                self.cfg["robot_radius"], self.cfg["max_speed"])
+            data = peer_obstacle_grid(shape, res, origin, others, peer_radius, base)
+            payload = data.tobytes()
+            if payload == getattr(self, "last_peer_payload", {}).get(name):
+                continue
+            message = OccupancyGrid()
+            message.header.frame_id = "map"
+            message.header.stamp = self.get_clock().now().to_msg()
+            message.info.resolution = res
+            message.info.height, message.info.width = shape
+            message.info.origin.position.x, message.info.origin.position.y = origin
+            message.info.origin.orientation.w = 1.0
+            message.data = data.flatten().tolist()
+            self.peerpub[name].publish(message)
+            if not hasattr(self, "last_peer_payload"):
+                self.last_peer_payload = {}
+            self.last_peer_payload[name] = payload
 
     def publish_masks(self):
         res = self.cfg["resolution"]
@@ -468,6 +546,8 @@ class Coordinator(Node):
                 and self.nav_ready
                 and self.grid is not None
                 and all(age < 0.8 for age in self.mapping.get("scan_age", {}).values())
+                and local_maps_fresh(self.mapping, self.names)
+                and safety_sensors_ready(self.safety, self.names)
             )
             if self.mode == "BOOTSTRAP" and self.ready:
                 self.mode = "IDLE"
@@ -493,6 +573,10 @@ class Coordinator(Node):
                 and v.get("reason")
                 in [
                     "雷达超时",
+                    "雷达时间戳超时或无效",
+                    "里程计时间戳超时或无效",
+                    "雷达坐标变换不可用",
+                    "其他机器人定位或里程计不可用",
                     "雷达数据无效",
                     "里程计超时",
                     "里程计数据无效",
@@ -503,6 +587,8 @@ class Coordinator(Node):
                     "调度心跳中断",
                 ]
             ]
+            if self.active and not local_maps_fresh(self.mapping, self.names):
+                critical.append("局部地图更新超时")
             if self.active and not nav_poses_fresh:
                 critical.append("导航位姿超时")
             if self.active and not nav_bonds_fresh:
@@ -524,19 +610,7 @@ class Coordinator(Node):
                     self.patrol["error"] = self.message
                 self.cancel_all()
                 self.event("fault", reason=self.message)
-            self.leasepub.publish(
-                String(
-                    data=json.dumps(
-                        {
-                            "active": list(self.active),
-                            "generation": self.generation,
-                            "estop": self.estop,
-                            "region_enabled": self.region_enabled,
-                            "regions": self.regions,
-                        }
-                    )
-                )
-            )
+            self.publish_lease()
             if self.slots and self.assignment and len(self.poses) == 3:
                 self.errors = {
                     n: {
@@ -825,13 +899,14 @@ class Coordinator(Node):
             )
         )
         end = time.monotonic() + 8.0
+        save_key = (request_id, str(dest))
         with self.save_condition:
-            while request_id not in self.save_results and time.monotonic() < end:
+            while save_key not in self.save_results and time.monotonic() < end:
                 self.save_condition.wait(timeout=min(0.2, end - time.monotonic()))
-            result = self.save_results.pop(request_id, None)
+            result = self.save_results.pop(save_key, None)
         if result is None:
-            res.success = True
-            res.message = f"地图保存仍在后台执行，结果目录：{dest}"
+            res.success = False
+            res.message = f"地图保存仍在后台执行，尚未确认成功；结果目录：{dest}"
         else:
             res.success = bool(result.get("success"))
             res.message = str(result.get("message") or dest)
@@ -964,11 +1039,44 @@ class Coordinator(Node):
             time.sleep(0.05)
         return False
 
+    def publish_lease(self):
+        # Caller holds self.lock, so active membership and epochs form one snapshot.
+        self.leasepub.publish(String(data=json.dumps({
+            "active": list(self.active), "generation": self.generation,
+            "command_epochs": self.command_epochs,
+            "estop": self.estop, "region_enabled": self.region_enabled,
+            "regions": self.regions,
+        })))
+
     def send_goal(self, n, target, token):
         with self.lock:
             if not self.valid(token):
                 return None
             self.active.add(n)
+            self.command_epochs[n] += 1
+            epoch = self.command_epochs[n]
+            self.publish_lease()
+        # Wait for the safety node to consume this authorization before asking
+        # Nav2 for a goal. Publishing alone gives no cross-topic ordering guarantee.
+        deadline = time.monotonic() + 2.0
+        while time.monotonic() < deadline:
+            with self.lock:
+                if not self.valid(token):
+                    if self.command_epochs[n] == epoch:
+                        self.active.discard(n)
+                        self.publish_lease()
+                    return None
+                acknowledged = (self.safety.get(n, {}).get("command_epoch") == epoch
+                                and time.monotonic() - self.safety_received < 1.0)
+            if acknowledged:
+                break
+            time.sleep(0.02)
+        else:
+            with self.lock:
+                self.active.discard(n)
+                self.publish_lease()
+            self.event("goal_authorization_timeout", robot=n, epoch=epoch)
+            return None
         req = NavigateToPose.Goal()
         req.pose.header.frame_id = "map"
         req.pose.header.stamp = self.get_clock().now().to_msg()
@@ -1411,7 +1519,10 @@ class Coordinator(Node):
             self.event("explore_complete", travel=travel)
 
     def do_formation(self, slots, token):
-        result = plan_formation(self.grid, [self.poses[n] for n in self.names], slots)
+        clearance = (navigation_peer_radius(self.cfg["robot_radius"], self.cfg["max_speed"])
+                     + self.cfg["robot_radius"] + self.grid.res * math.sqrt(2.0) / 2.0)
+        result = plan_formation(self.grid, [self.poses[n] for n in self.names], slots,
+                                peer_clearance=clearance)
         if not self.valid(token):
             return
         if result is None:

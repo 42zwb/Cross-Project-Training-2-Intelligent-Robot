@@ -1,0 +1,331 @@
+{
+  "source": "2026-11-11/full-seed24-layout0; observed peer state only; no truth inputs",
+  "samples": [
+    {
+      "after_staging_seconds": 0.6762967499998922,
+      "state": {
+        "coordinate_frame": "b8b9d7ab576540c252de99cc",
+        "estop": false,
+        "robots": {
+          "robot1": {
+            "ready": true,
+            "aligned": true,
+            "nav_ready": true,
+            "boot_id": "381d667bd0524e27ae17a21c28704fd6",
+            "map_epoch": 5,
+            "state_age": 0.017855889000202296,
+            "frame_epoch": "b8b9d7ab576540c252de99cc",
+            "connected_members": [
+              "robot1",
+              "robot2",
+              "robot3"
+            ],
+            "pose": [
+              0.06091558951406871,
+              0.0811902289493968,
+              -0.10841573934743855
+            ],
+            "goal": null,
+            "safety": {
+              "reason": "待命",
+              "moving_allowed": false,
+              "v": 0.0,
+              "w": 0.0,
+              "scan_valid": true,
+              "odom_valid": true,
+              "localization_ok": true,
+              "scan_age": 0.05544618299973081,
+              "odom_age": 0.03542784099954588,
+              "estop": false,
+              "command_epoch": ""
+            },
+            "pose_sim_time": 1762.05,
+            "pose_steady_time": 5166.178225727
+          },
+          "robot2": {
+            "ready": true,
+            "aligned": true,
+            "nav_ready": true,
+            "boot_id": "a23a4f42de774c32a96dc98ef513c920",
+            "map_epoch": 1,
+            "state_age": 0.010595488000035402,
+            "frame_epoch": "b8b9d7ab576540c252de99cc",
+            "connected_members": [
+              "robot1",
+              "robot2",
+              "robot3"
+            ],
+            "pose": [
+              4.935940960259283,
+              0.008847856148634297,
+              0.06986083681051901
+            ],
+            "goal": null,
+            "safety": {
+              "reason": "待命",
+              "moving_allowed": false,
+              "v": 0.0,
+              "w": 0.0,
+              "scan_valid": true,
+              "odom_valid": true,
+              "localization_ok": true,
+              "scan_age": 0.045800023000083456,
+              "odom_age": 0.01571572900047613,
+              "estop": false,
+              "command_epoch": ""
+            },
+            "pose_sim_time": 1761.755,
+            "pose_steady_time": 5165.885153066
+          },
+          "robot3": {
+            "ready": true,
+            "aligned": true,
+            "nav_ready": true,
+            "boot_id": "9b1cf00acab8412db6f0be4294c48d66",
+            "map_epoch": 1,
+            "state_age": 0.012592858999596501,
+            "frame_epoch": "b8b9d7ab576540c252de99cc",
+            "connected_members": [
+              "robot1",
+              "robot2",
+              "robot3"
+            ],
+            "pose": [
+              9.945810525398363,
+              0.06993175671465893,
+              -0.09841220503183307
+            ],
+            "goal": null,
+            "safety": {
+              "reason": "待命",
+              "moving_allowed": false,
+              "v": 0.0,
+              "w": 0.0,
+              "scan_valid": true,
+              "odom_valid": true,
+              "localization_ok": true,
+              "scan_age": 0.04009501400014415,
+              "odom_age": 0.00047252700005628867,
+              "estop": false,
+              "command_epoch": ""
+            },
+            "pose_sim_time": 1761.735,
+            "pose_steady_time": 5165.862591040999
+          }
+        }
+      }
+    },
+    {
+      "after_staging_seconds": 1.1796588719998908,
+      "state": {
+        "coordinate_frame": "b8b9d7ab576540c252de99cc",
+        "estop": false,
+        "robots": {
+          "robot1": {
+            "ready": true,
+            "aligned": true,
+            "nav_ready": true,
+            "boot_id": "381d667bd0524e27ae17a21c28704fd6",
+            "map_epoch": 5,
+            "state_age": 0.021686343000510533,
+            "frame_epoch": "b8b9d7ab576540c252de99cc",
+            "connected_members": [
+              "robot1",
+              "robot2",
+              "robot3"
+            ],
+            "pose": [
+              0.060948359188973726,
+              0.08119305443610227,
+              -0.10841934076490567
+            ],
+            "goal": null,
+            "safety": {
+              "reason": "待命",
+              "moving_allowed": false,
+              "v": 0.0,
+              "w": 0.0,
+              "scan_valid": true,
+              "odom_valid": true,
+              "localization_ok": true,
+              "scan_age": 0.05633034900074563,
+              "odom_age": 0.03577034400041157,
+              "estop": false,
+              "command_epoch": ""
+            },
+            "pose_sim_time": 1762.55,
+            "pose_steady_time": 5166.678194243
+          },
+          "robot2": {
+            "ready": false,
+            "aligned": false,
+            "nav_ready": true,
+            "boot_id": "a23a4f42de774c32a96dc98ef513c920",
+            "map_epoch": 1,
+            "state_age": 0.012203588999909698,
+            "frame_epoch": "b8b9d7ab576540c252de99cc",
+            "connected_members": [
+              "robot1",
+              "robot2",
+              "robot3"
+            ],
+            "pose": null,
+            "goal": null,
+            "safety": {
+              "reason": "待命",
+              "moving_allowed": false,
+              "v": 0.0,
+              "w": 0.0,
+              "scan_valid": true,
+              "odom_valid": true,
+              "localization_ok": true,
+              "scan_age": 0.04780958100036514,
+              "odom_age": 0.016096156000457995,
+              "estop": false,
+              "command_epoch": ""
+            },
+            "pose_sim_time": null,
+            "pose_steady_time": null
+          },
+          "robot3": {
+            "ready": false,
+            "aligned": false,
+            "nav_ready": true,
+            "boot_id": "9b1cf00acab8412db6f0be4294c48d66",
+            "map_epoch": 1,
+            "state_age": 0.016598746000454412,
+            "frame_epoch": "b8b9d7ab576540c252de99cc",
+            "connected_members": [
+              "robot1",
+              "robot2",
+              "robot3"
+            ],
+            "pose": null,
+            "goal": null,
+            "safety": {
+              "reason": "待命",
+              "moving_allowed": false,
+              "v": 0.0,
+              "w": 0.0,
+              "scan_valid": true,
+              "odom_valid": true,
+              "localization_ok": false,
+              "scan_age": 0.04359761500018067,
+              "odom_age": 0.00047626900050090626,
+              "estop": false,
+              "command_epoch": ""
+            },
+            "pose_sim_time": null,
+            "pose_steady_time": null
+          }
+        }
+      }
+    },
+    {
+      "after_staging_seconds": 1.6811856289996285,
+      "state": {
+        "coordinate_frame": "b8b9d7ab576540c252de99cc",
+        "estop": false,
+        "robots": {
+          "robot1": {
+            "ready": true,
+            "aligned": true,
+            "nav_ready": true,
+            "boot_id": "381d667bd0524e27ae17a21c28704fd6",
+            "map_epoch": 5,
+            "state_age": 0.02342385799965996,
+            "frame_epoch": "b8b9d7ab576540c252de99cc",
+            "connected_members": [
+              "robot1",
+              "robot2",
+              "robot3"
+            ],
+            "pose": [
+              0.06101759849719522,
+              0.08120357478657805,
+              -0.10842490356686321
+            ],
+            "goal": null,
+            "safety": {
+              "reason": "待命",
+              "moving_allowed": false,
+              "v": 0.0,
+              "w": 0.0,
+              "scan_valid": true,
+              "odom_valid": true,
+              "localization_ok": true,
+              "scan_age": 0.05610605600031704,
+              "odom_age": 0.03547534100016492,
+              "estop": false,
+              "command_epoch": ""
+            },
+            "pose_sim_time": 1763.05,
+            "pose_steady_time": 5167.178207351
+          },
+          "robot2": {
+            "ready": true,
+            "aligned": false,
+            "nav_ready": true,
+            "boot_id": "a23a4f42de774c32a96dc98ef513c920",
+            "map_epoch": 1,
+            "state_age": 0.015416313000059745,
+            "frame_epoch": "b8b9d7ab576540c252de99cc",
+            "connected_members": [
+              "robot1",
+              "robot2",
+              "robot3"
+            ],
+            "pose": null,
+            "goal": null,
+            "safety": {
+              "reason": "待命",
+              "moving_allowed": false,
+              "v": 0.0,
+              "w": 0.0,
+              "scan_valid": true,
+              "odom_valid": true,
+              "localization_ok": true,
+              "scan_age": 0.04714791199967294,
+              "odom_age": 0.01619205899987719,
+              "estop": false,
+              "command_epoch": ""
+            },
+            "pose_sim_time": 1763.055,
+            "pose_steady_time": 5167.185331704
+          },
+          "robot3": {
+            "ready": true,
+            "aligned": false,
+            "nav_ready": true,
+            "boot_id": "9b1cf00acab8412db6f0be4294c48d66",
+            "map_epoch": 1,
+            "state_age": 0.017026939999595925,
+            "frame_epoch": "b8b9d7ab576540c252de99cc",
+            "connected_members": [
+              "robot1",
+              "robot2",
+              "robot3"
+            ],
+            "pose": null,
+            "goal": null,
+            "safety": {
+              "reason": "待命",
+              "moving_allowed": false,
+              "v": 0.0,
+              "w": 0.0,
+              "scan_valid": true,
+              "odom_valid": true,
+              "localization_ok": true,
+              "scan_age": 0.04136852600004204,
+              "odom_age": 0.029925585000455612,
+              "estop": false,
+              "command_epoch": ""
+            },
+            "pose_sim_time": 1763.055,
+            "pose_steady_time": 5167.182711476
+          }
+        }
+      }
+    }
+  ]
+}

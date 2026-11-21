@@ -8,10 +8,14 @@ import time
 
 from ament_index_python.packages import get_package_prefix
 from nav_msgs.msg import OccupancyGrid
+from PIL import Image
 import rclpy
 from rclpy.context import Context
 from rclpy.executors import SingleThreadedExecutor
 from rclpy.qos import DurabilityPolicy, QoSProfile
+import yaml
+
+from turtlebot4_tutorial.map_tools import validate_map
 
 
 def test_real_map_saver_and_map_server_preserve_all_three_cell_classes(tmp_path):
@@ -65,5 +69,54 @@ def test_real_map_saver_and_map_server_preserve_all_three_cell_classes(tmp_path)
         thread.join(timeout=3)
         node.destroy_subscription(subscription)
         node.destroy_timer(timer)
+        node.destroy_node()
+        context.shutdown()
+
+
+def test_real_map_server_mixed_grays_preserve_unknown(tmp_path):
+    Image.frombytes('L', (3, 1), bytes([205, 127, 254])).save(tmp_path / 'map.pgm')
+    path = tmp_path / 'map.yaml'
+    path.write_text(yaml.safe_dump({
+        'image': 'map.pgm', 'resolution': 0.05, 'origin': [0, 0, 0],
+        'mode': 'trinary', 'negate': 0, 'free_thresh': 0.196,
+        'occupied_thresh': 0.65,
+    }))
+    validate_map(path)
+    context = Context()
+    domain = 160 + os.getpid() % 40
+    rclpy.init(context=context, domain_id=domain)
+    node = rclpy.create_node('mixed_map_roundtrip_test', context=context)
+    qos = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL)
+    received = []
+    subscription = node.create_subscription(
+        OccupancyGrid, 'map', lambda m: received.append(Counter(m.data)), qos)
+    executor = SingleThreadedExecutor(context=context)
+    executor.add_node(node)
+    thread = threading.Thread(target=executor.spin)
+    thread.start()
+    prefix = Path(get_package_prefix('turtlebot4_tutorial')) / 'lib/turtlebot4_tutorial'
+    env = dict(os.environ, ROS_DOMAIN_ID=str(domain))
+    loader = None
+    try:
+        with (tmp_path / 'loader.log').open('w') as log:
+            loader = subprocess.Popen(
+                [str(prefix / 'map_loader'), str(path)], env=env,
+                stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
+            deadline = time.monotonic() + 10.0
+            while not received and time.monotonic() < deadline:
+                time.sleep(0.1)
+            assert received, (tmp_path / 'loader.log').read_text()
+            assert received[-1] == Counter({-1: 2, 0: 1})
+    finally:
+        if loader is not None and loader.poll() is None:
+            os.killpg(loader.pid, signal.SIGINT)
+            try:
+                loader.wait(timeout=8)
+            except subprocess.TimeoutExpired:
+                os.killpg(loader.pid, signal.SIGKILL)
+                loader.wait(timeout=3)
+        executor.shutdown(timeout_sec=3)
+        thread.join(timeout=3)
+        node.destroy_subscription(subscription)
         node.destroy_node()
         context.shutdown()

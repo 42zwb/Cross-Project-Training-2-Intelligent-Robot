@@ -42,5 +42,5 @@ dashboard_port: 8765
 planner: navfn
 scene:
   generator: mixed-shapes-v2
-  seed: null
+  seed: 24
   obstacle_count: 10

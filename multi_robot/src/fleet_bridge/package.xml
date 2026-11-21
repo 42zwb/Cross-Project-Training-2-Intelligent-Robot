@@ -8,5 +8,6 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
   <depend>rclcpp</depend>
   <depend>ros_gz_bridge</depend>
+  <depend>ignition-gazebo6</depend>
   <export><build_type>ament_cmake</build_type></export>
 </package>

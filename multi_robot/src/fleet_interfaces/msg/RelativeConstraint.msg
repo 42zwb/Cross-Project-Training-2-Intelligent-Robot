@@ -1,0 +1,20 @@
+std_msgs/Header header
+string session_id
+string robot_id
+string boot_id
+string constraint_id
+string source_robot
+string source_boot
+string target_robot
+string target_boot
+uint64 source_epoch
+uint64 target_epoch
+uint64 source_revision
+uint64 target_revision
+# Transform mapping target-local coordinates into source-local coordinates.
+geometry_msgs/Pose2D transform
+float64 score
+float64 overlap
+float64 translation_sigma
+float64 rotation_sigma
+string[] witnesses

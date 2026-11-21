@@ -25,3 +25,16 @@ installed 0.244.26 API. No system ROS/Gazebo library is replaced or preloaded.
 `bridge_lifecycle_probe --stock` diagnoses retained nodes with the installed
 entrypoint's ownership model; without that option it checks this package's
 explicit release in all three topic directions.
+
+## Managed Fortress server host
+
+`fleet_sim_server` uses the installed Gazebo Fortress 6 public `Server` and
+`ServerConfig` APIs. It owns the ROS context without ROS signal handlers, handles
+signals by setting a stop flag, calls `Server::Stop` on its main thread, waits for
+the simulation, then destroys the world before shutting down ROS. No system
+library is replaced. Python supervision keeps the clock/scan bridges alive until
+this producer has exited. This avoids overlapping asynchronous `/server_control`
+and Unix-signal stop paths observed in the Fortress 6.18.0 native backtrace.
+
+API: https://gazebosim.org/api/gazebo/6/classignition_1_1gazebo_1_1Server.html
+Reference implementation: https://github.com/gazebosim/gz-sim/blob/ignition-gazebo6_6.18.0/src/ServerPrivate.cc

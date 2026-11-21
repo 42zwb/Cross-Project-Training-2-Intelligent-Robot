@@ -19,6 +19,55 @@ FORMATION_YAW_TOLERANCE = math.radians(15.0)
 FORMATION_CLEARANCE_MARGIN = 0.14
 
 
+def private_observation_grid(shared, data, resolution, origin):
+    """Rank missing own observations without hiding confirmed shared obstacles."""
+    from fleet_mapping.grid import fuse
+    local = fuse([(data, resolution, *origin, (0., 0., 0.))],
+                 shared.data.shape, shared.res, shared.origin)
+    observations = shared.data.copy()
+    observations[(local < 0) & (observations < 65)] = -1
+    return Grid(observations, shared.res, shared.origin, shared.robot_radius, shared.region_margin)
+
+
+def navigation_peer_radius(robot_radius, max_speed, exclusive=False):
+    """Peer radius before adding this robot's Nav2 footprint inflation."""
+    if exclusive:
+        # Exclusive motion is granted only after conflicting holders have
+        # stopped or their longer reservations expire. Keep the physical peer
+        # footprint and sampling margin, without parallel-motion prediction.
+        # The independent guard always retains its full predictive spacing.
+        return robot_radius + .10 + .05
+    return (robot_radius + 0.10 + 1.2 * max_speed
+            + (0.6 * max_speed + 0.06) * 0.18 + 0.05)
+
+
+def peer_obstacle_grid(shape, resolution, origin, positions, radius, base=None):
+    """Copy a shared map and add peer disks; never mutate the input map."""
+    if base is None:
+        grid = np.full(shape, -1, dtype=np.int8)
+    else:
+        if np.shape(base) != tuple(shape):
+            raise ValueError("peer overlay and shared map dimensions do not match")
+        grid = np.array(base, dtype=np.int8, copy=True)
+    # Include each cell touched by the conservative peer footprint.
+    reach = radius + resolution * math.sqrt(2.0) / 2.0
+    for x, y in positions:
+        if not math.isfinite(x) or not math.isfinite(y):
+            continue
+        lo_x = max(0, int(math.floor((x - reach - origin[0]) / resolution)))
+        hi_x = min(shape[1], int(math.ceil((x + reach - origin[0]) / resolution)))
+        lo_y = max(0, int(math.floor((y - reach - origin[1]) / resolution)))
+        hi_y = min(shape[0], int(math.ceil((y + reach - origin[1]) / resolution)))
+        if lo_x >= hi_x or lo_y >= hi_y:
+            continue
+        yy, xx = np.ogrid[lo_y:hi_y, lo_x:hi_x]
+        xx = origin[0] + (xx + 0.5) * resolution
+        yy = origin[1] + (yy + 0.5) * resolution
+        view = grid[lo_y:hi_y, lo_x:hi_x]
+        view[(xx-x)**2 + (yy-y)**2 <= reach**2] = 100
+    return grid
+
+
 def formation_pass(poses, slots, assignment, robot_radius):
     """Check formation error and body separation using the shared acceptance policy."""
     if len(poses) != 3 or len(slots) != 3 or len(assignment) != 3:
@@ -301,7 +350,7 @@ class Grid:
 
     def frontiers(
         self, start, region, reserved=(), blacklist=(), visits=(), min_travel=False,
-        target_mask=None, others=(),
+        target_mask=None, others=(), observation_grid=None,
     ):
         field = self.route_field(start,region,others)
         if field is None:
@@ -309,11 +358,18 @@ class Grid:
         # Filter connectivity BEFORE ranking. A large unreachable pocket must
         # not occupy every slot in the old top-12 candidate shortlist.
         ok = field[2] & np.isfinite(field[0])
-        unknown = self.data < 0
-        if not unknown.any():
+        # A partition limits the path, not the laser's field of view. A robot
+        # with an observed region can still help by looking across its boundary
+        # from a safe viewpoint inside that region while its peers work.
+        observation = observation_grid if observation_grid is not None else self
+        if (observation.data.shape != self.data.shape or observation.res != self.res
+                or observation.origin != self.origin):
+            raise ValueError('observation and navigation grids must share coordinates')
+        unknown = observation.data < 0
+        if not unknown.any() and not min_travel:
             return None
         near = ndimage.distance_transform_edt(~unknown) * self.res
-        band = ok & (near < 1.0)
+        band = ok & (near < (2.5 if observation_grid is not None else 1.0))
         if target_mask is not None:
             band &= target_mask
         stride = max(1, int(round(0.30 / self.res)))
@@ -344,7 +400,7 @@ class Grid:
                 or any(math.dist(p, q[:2]) < 0.55 for q in active_blacklist)
             ):
                 continue
-            gain = self.visible_unknown((cy, cx))
+            gain = observation.visible_unknown((cy, cx))
             if gain < 0.015:
                 continue
             novelty = min([math.dist(p, q[:2]) for q in visits[-16:]] or [3.0])
@@ -438,7 +494,46 @@ class Grid:
         return self.frontiers(start, None, reserved, blacklist, visits, target_mask=blocked)
 
 
-def plan_formation(grid, poses, slots):
+def region_entry_margin(robot_radius, region_margin, resolution):
+    """The region mask plus the planner's footprint and raster clearance."""
+    return region_margin+robot_radius+.03+(robot_radius+.10)+resolution
+
+
+def region_return(grid, pose, mask):
+    """Nearest reachable observed cell safely inside the assigned region.
+
+    A fixed initial seed may have become unknown after a member restarts. A
+    region boundary can still be reached without inventing a free route there.
+    """
+    # The region becomes occupied outside this mask in the local planner.
+    # Reaching its first free cell is insufficient: the footprint and Nav2's
+    # 8 cm goal tolerance must leave a usable route after regional filtering.
+    depth = ndimage.distance_transform_edt(np.pad(mask, 1))[1:-1, 1:-1]*grid.res
+    interior = depth >= grid.clearance_radius+.12+2*grid.res
+    allowed = grid.allowed()
+    yy, xx = np.where(allowed & interior)
+    if not len(xx):
+        return None
+    points = np.column_stack([grid.origin[0]+(xx+.5)*grid.res,
+                              grid.origin[1]+(yy+.5)*grid.res])
+    ranked = np.argsort(np.sum((points-pose[:2])**2, axis=1))
+    tried = []
+    for index in ranked:
+        point = points[index]
+        if any(math.dist(point, p) < .25 for p in tried):
+            continue
+        tried.append(point)
+        route = grid.astar(pose, point, allowed)
+        if route:
+            return (float(point[0]), float(point[1]), math.atan2(point[1]-pose[1], point[0]-pose[0]))
+        if len(tried) >= 30:
+            break
+    return None
+
+
+def plan_formation(grid, poses, slots, peer_clearance=None):
+    if peer_clearance is None:
+        peer_clearance = grid.inter_robot_clearance
     best = None
     for assign in itertools.permutations(range(3)):
         for order in itertools.permutations(range(3)):
@@ -448,13 +543,17 @@ def plan_formation(grid, poses, slots):
             for i in order:
                 target = slots[assign[i]]
                 if math.dist(current[i][:2], target[:2]) < 0.08:
+                    if any(math.dist(target[:2], p[:2]) <= peer_clearance
+                           for j, p in enumerate(current) if j != i):
+                        break
                     routes.append((i, target, []))
                     current[i] = target
                     continue
                 result = grid.astar(
                     current[i],
                     target,
-                    grid.allowed(others=[p for j, p in enumerate(current) if j != i]),
+                    grid.allowed(others=[p for j, p in enumerate(current) if j != i],
+                                 other_clearance=peer_clearance),
                 )
                 if result is None:
                     break
@@ -474,10 +573,10 @@ def plan_formation(grid, poses, slots):
         for p in sorted(samples, key=lambda p: math.dist(p, poses[mover][:2]))[:40]:
             if (
                 min(math.dist(p, q[:2]) for q in list(poses) + list(slots))
-                < max(0.8, grid.inter_robot_clearance + 0.2)
+                < max(0.8, peer_clearance + 0.2)
             ):
                 continue
-            r = grid.astar(poses[mover], p, grid.allowed(others=others))
+            r = grid.astar(poses[mover], p, grid.allowed(others=others, other_clearance=peer_clearance))
             if not r:
                 continue
             moved = list(poses)
@@ -494,7 +593,8 @@ def plan_formation(grid, poses, slots):
                             current[i],
                             target,
                             grid.allowed(
-                                others=[q for j, q in enumerate(current) if j != i]
+                                others=[q for j, q in enumerate(current) if j != i],
+                                other_clearance=peer_clearance
                             ),
                         )
                         if path is None:

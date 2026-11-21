@@ -24,6 +24,9 @@ setup(
         "console_scripts": [
             "prepare=fleet_bringup.prepare:main",
             "nav_ready=fleet_bringup.nav_ready:main",
+            'local_nav_ready=fleet_bringup.local_nav_ready:main',
+            'odom_tf=fleet_bringup.odom_tf:main',
+            'peer_restart=fleet_bringup.peer_restart:main',
         ]
     },
 )

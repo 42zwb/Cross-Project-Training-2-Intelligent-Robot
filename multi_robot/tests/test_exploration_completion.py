@@ -138,6 +138,39 @@ def test_unknown_behind_a_wall_provides_no_visible_information_gain():
     assert grid.frontiers((2, 5, 0), None) is None
 
 
+def test_parallel_region_can_observe_neighbor_without_crossing_its_own_boundary():
+    data = np.zeros((100, 100), dtype=np.int16)
+    data[:, 55:] = -1
+    observed = Grid(data, .1, (0., 0.))
+    restricted = data.copy()
+    restricted[:, 50:] = 100
+    region = Grid(restricted, .1, (0., 0.))
+    assert region.frontiers((2., 5., 0.), None) is None
+    choice = region.frontiers((2., 5., 0.), None, observation_grid=observed)
+    assert choice is not None and choice[3]['visible_unknown_m2'] > .1
+    assert all(point[0] < 5. for point in choice[2][1])
+    assert np.array_equal(observed.data, data)
+    data[:, 50] = 100
+    assert region.frontiers((2., 5., 0.), None,
+                            observation_grid=Grid(data, .1, (0., 0.))) is None
+
+
+def test_robot_can_verify_missing_own_observations_on_an_already_shared_map():
+    from fleet_control.geometry import private_observation_grid
+    shared_data = np.zeros((100, 100), dtype=np.int16)
+    shared_data[:, 65] = 100
+    raw = shared_data.copy()
+    raw[20:40, 30:40] = -1
+    raw[:, 66:] = -1
+    shared = Grid(shared_data, .1, (0., 0.))
+    observation = private_observation_grid(shared, raw, .1, (0., 0., 0.))
+    assert np.all(observation.data[:, 65] == 100)
+    choice = shared.frontiers((2., 5., 0.), None, observation_grid=observation)
+    assert choice is not None and choice[3]['visible_unknown_m2'] > .1
+    assert choice[1][0] < 6.5
+    assert np.array_equal(shared.data, shared_data)
+
+
 def test_small_start_corner_is_selected_instead_of_large_unreachable_unknown():
     data = np.zeros((100, 100), dtype=np.int16)
     data[:, 60] = 100

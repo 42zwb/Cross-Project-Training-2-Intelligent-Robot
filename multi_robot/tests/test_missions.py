@@ -78,6 +78,8 @@ def test_late_goal_acceptance_is_cancelled_after_timeout_or_task_switch(cancelle
     fake = SimpleNamespace(
         lock=threading.RLock(), active=set(), actions={"robot1": SimpleNamespace(send_goal_async=lambda req: response)},
         valid=lambda token: valid[0], get_clock=lambda: Clock(), wait=wait,
+        command_epochs={"robot1": 0}, safety={"robot1": {"command_epoch": 1}},
+        safety_received=__import__("time").monotonic(), publish_lease=lambda: None,
     )
     assert Coordinator.send_goal(fake, "robot1", (-4, -3, 0), 1) is None
     response.set_result(handle)
@@ -144,6 +146,10 @@ def test_blind_motion_direction_stops_despite_valid_side_returns():
     scan.range_min, scan.range_max = 0.1, 12.0
     scan.angle_min, scan.angle_increment = -math.pi, 2 * math.pi / 640
     scan.ranges = [float("nan") if abs(-math.pi + i * 2 * math.pi / 640) < 0.45 else 1.0 for i in range(640)]
+    scan.header.stamp = clock.now().to_msg()
+    scan.header.frame_id = "robot1/rplidar_link"
+    odom = Odometry()
+    odom.header.stamp = clock.now().to_msg()
     command = Twist()
     command.linear.x = 0.1
     transform = TransformStamped()
@@ -152,7 +158,9 @@ def test_blind_motion_direction_stops_despite_valid_side_returns():
     outputs, reports = [], []
     fake = SimpleNamespace(cfg={"robots":[{"name":"robot1"}]}, lease=now,
         state={"active":["robot1"],"estop":False,"region_enabled":False},
-        scans={"robot1":(now,scan)}, odoms={"robot1":(now,Odometry())},
+        scans={"robot1":(now,scan)}, odoms={"robot1":(now,odom)},
+        stamp_progress={"scan":{"robot1":((scan.header.stamp.sec, scan.header.stamp.nanosec),now)},
+                        "odom":{"robot1":((odom.header.stamp.sec, odom.header.stamp.nanosec),now)}},
         commands={"robot1":(now,command)}, max_speed=0.2, robot_radius=0.18,
         buffer=SimpleNamespace(lookup_transform=lambda *args: transform), get_clock=lambda: clock,
         pubs={"robot1":SimpleNamespace(publish=outputs.append)},
