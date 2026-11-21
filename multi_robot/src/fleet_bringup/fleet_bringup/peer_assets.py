@@ -1,4 +1,5 @@
 """Simulation-only preparation and strict separation of robot configuration."""
+import json
 import math
 import copy
 import subprocess
@@ -130,8 +131,11 @@ def prepare_agents(out, config, session_id, no_dashboard=False, acceptance_scene
         converted = subprocess.check_output(['ign', 'sdf', '-p', str(out/f'{name}.urdf')], text=True)
         sdf = sensor_visible_peer_model(ET.fromstring(converted), index, cfg['robot_radius'])
         (out/f'{name}.sdf').write_text(ET.tostring(sdf, encoding='unicode'))
-    (out.parent/'architecture.json').write_text(__import__('json').dumps({
+    architecture = out.parent/'architecture.json'
+    temporary = architecture.with_suffix('.json.tmp')
+    temporary.write_text(json.dumps({
         'architecture': 'decentralized', 'initialization': 'unknown',
         'session_id': session_id, 'agents': [r['name'] for r in cfg['robots']],
         'no_dashboard': bool(no_dashboard)}, indent=2))
+    temporary.replace(architecture)
     return cfg

@@ -156,6 +156,7 @@ proc = None
 sampler = None
 probe = None
 recorder = None
+record_peer = a.record_truth and a.architecture == 'decentralized'
 stop = False
 shutdown_failed = False
 auxiliary_error = None
@@ -195,10 +196,15 @@ try:
     if a.record_truth:
         starting_auxiliary = "truth_probe"
         probe = subprocess.Popen([str(tool), str(run / "truth.jsonl")], start_new_session=True)
-        if a.architecture == 'decentralized':
-            starting_auxiliary = 'peer_recorder'
-            recorder = subprocess.Popen([sys.executable, str(root/'scripts/peer_recorder.py'), str(run)], start_new_session=True)
     while proc.poll() is None and not stop:
+        # The launch tree publishes this file after preparing the assets.
+        # Keep supervising the backend and the truth probe while it starts.
+        if record_peer and recorder is None and (run/'architecture.json').is_file():
+            starting_auxiliary = 'peer_recorder'
+            recorder = subprocess.Popen(
+                [sys.executable, str(root/'scripts/peer_recorder.py'), str(run)],
+                start_new_session=True,
+            )
         for name, child in [("resource_sampler", sampler), ("truth_probe", probe), ('peer_recorder', recorder)]:
             if child is not None and child.poll() is not None:
                 auxiliary_error = {"process": name, "returncode": child.returncode}
