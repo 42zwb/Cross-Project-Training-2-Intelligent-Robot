@@ -12,6 +12,8 @@ from .grid import fuse
 
 MIN_MATCH_SCORE = .80
 MAX_MATCH_RMS = .06
+MAX_CYCLE_TRANSLATION_ERROR = .15
+MAX_CYCLE_YAW_ERROR = math.radians(3)
 _worker_stop_event = None
 
 
@@ -495,11 +497,9 @@ class ConstraintGraph:
         self.edges = {}
         self.sigmas = {}
         self.anchor = None
+        self.refinement_cache = None
 
-    def poses(self, root=None):
-        root = root or self.anchor
-        if root is None:
-            return {}
+    def _tree_poses(self, root):
         result = {tuple(root): (0., 0., 0.)}
         pending = True
         while pending:
@@ -511,6 +511,65 @@ class ConstraintGraph:
                 elif b in result and a not in result:
                     result[a] = compose(result[b], inverse(pose))
                     pending = True
+        return result
+
+    @staticmethod
+    def _refine_component(tree, edges):
+        anchor = min(tree)
+        nodes = sorted(key for key in tree if key != anchor)
+        initial = np.concatenate([tree[key] for key in nodes])
+
+        def unpack(values):
+            poses = {anchor: (0., 0., 0.)}
+            poses.update((key, tuple(values[3*i:3*i+3])) for i, key in enumerate(nodes))
+            return poses
+
+        def errors(poses):
+            for a, b, observed, sigma, yaw_sigma in edges:
+                predicted = compose(inverse(poses[a]), poses[b])
+                yield (predicted[0]-observed[0], predicted[1]-observed[1],
+                       angle(predicted[2]-observed[2]), sigma, yaw_sigma)
+
+        def residual(values):
+            result = []
+            for dx, dy, dyaw, sigma, yaw_sigma in errors(unpack(values)):
+                result.extend((dx/max(sigma, .025), dy/max(sigma, .025),
+                               dyaw/max(yaw_sigma, math.radians(.5))))
+            return result
+
+        try:
+            fit = least_squares(residual, initial, loss='soft_l1', max_nfev=30)
+        except (ValueError, FloatingPointError):
+            return None
+        if not fit.success or not np.isfinite(fit.x).all():
+            return None
+        result = unpack(fit.x)
+        if any(math.hypot(dx, dy) > MAX_CYCLE_TRANSLATION_ERROR
+               or abs(dyaw) > MAX_CYCLE_YAW_ERROR for dx, dy, dyaw, _, _ in errors(result)):
+            return None
+        return result
+
+    def poses(self, root=None):
+        root = root or self.anchor
+        if root is None:
+            return {}
+        root = tuple(root)
+        tree = self._tree_poses(root)
+        edges = tuple((a, b, measured, *self.sigmas.get((a, b), (.05, math.radians(1))))
+                      for (a, b), (measured, _) in sorted(self.edges.items()) if a in tree and b in tree)
+        # A chain already satisfies its measurements. Only a genuine cycle
+        # contributes redundant evidence for refining the relative origins.
+        if len({frozenset((a, b)) for a, b, *_ in edges}) < len(tree):
+            return tree
+        if self.refinement_cache is None or self.refinement_cache[0] != edges:
+            canonical = min(tree)
+            self.refinement_cache = edges, self._refine_component(self._tree_poses(canonical), edges)
+        solution = self.refinement_cache[1]
+        if solution is None:
+            return tree
+        from_canonical = inverse(solution[root])
+        result = {key: compose(from_canonical, value) for key, value in solution.items()}
+        result[root] = (0., 0., 0.)
         return result
 
     def uncertainties(self, root=None):
@@ -536,11 +595,13 @@ class ConstraintGraph:
         if (source == target or not np.isfinite(transform).all() or len(transform) != 3
                 or not math.isfinite(sigma) or not math.isfinite(yaw_sigma) or min(sigma, yaw_sigma) < 0):
             return False
-        existing = self.poses(source)
+        # Keep the original cycle admission fence. A joint fit must not hide
+        # a new measurement that disagrees with the already accepted path.
+        existing = self._tree_poses(source)
         if target in existing:
             predicted = existing[target]
-            if (math.dist(predicted[:2], transform[:2]) > 0.15
-                    or abs(angle(predicted[2]-transform[2])) > math.radians(3)):
+            if (math.dist(predicted[:2], transform[:2]) > MAX_CYCLE_TRANSLATION_ERROR
+                    or abs(angle(predicted[2]-transform[2])) > MAX_CYCLE_YAW_ERROR):
                 return False
         old = self.edges.get((source, target))
         if old and old[1] > score + 0.1:

@@ -96,3 +96,33 @@ def test_voronoi_regions_are_disjoint_with_a_clearance_gap():
     masks = [voronoi_mask((100, 120), .05, (-3, -2.5), seeds, n) for n in seeds]
     assert np.max(np.sum(masks, axis=0)) <= 1
     assert all(np.any(m) for m in masks)
+
+
+def test_confirmed_cycle_recovers_recorded_startup_alignment_without_refitting_anchor():
+    graph = ConstraintGraph()
+    a, b, c = [(name, 'original', 1) for name in ('robot1', 'robot2', 'robot3')]
+    assert graph.add(a, b, (5.0081064568, .0373370756, -.0056205464),
+                     .869825, .0364836684, math.radians(1))
+    assert graph.add(a, c, (10.0248042720, .0194822122, -.0183168638),
+                     .858459, .0425481478, math.radians(1))
+    local_pose = (-5.4025285401, 2.9416361289, 2.6666220457)
+    initial_gauge = (-5.0187358098, -5.0192798629, .0006891686)
+    actual = (-.4146452923, -2.0489009646, 2.6750573822)
+
+    def physical_error(relative):
+        predicted = compose(initial_gauge, compose(relative, local_pose))
+        return math.dist(predicted[:2], actual[:2])
+
+    direct = graph.poses()[c]
+    assert physical_error(direct) > .1
+    assert graph.add(b, c, (5.0035983145, .0112225789, .0030976660),
+                     .844127, .0436684596, math.radians(1))
+    solved = graph.poses()
+    assert solved[a] == (0., 0., 0.)
+    assert physical_error(solved[c]) <= .1
+    via_b = compose(solved[b], graph.poses(b)[c])
+    assert np.allclose(via_b, solved[c], atol=1e-8)
+    assert not graph.add(b, c, (5.2, .0112225789, .0030976660))
+    assert graph.poses()[c] == solved[c]
+    assert graph.add(b, c, (5.0035983145, .008, .001), .85, .0436684596, math.radians(1))
+    assert not np.allclose(graph.poses()[c], solved[c], atol=1e-5)
